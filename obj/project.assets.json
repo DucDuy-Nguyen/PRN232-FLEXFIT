@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net8.0": {
       "Azure.Core/1.25.0": {
@@ -5281,23 +5281,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\": {},
+    "C:\\Users\\Huynh Thien Phat\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\PRN222-SP26\\FLEXFIT\\Flexfit\\Flexfit\\Flexfit.csproj",
+      "projectUniqueName": "D:\\EXE\\FlexFit\\Flexfit.csproj",
       "projectName": "Flexfit",
-      "projectPath": "D:\\PRN222-SP26\\FLEXFIT\\Flexfit\\Flexfit\\Flexfit.csproj",
-      "packagesPath": "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\",
-      "outputPath": "D:\\PRN222-SP26\\FLEXFIT\\Flexfit\\Flexfit\\obj\\",
+      "projectPath": "D:\\EXE\\FlexFit\\Flexfit.csproj",
+      "packagesPath": "C:\\Users\\Huynh Thien Phat\\.nuget\\packages\\",
+      "outputPath": "D:\\EXE\\FlexFit\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\NGUYENDUCDUY\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Huynh Thien Phat\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -5307,7 +5307,6 @@
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "C:\\Program Files\\dotnet\\library-packs": {},
-        "C:\\Users\\NGUYENDUCDUY\\Downloads": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -5327,7 +5326,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "10.0.200"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net8.0": {
@@ -5378,24 +5377,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.25, 8.0.25]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[8.0.25, 8.0.25]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.25, 8.0.25]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.25, 8.0.25]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -5404,7 +5385,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.201/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

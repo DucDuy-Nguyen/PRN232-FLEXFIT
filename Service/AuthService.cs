@@ -1,24 +1,28 @@
-﻿namespace Flexfit.Service
-{
-    using Flexfit.DTOs;
-    using Flexfit.Helpers;
-    using Flexfit.Models;
-    using Microsoft.EntityFrameworkCore;
+﻿using Flexfit.DTOs;
+using Flexfit.Helpers;
+using Flexfit.Models;
+using Flexfit.Repositories;
 
+namespace Flexfit.Service
+{
     public class AuthService
     {
-        private readonly FlexFitDbContext _db;
+        private readonly IUserRepository _userRepo; // Dùng Repository thay vì DbContext
         private readonly JwtHelper _jwt;
 
-        public AuthService(FlexFitDbContext db, JwtHelper jwt)
+        public AuthService(IUserRepository userRepo, JwtHelper jwt)
         {
-            _db = db;
+            _userRepo = userRepo;
             _jwt = jwt;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
-            if (await _db.Users.AnyAsync(u => u.Email == request.Email))
+            // 1. Kiểm tra không được để trống số điện thoại
+            if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+                throw new Exception("Số điện thoại không được để trống");
+
+            if (await _userRepo.ExistsByEmailAsync(request.Email))
                 throw new Exception("Email đã tồn tại");
 
             var user = new User
@@ -26,11 +30,16 @@
                 UserId = Guid.NewGuid(),
                 FullName = request.FullName,
                 Email = request.Email,
-                PasswordHash = PasswordHasher.Hash(request.Password)
+                // 2. Gán số điện thoại từ request vào model
+               
+                PasswordHash = PasswordHasher.Hash(request.Password),
+                PhoneNumber = request.PhoneNumber,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
             };
 
-            _db.Users.Add(user);
-            await _db.SaveChangesAsync();
+            await _userRepo.AddAsync(user);
+            await _userRepo.SaveChangesAsync();
 
             return new AuthResponse
             {
@@ -41,7 +50,7 @@
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _userRepo.GetByEmailAsync(request.Email);
             if (user == null) throw new Exception("Email không tồn tại");
 
             if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
