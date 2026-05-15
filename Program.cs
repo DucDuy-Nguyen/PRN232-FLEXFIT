@@ -1,12 +1,11 @@
 using Flexfit.Helpers;
 using Flexfit.Models;
+using Flexfit.Repositories;
 using Flexfit.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,11 +48,12 @@ builder.Services.AddAuthentication(options =>
 // Add Authorization (Role-based)
 builder.Services.AddAuthorization();
 
+// Register Repositories (DI)
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 // Register Services (DI)
-builder.Services.AddScoped<AuthService>();
-//builder.Services.AddScoped<UserService>();
-//builder.Services.AddScoped<BookingService>();
-//builder.Services.AddScoped<CreditService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<JwtHelper>();
 
 // ==============================

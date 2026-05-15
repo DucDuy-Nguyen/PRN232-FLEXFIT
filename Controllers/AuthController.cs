@@ -1,4 +1,4 @@
-﻿namespace Flexfit.Controllers
+namespace Flexfit.Controllers
 {
     using Flexfit.Service;
     using Microsoft.AspNetCore.Mvc;
@@ -8,9 +8,9 @@
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
 
-        public AuthController(AuthService authService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
@@ -26,6 +26,13 @@
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await _authService.LoginAsync(request);
+            return Ok(result);
+        }
+
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+        {
+            var result = await _authService.LoginWithGoogleAsync(request);
             return Ok(result);
         }
     }
