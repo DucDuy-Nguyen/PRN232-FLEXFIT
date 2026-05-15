@@ -28,5 +28,18 @@
             var result = await _authService.LoginAsync(request);
             return Ok(result);
         }
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
+        {
+            // Gọi thẳng hàm từ class AuthService
+            var result = await _authService.VerifyEmailAsync(request.Email, request.OtpCode);
+
+            if (result == "Xác thực tài khoản thành công!")
+            {
+                return Ok(new { message = result });
+            }
+
+            return BadRequest(new { message = result });
+        }
     }
 }

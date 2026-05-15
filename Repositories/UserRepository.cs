@@ -1,7 +1,7 @@
 
 using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+
 
 namespace Flexfit.Repositories
 {
@@ -12,6 +12,10 @@ namespace Flexfit.Repositories
         public UserRepository(FlexFitDbContext db)
         {
             _db = db;
+        }
+        public async Task<User?> GetByVerificationTokenAsync(string token)
+        {
+            return await _db.Users.FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
         }
 
         public async Task<User?> GetByEmailAsync(string email)
@@ -31,6 +35,11 @@ namespace Flexfit.Repositories
 
         public async Task SaveChangesAsync()
         {
+            await _db.SaveChangesAsync();
+        }
+        public async Task UpdateAsync(User user)
+        {
+            _db.Users.Update(user);
             await _db.SaveChangesAsync();
         }
     }

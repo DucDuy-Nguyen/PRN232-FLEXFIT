@@ -304,3 +304,6 @@ D:\EXE\FlexFit\obj\Debug\net8.0\swae.build.ex.cache
 D:\EXE\FlexFit\obj\Debug\net8.0\Flexfit.csproj.Up2Date
 D:\EXE\FlexFit\obj\Debug\net8.0\Flexfit.genruntimeconfig.cache
 D:\EXE\FlexFit\obj\Debug\net8.0\ref\Flexfit.dll
+D:\EXE\FlexFit\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
+D:\EXE\FlexFit\bin\Debug\net8.0\MailKit.dll
+D:\EXE\FlexFit\bin\Debug\net8.0\MimeKit.dll

@@ -30,6 +30,8 @@ public partial class User
     public virtual ICollection<Gym> Gyms { get; set; } = new List<Gym>();
 
     public virtual MemberProfile? MemberProfile { get; set; }
+    public string? EmailVerificationToken { get; set; }
+    public DateTime? VerificationTokenExpires { get; set; }
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -1,11 +1,11 @@
 using Flexfit.Helpers;
 using Flexfit.Models;
+using Flexfit.Repositories;
 using Flexfit.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Flexfit.Repositories;
 
 
 
@@ -52,6 +52,7 @@ builder.Services.AddAuthorization();
 
 // Register Services (DI)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<AuthService>();
 //builder.Services.AddScoped<UserService>();
 //builder.Services.AddScoped<BookingService>();

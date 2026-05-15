@@ -1,5 +1,5 @@
 using Flexfit.Models;
-using System.Threading.Tasks;
+
 
 namespace Flexfit.Repositories
 {
@@ -9,5 +9,7 @@ namespace Flexfit.Repositories
         Task AddAsync(User user);
         Task<bool> ExistsByEmailAsync(string email);
         Task SaveChangesAsync();
+        Task<User?> GetByVerificationTokenAsync(string token);
+        Task UpdateAsync(User user);
     }
 }
