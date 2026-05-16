@@ -51,6 +51,7 @@ builder.Services.AddAuthorization();
 // Register Repositories (DI)
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Register Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
