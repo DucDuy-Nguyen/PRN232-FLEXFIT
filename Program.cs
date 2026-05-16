@@ -54,6 +54,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<AuthService>();
+// Gym and Branch services
+builder.Services.AddScoped<IGymRepository, GymRepository>();
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 //builder.Services.AddScoped<UserService>();
 //builder.Services.AddScoped<BookingService>();
 //builder.Services.AddScoped<CreditService>();
