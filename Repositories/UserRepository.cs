@@ -42,6 +42,7 @@ namespace Flexfit.Repositories
             _db.Users.Update(user);
             await _db.SaveChangesAsync();
         }
+
         public async Task<IEnumerable<User>> GetAllAsync()
         {
             return await _db.Users.ToListAsync();
@@ -60,5 +61,6 @@ namespace Flexfit.Repositories
                 _db.Users.Remove(user);
             }
         }
+
     }
 }

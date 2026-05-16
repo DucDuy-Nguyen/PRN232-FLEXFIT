@@ -7,8 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 // ==============================
@@ -50,16 +48,21 @@ builder.Services.AddAuthentication(options =>
 // Add Authorization (Role-based)
 builder.Services.AddAuthorization();
 
-// Register Services (DI)
+// Register Repositories (DI)
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<AuthService>();
+
+
 // Gym and Branch services
 builder.Services.AddScoped<IGymRepository, GymRepository>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 //builder.Services.AddScoped<UserService>();
 //builder.Services.AddScoped<BookingService>();
 //builder.Services.AddScoped<CreditService>();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddSingleton<JwtHelper>();
 
 // ==============================

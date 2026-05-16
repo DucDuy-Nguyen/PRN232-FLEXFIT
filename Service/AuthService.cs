@@ -1,21 +1,26 @@
-﻿using Flexfit.DTOs;
-using Flexfit.Helpers;
-using Flexfit.Models;
-using Flexfit.Repositories;
-
 namespace Flexfit.Service
 {
-    public class AuthService
+    using Flexfit.DTOs;
+    using Flexfit.Helpers;
+    using Flexfit.Models;
+    using Flexfit.Repositories;
+    using Google.Apis.Auth;
+    using Microsoft.Extensions.Configuration;
+
+    public class AuthService : IAuthService
     {
-        private readonly IUserRepository _userRepo;
+        private readonly IUserRepository _userRepository;
         private readonly JwtHelper _jwt;
+        private readonly IConfiguration _config;
         private readonly IEmailService _emailService; // Thêm EmailService
 
-        public AuthService(IUserRepository userRepo, JwtHelper jwt, IEmailService emailService)
+
+        public AuthService(IUserRepository userRepository, JwtHelper jwt, IConfiguration config, IEmailService emailService)
         {
-            _userRepo = userRepo;
+            _userRepository = userRepository;
             _jwt = jwt;
-            _emailService = emailService; // Inject vào constructor
+            _config = config;
+            _emailService = emailService;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -24,7 +29,7 @@ namespace Flexfit.Service
             if (string.IsNullOrWhiteSpace(request.PhoneNumber))
                 throw new Exception("Số điện thoại không được để trống");
 
-            if (await _userRepo.ExistsByEmailAsync(request.Email))
+            if (await _userRepository.ExistsByEmailAsync(request.Email))
                 throw new Exception("Email đã tồn tại");
 
             // 2. TẠO MÃ OTP TRƯỚC
@@ -49,9 +54,9 @@ namespace Flexfit.Service
             };
 
             // 4. LƯU XUỐNG DATABASE (CHỈ LƯU 1 LẦN DUY NHẤT)
-            await _userRepo.AddAsync(user);
+            await _userRepository.AddAsync(user);
             // Lưu ý: Nếu hàm AddAsync của bạn chưa có SaveChanges, thì cần gọi hàm dưới đây:
-             await _userRepo.SaveChangesAsync(); 
+            await _userRepository.SaveChangesAsync();
 
             // 5. GỬI EMAIL XÁC THỰC
             var subject = "Mã xác thực tài khoản FlexFit";
@@ -75,7 +80,7 @@ namespace Flexfit.Service
         public async Task<string> VerifyEmailAsync(string email, string otpCode)
         {
             // 1. Tìm user theo email
-            var user = await _userRepo.GetByEmailAsync(email);
+            var user = await _userRepository.GetByEmailAsync(email);
 
             if (user == null || user.EmailVerificationToken != otpCode)
             {
@@ -93,19 +98,15 @@ namespace Flexfit.Service
             user.EmailVerificationToken = null; // Xóa mã đi
             user.VerificationTokenExpires = null;
 
-            await _userRepo.UpdateAsync(user);
+            await _userRepository.UpdateAsync(user);
 
             return "Xác thực tài khoản thành công!";
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
-            var user = await _userRepo.GetByEmailAsync(request.Email);
+            var user = await _userRepository.GetByEmailAsync(request.Email);
             if (user == null) throw new Exception("Email không tồn tại");
-
-            // Chặn đăng nhập nếu chưa xác thực email
-            if (!user.IsEmailVerified)
-                throw new Exception("Vui lòng xác thực email trước khi đăng nhập.");
 
             if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
                 throw new Exception("Mật khẩu không đúng");
@@ -115,6 +116,44 @@ namespace Flexfit.Service
                 Token = _jwt.GenerateToken(user.UserId, user.Email),
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60)
             };
+        }
+
+        public async Task<AuthResponse> LoginWithGoogleAsync(GoogleLoginRequest request)
+        {
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings()
+                {
+                    Audience = new List<string>() { _config["Google:ClientId"] }
+                };
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
+
+                var user = await _userRepository.GetByEmailAsync(payload.Email);
+
+                if (user == null)
+                {
+                    user = new User
+                    {
+                        UserId = Guid.NewGuid(),
+                        FullName = payload.Name,
+                        Email = payload.Email,
+                        PasswordHash = "" // Google login doesn't need password hash
+                    };
+                    await _userRepository.AddAsync(user);
+                    await _userRepository.SaveChangesAsync();
+                }
+
+                return new AuthResponse
+                {
+                    Token = _jwt.GenerateToken(user.UserId, user.Email),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(60)
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Xác thực Google thất bại: " + ex.Message);
+            }
         }
     }
 }
