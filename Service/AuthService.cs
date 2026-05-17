@@ -50,7 +50,17 @@ namespace Flexfit.Service
                 // --- PHẦN VERIFY EMAIL ---
                 IsEmailVerified = false,
                 EmailVerificationToken = otpCode, // Gán trực tiếp mã 6 số
-                VerificationTokenExpires = DateTime.UtcNow.AddMinutes(2) // Hẹn giờ 2 phút
+                VerificationTokenExpires = DateTime.UtcNow.AddMinutes(2), // Hẹn giờ 2 phút
+
+                // Khởi tạo ví tín dụng ban đầu với số dư = 0
+                UserCredit = new UserCredit
+                {
+                    UserCreditId = Guid.NewGuid(),
+                    Balance = 0,
+                    TotalEarned = 0,
+                    TotalSpent = 0,
+                    UpdatedAt = DateTime.UtcNow
+                }
             };
 
             // 4. LƯU XUỐNG DATABASE (CHỈ LƯU 1 LẦN DUY NHẤT)
@@ -140,7 +150,15 @@ namespace Flexfit.Service
                         UserId = Guid.NewGuid(),
                         FullName = payload.Name,
                         Email = payload.Email,
-                        PasswordHash = "" // Google login doesn't need password hash
+                        PasswordHash = "", // Google login doesn't need password hash
+                        UserCredit = new UserCredit
+                        {
+                            UserCreditId = Guid.NewGuid(),
+                            Balance = 0,
+                            TotalEarned = 0,
+                            TotalSpent = 0,
+                            UpdatedAt = DateTime.UtcNow
+                        }
                     };
                     await _userRepository.AddAsync(user);
                     await _userRepository.SaveChangesAsync();

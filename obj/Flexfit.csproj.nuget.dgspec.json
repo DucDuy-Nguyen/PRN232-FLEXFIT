@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\PRN222-SP26\\FLEXFIT\\Flexfit\\Flexfit\\Flexfit.csproj": {}
+    "D:\\FlexFit\\Flexfit-V01\\Flexfit\\Flexfit\\Flexfit.csproj": {}
   },
   "projects": {
-    "D:\\PRN222-SP26\\FLEXFIT\\Flexfit\\Flexfit\\Flexfit.csproj": {
+    "D:\\FlexFit\\Flexfit-V01\\Flexfit\\Flexfit\\Flexfit.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\PRN222-SP26\\FLEXFIT\\Flexfit\\Flexfit\\Flexfit.csproj",
+        "projectUniqueName": "D:\\FlexFit\\Flexfit-V01\\Flexfit\\Flexfit\\Flexfit.csproj",
         "projectName": "Flexfit",
-        "projectPath": "D:\\PRN222-SP26\\FLEXFIT\\Flexfit\\Flexfit\\Flexfit.csproj",
+        "projectPath": "D:\\FlexFit\\Flexfit-V01\\Flexfit\\Flexfit\\Flexfit.csproj",
         "packagesPath": "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\",
-        "outputPath": "D:\\PRN222-SP26\\FLEXFIT\\Flexfit\\Flexfit\\obj\\",
+        "outputPath": "D:\\FlexFit\\Flexfit-V01\\Flexfit\\Flexfit\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -93,6 +93,10 @@
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[8.18.0, )"
+            },
+            "payOS": {
+              "target": "Package",
+              "version": "[2.1.0, )"
             }
           },
           "imports": [
