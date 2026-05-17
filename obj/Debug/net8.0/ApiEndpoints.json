@@ -64,6 +64,110 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Flexfit.Controllers.BookingController",
+    "Method": "BookClass",
+    "RelativePath": "api/bookings/class",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.Booking.CreateClassBookingRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.BookingController",
+    "Method": "CancelClassBooking",
+    "RelativePath": "api/bookings/class/{bookingId}/cancel",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "bookingId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.BookingController",
+    "Method": "GetMyClassBookings",
+    "RelativePath": "api/bookings/class/my-bookings",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.BookingController",
+    "Method": "BookGymSession",
+    "RelativePath": "api/bookings/gym",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.Booking.CreateGymBookingRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.BookingController",
+    "Method": "CancelGymBooking",
+    "RelativePath": "api/bookings/gym/{bookingId}/cancel",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "bookingId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.BookingController",
+    "Method": "GetMyGymBookings",
+    "RelativePath": "api/bookings/gym/my-bookings",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.BookingController",
+    "Method": "GetPartnerClassBookings",
+    "RelativePath": "api/bookings/partner/class",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.BookingController",
+    "Method": "GetPartnerGymBookings",
+    "RelativePath": "api/bookings/partner/gym",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Flexfit.Controllers.BranchController",
     "Method": "GetAllBranches",
     "RelativePath": "api/branches",

@@ -31,7 +31,11 @@ public partial class Gym
 
     public virtual ICollection<Branch> Branches { get; set; } = new List<Branch>();
 
+    public virtual ICollection<FavoriteGym> FavoriteGyms { get; set; } = new List<FavoriteGym>();
+
     public virtual ICollection<GymImage> GymImages { get; set; } = new List<GymImage>();
 
     public virtual User Owner { get; set; } = null!;
+
+    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

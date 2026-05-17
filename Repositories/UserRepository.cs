@@ -20,7 +20,10 @@ namespace Flexfit.Repositories
 
         public async Task<User?> GetByEmailAsync(string email)
         {
-            return await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _db.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task AddAsync(User user)
