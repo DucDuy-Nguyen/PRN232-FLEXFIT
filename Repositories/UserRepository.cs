@@ -42,5 +42,25 @@ namespace Flexfit.Repositories
             _db.Users.Update(user);
             await _db.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<User>> GetAllAsync()
+        {
+            return await _db.Users.ToListAsync();
+        }
+
+        public async Task<User?> GetByIdAsync(Guid id)
+        {
+            return await _db.Users.FindAsync(id);
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var user = await _db.Users.FindAsync(id);
+            if (user != null)
+            {
+                _db.Users.Remove(user);
+            }
+        }
+
     }
 }

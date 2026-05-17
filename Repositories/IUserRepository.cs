@@ -11,5 +11,12 @@ namespace Flexfit.Repositories
         Task SaveChangesAsync();
         Task<User?> GetByVerificationTokenAsync(string token);
         Task UpdateAsync(User user);
+
+        Task<IEnumerable<User>> GetAllAsync();
+        Task<User?> GetByIdAsync(Guid id);
+
+        Task DeleteAsync(Guid id);
+
+
     }
 }

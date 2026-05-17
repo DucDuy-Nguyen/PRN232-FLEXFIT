@@ -53,6 +53,9 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+// Gym and Branch services
+builder.Services.AddScoped<IGymRepository, GymRepository>();
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 // Register Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<JwtHelper>();
