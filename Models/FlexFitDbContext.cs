@@ -29,6 +29,9 @@ public partial class FlexFitDbContext : DbContext
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
+    // THÊM: DbSet cho bảng trung gian quản lý nhân viên chi nhánh
+    public virtual DbSet<BranchStaff> BranchStaffs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Branch>(entity =>
@@ -125,6 +128,9 @@ public partial class FlexFitDbContext : DbContext
             entity.Property(e => e.FullName).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+
+            // THÊM: Cấu hình ánh xạ cột DateOfBirth mới trong SQL
+            entity.Property(e => e.DateOfBirth).HasColumnType("date");
         });
 
         modelBuilder.Entity<UserRole>(entity =>
@@ -142,6 +148,24 @@ public partial class FlexFitDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_UserRoles_Users");
+        });
+
+        // THÊM: Cấu hình Fluent API cho bảng trung gian BranchStaffs mới
+        modelBuilder.Entity<BranchStaff>(entity =>
+        {
+            entity.HasKey(e => new { e.StaffId, e.BranchId });
+
+            entity.Property(e => e.AssignedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.BranchStaffs)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BranchStaffs_Branches");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.BranchStaffs)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BranchStaffs_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

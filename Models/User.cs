@@ -26,6 +26,7 @@ public partial class User
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
     public virtual ICollection<Gym> Gyms { get; set; } = new List<Gym>();
 
@@ -34,4 +35,5 @@ public partial class User
     public DateTime? VerificationTokenExpires { get; set; }
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public virtual ICollection<BranchStaff> BranchStaffs { get; set; } = new List<BranchStaff>();
 }

@@ -30,4 +30,5 @@ public partial class Branch
     public DateTime? UpdatedAt { get; set; }
 
     public virtual Gym Gym { get; set; } = null!;
+    public virtual ICollection<BranchStaff> BranchStaffs { get; set; } = new List<BranchStaff>();
 }
