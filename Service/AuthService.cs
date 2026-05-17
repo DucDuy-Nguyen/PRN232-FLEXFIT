@@ -71,7 +71,7 @@ namespace Flexfit.Service
             // 6. Trả về Token đăng nhập tạm thời (nếu có)
             return new AuthResponse
             {
-                Token = _jwt.GenerateToken(user.UserId, user.Email),
+                Token = _jwt.GenerateToken(user.UserId, user.Email, new List<string>()), // Đăng ký xong thường chưa có Role
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60)
             };
         }
@@ -111,9 +111,11 @@ namespace Flexfit.Service
             if (!PasswordHasher.Verify(request.Password, user.PasswordHash))
                 throw new Exception("Mật khẩu không đúng");
 
+            var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();
+
             return new AuthResponse
             {
-                Token = _jwt.GenerateToken(user.UserId, user.Email),
+                Token = _jwt.GenerateToken(user.UserId, user.Email, roles),
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60)
             };
         }
@@ -144,9 +146,11 @@ namespace Flexfit.Service
                     await _userRepository.SaveChangesAsync();
                 }
 
+                var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();
+
                 return new AuthResponse
                 {
-                    Token = _jwt.GenerateToken(user.UserId, user.Email),
+                    Token = _jwt.GenerateToken(user.UserId, user.Email, roles),
                     ExpiresAt = DateTime.UtcNow.AddMinutes(60)
                 };
             }

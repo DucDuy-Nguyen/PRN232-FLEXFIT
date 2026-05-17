@@ -29,6 +29,17 @@ public partial class Branch
 
     public DateTime? UpdatedAt { get; set; }
 
+    public virtual ICollection<BranchImage> BranchImages { get; set; } = new List<BranchImage>();
+
+    public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
+
     public virtual Gym Gym { get; set; } = null!;
+
     public virtual ICollection<BranchStaff> BranchStaffs { get; set; } = new List<BranchStaff>();
+
+
+    public virtual ICollection<GymSession> GymSessions { get; set; } = new List<GymSession>();
+
+    public virtual ICollection<GymAmenity> Amenities { get; set; } = new List<GymAmenity>();
+
 }

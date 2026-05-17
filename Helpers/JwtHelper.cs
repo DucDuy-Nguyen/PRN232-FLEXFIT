@@ -1,4 +1,4 @@
-﻿namespace Flexfit.Helpers
+namespace Flexfit.Helpers
 {
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
@@ -11,17 +11,25 @@
         private readonly IConfiguration _config;
         public JwtHelper(IConfiguration config) => _config = config;
 
-        public string GenerateToken(Guid userId, string email)
+        public string GenerateToken(Guid userId, string email, IList<string> roles = null)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.UtcNow.AddMinutes(double.Parse(_config["Jwt:ExpiresInMinutes"]));
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
-            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, email)
-        };
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Email, email)
+            };
+
+            if (roles != null)
+            {
+                foreach (var role in roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],

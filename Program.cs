@@ -23,7 +23,30 @@ builder.Services.AddControllers();
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Vui lòng nhập token theo định dạng: Bearer {token_của_bạn}",
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+});
 
 // Add Authentication (JWT)
 builder.Services.AddAuthentication(options =>
@@ -55,6 +78,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 
+
 // Gym and Branch repositories
 builder.Services.AddScoped<IGymRepository, GymRepository>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
@@ -62,10 +86,20 @@ builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<IGymService, GymService>();
 builder.Services.AddScoped<IBranchService, BranchService>();
 //builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
 //builder.Services.AddScoped<BookingService>();
 //builder.Services.AddScoped<CreditService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+
+// Gym and Branch repository
+builder.Services.AddScoped<IGymRepository, GymRepository>();
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
+// Register Services (DI)
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IBookingService, BookingService>();
 
 builder.Services.AddSingleton<JwtHelper>();
 

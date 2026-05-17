@@ -8,6 +8,7 @@ namespace Flexfit.Repositories
         private readonly FlexFitDbContext _db;
         public BranchRepository(FlexFitDbContext db) => _db = db;
 
+
         // 1. Sửa hàm GetAllAsync: Tải kèm dữ liệu nhân viên thông qua bảng trung gian
         public async Task<IEnumerable<Branch>> GetAllAsync() =>
             await _db.Branches
@@ -21,6 +22,11 @@ namespace Flexfit.Repositories
                 .Include(b => b.BranchStaffs)          // Đi vào bảng trung gian BranchStaffs
                     .ThenInclude(bs => bs.Staff)       // Đi tiếp vào bảng Users
                 .FirstOrDefaultAsync(b => b.BranchId == id); // Dùng FirstOrDefaultAsync thay cho FindAsync khi có Include
+
+        
+
+       
+
 
         public async Task AddAsync(Branch branch)
         {

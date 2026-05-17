@@ -13,6 +13,7 @@
         public string? ThumbnailUrl { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+
         public List<StaffInfoDto> Staffs { get; set; } = new List<StaffInfoDto>();
     }
 
@@ -21,6 +22,7 @@
     {
         public Guid StaffId { get; set; }
         public string FullName { get; set; } = null!;
+
     }
 
     public class CreateBranchRequest
