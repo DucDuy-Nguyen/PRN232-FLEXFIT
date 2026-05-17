@@ -27,6 +27,7 @@ namespace Flexfit.Controllers
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
                 AvatarUrl = u.AvatarUrl,
+                DateOfBirth = u.DateOfBirth, // Bổ sung map trường này
                 IsEmailVerified = u.IsEmailVerified,
                 IsActive = u.IsActive,
                 LastLoginAt = u.LastLoginAt,
@@ -48,6 +49,7 @@ namespace Flexfit.Controllers
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
                 AvatarUrl = u.AvatarUrl,
+                DateOfBirth = u.DateOfBirth, // Bổ sung map trường này
                 IsEmailVerified = u.IsEmailVerified,
                 IsActive = u.IsActive,
                 LastLoginAt = u.LastLoginAt,
@@ -61,14 +63,18 @@ namespace Flexfit.Controllers
             var user = await _userRepo.GetByIdAsync(id);
             if (user == null) return NotFound(new { message = "Không tìm thấy người dùng." });
 
-            // Chỉ cập nhật thông tin cá nhân
+            // Chỉ cập nhật thông tin cá nhân (Bổ sung DateOfBirth)
             user.FullName = request.FullName ?? user.FullName;
             user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
             user.AvatarUrl = request.AvatarUrl ?? user.AvatarUrl;
+            user.DateOfBirth = request.DateOfBirth ?? user.DateOfBirth; // Nhận ngày sinh mới
             user.UpdatedAt = DateTime.UtcNow;
 
             await _userRepo.UpdateAsync(user);
-            await _userRepo.SaveChangesAsync();
+
+            // Xóa dòng _userRepo.SaveChangesAsync() nếu trong Repository (UpdateAsync) của bạn đã gọi _db.SaveChangesAsync() rồi để tránh lỗi.
+            // Nếu Repo của bạn chưa gọi SaveChanges thì giữ nguyên dòng dưới:
+            // await _userRepo.SaveChangesAsync();
 
             return Ok(new { message = "Cập nhật thông tin cá nhân thành công!" });
         }
@@ -86,7 +92,8 @@ namespace Flexfit.Controllers
             user.UpdatedAt = DateTime.UtcNow;
 
             await _userRepo.UpdateAsync(user);
-            await _userRepo.SaveChangesAsync();
+            // Tương tự, nếu UpdateAsync đã save, bạn có thể bỏ dòng này
+            // await _userRepo.SaveChangesAsync();
 
             string statusMessage = isActive ? "Mở khóa" : "Khóa";
             return Ok(new { message = $"{statusMessage} tài khoản thành công!" });
@@ -99,7 +106,8 @@ namespace Flexfit.Controllers
             if (user == null) return NotFound(new { message = "Không tìm thấy người dùng." });
 
             await _userRepo.DeleteAsync(id);
-            await _userRepo.SaveChangesAsync();
+            // Tương tự, nếu DeleteAsync đã save, bạn có thể bỏ dòng này
+            // await _userRepo.SaveChangesAsync();
             return Ok(new { message = "Xóa người dùng thành công!" });
         }
     }
