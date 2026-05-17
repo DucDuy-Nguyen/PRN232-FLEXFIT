@@ -24,6 +24,10 @@ namespace Flexfit.Repositories
         Task<IEnumerable<GymBooking>> GetGymBookingsByOwnerIdAsync(Guid ownerId);
         Task<IEnumerable<ClassBooking>> GetClassBookingsByOwnerIdAsync(Guid ownerId);
 
+        // Credit operations for bookings
+        Task<UserCredit?> GetUserCreditAsync(Guid userId);
+        Task AddCreditTransactionAsync(CreditTransaction transaction);
+
         Task SaveChangesAsync();
     }
 }

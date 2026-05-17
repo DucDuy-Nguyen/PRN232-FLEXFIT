@@ -139,6 +139,17 @@ namespace Flexfit.Repositories
                 .ToListAsync();
         }
 
+        public async Task<UserCredit?> GetUserCreditAsync(Guid userId)
+        {
+            return await _context.UserCredits
+                .FirstOrDefaultAsync(c => c.UserId == userId);
+        }
+
+        public async Task AddCreditTransactionAsync(CreditTransaction transaction)
+        {
+            await _context.CreditTransactions.AddAsync(transaction);
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

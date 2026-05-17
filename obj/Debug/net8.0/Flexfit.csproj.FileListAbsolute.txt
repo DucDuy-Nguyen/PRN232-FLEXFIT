@@ -322,4 +322,3 @@ D:\FlexFit\Flexfit-V01\Flexfit\Flexfit\obj\Debug\net8.0\Flexfit.pdb
 D:\FlexFit\Flexfit-V01\Flexfit\Flexfit\obj\Debug\net8.0\Flexfit.genruntimeconfig.cache
 D:\FlexFit\Flexfit-V01\Flexfit\Flexfit\obj\Debug\net8.0\ref\Flexfit.dll
 D:\FlexFit\Flexfit-V01\Flexfit\Flexfit\bin\Debug\net8.0\PayOS.dll
-D:\FlexFit\Flexfit-V01\Flexfit\Flexfit\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
