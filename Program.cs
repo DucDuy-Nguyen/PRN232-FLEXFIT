@@ -2,6 +2,7 @@ using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using Flexfit.Service;
+using Flexfit.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -54,9 +55,12 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 
-// Gym and Branch services
+// Gym and Branch repositories
 builder.Services.AddScoped<IGymRepository, GymRepository>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
+// Gym and Branch services
+builder.Services.AddScoped<IGymService, GymService>();
+builder.Services.AddScoped<IBranchService, BranchService>();
 //builder.Services.AddScoped<UserService>();
 //builder.Services.AddScoped<BookingService>();
 //builder.Services.AddScoped<CreditService>();
