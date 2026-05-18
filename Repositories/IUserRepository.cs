@@ -15,7 +15,12 @@ namespace Flexfit.Repositories
         Task<IEnumerable<User>> GetAllAsync();
         Task<User?> GetByIdAsync(Guid id);
 
+        
         Task DeleteAsync(Guid id);
+        Task<Role?> GetRoleByNameAsync(string roleName);
+        Task<UserRole?> GetUserRoleAsync(Guid userId, Guid roleId);
+        Task AddUserRoleAsync(UserRole userRole);
+        Task RemoveUserRoleAsync(UserRole userRole);
 
 
     }

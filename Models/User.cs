@@ -30,6 +30,7 @@ public partial class User
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+    public DateTime? DateOfBirth { get; set; }
 
     public virtual ICollection<CheckInLog> CheckInLogScannedByNavigations { get; set; } = new List<CheckInLog>();
 
@@ -63,5 +64,9 @@ public partial class User
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
+    public virtual ICollection<BranchStaff> BranchStaffs { get; set; } = new List<BranchStaff>();
+
+
     public virtual ICollection<UserWorkoutHistory> UserWorkoutHistories { get; set; } = new List<UserWorkoutHistory>();
+
 }

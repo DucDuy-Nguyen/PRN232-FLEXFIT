@@ -14,6 +14,10 @@ namespace Flexfit.DTOs.Booking
         public string Status { get; set; } = null!;
         public int CreditUsed { get; set; }
         public DateTime BookedAt { get; set; }
+
+        // --- BỔ SUNG 2 DÒNG NÀY ĐỂ HẾT LỖI TẠI CONTROLLER ---
+        public string UserEmail { get; set; } = null!;
+        public string UserFullName { get; set; } = null!;
     }
 
     public class ClassBookingResponse
@@ -31,5 +35,9 @@ namespace Flexfit.DTOs.Booking
         public string Status { get; set; } = null!;
         public int CreditUsed { get; set; }
         public DateTime BookedAt { get; set; }
+
+        // --- BỔ SUNG 2 DÒNG NÀY ĐỂ HẾT LỖI TẠI CONTROLLER ---
+        public string UserEmail { get; set; } = null!;
+        public string UserFullName { get; set; } = null!;
     }
 }

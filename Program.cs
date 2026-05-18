@@ -3,6 +3,8 @@ using Flexfit.Models;
 using Flexfit.Repositories;
 using Flexfit.Service;
 using PayOS;
+using Flexfit.Services;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -78,14 +80,37 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
+
+
+// Gym and Branch repositories
+builder.Services.AddScoped<IGymRepository, GymRepository>();
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 // Gym and Branch services
+builder.Services.AddScoped<IGymService, GymService>();
+builder.Services.AddScoped<IBranchService, BranchService>();
+//builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
+//builder.Services.AddScoped<BookingService>();
+//builder.Services.AddScoped<CreditService>();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+
+// Gym and Branch repository
 builder.Services.AddScoped<IGymRepository, GymRepository>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 // Register Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
+//Booking repository and service
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+//Credit repository and service
+builder.Services.AddScoped<ICreditRepository, CreditRepository>();
+builder.Services.AddScoped<ICreditService, CreditService>();
+builder.Services.AddHostedService<BookingReminderWorker>();
+
 builder.Services.AddSingleton<JwtHelper>();
 
 // Register PayOS Client

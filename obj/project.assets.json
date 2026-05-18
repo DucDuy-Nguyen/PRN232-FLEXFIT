@@ -5984,11 +5984,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\FlexFit\\Flexfit-V01\\Flexfit\\Flexfit\\Flexfit.csproj",
+      "projectUniqueName": "D:\\FlexFit\\test merge\\FlexFit\\Flexfit.csproj",
       "projectName": "Flexfit",
-      "projectPath": "D:\\FlexFit\\Flexfit-V01\\Flexfit\\Flexfit\\Flexfit.csproj",
+      "projectPath": "D:\\FlexFit\\test merge\\FlexFit\\Flexfit.csproj",
       "packagesPath": "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\",
-      "outputPath": "D:\\FlexFit\\Flexfit-V01\\Flexfit\\Flexfit\\obj\\",
+      "outputPath": "D:\\FlexFit\\test merge\\FlexFit\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

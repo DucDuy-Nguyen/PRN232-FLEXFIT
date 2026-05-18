@@ -16,55 +16,33 @@ public partial class FlexFitDbContext : DbContext
     }
 
     public virtual DbSet<Branch> Branches { get; set; }
-
     public virtual DbSet<BranchImage> BranchImages { get; set; }
-
     public virtual DbSet<Category> Categories { get; set; }
-
     public virtual DbSet<CheckInLog> CheckInLogs { get; set; }
-
     public virtual DbSet<Class> Classes { get; set; }
-
     public virtual DbSet<ClassBooking> ClassBookings { get; set; }
-
     public virtual DbSet<ClassSchedule> ClassSchedules { get; set; }
-
     public virtual DbSet<CreditPackage> CreditPackages { get; set; }
-
     public virtual DbSet<CreditTransaction> CreditTransactions { get; set; }
-
     public virtual DbSet<FavoriteGym> FavoriteGyms { get; set; }
-
     public virtual DbSet<Gym> Gyms { get; set; }
-
     public virtual DbSet<GymAmenity> GymAmenities { get; set; }
-
     public virtual DbSet<GymBooking> GymBookings { get; set; }
-
     public virtual DbSet<GymImage> GymImages { get; set; }
-
     public virtual DbSet<GymSession> GymSessions { get; set; }
-
     public virtual DbSet<MemberProfile> MemberProfiles { get; set; }
-
     public virtual DbSet<Notification> Notifications { get; set; }
-
     public virtual DbSet<Payment> Payments { get; set; }
-
     public virtual DbSet<Promotion> Promotions { get; set; }
-
     public virtual DbSet<Review> Reviews { get; set; }
-
     public virtual DbSet<Role> Roles { get; set; }
-
     public virtual DbSet<SystemLog> SystemLogs { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<UserCredit> UserCredits { get; set; }
-
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
+    // THÊM: DbSet cho bảng trung gian quản lý nhân viên chi nhánh
+    public virtual DbSet<BranchStaff> BranchStaffs { get; set; }
     public virtual DbSet<UserWorkoutHistory> UserWorkoutHistories { get; set; }
 
 
@@ -78,6 +56,7 @@ public partial class FlexFitDbContext : DbContext
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         optionsBuilder.UseSqlServer(connectionString);
     }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -498,6 +477,7 @@ public partial class FlexFitDbContext : DbContext
             entity.Property(e => e.FullName).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+            entity.Property(e => e.DateOfBirth).HasColumnType("date");
         });
 
         modelBuilder.Entity<UserCredit>(entity =>
@@ -532,6 +512,25 @@ public partial class FlexFitDbContext : DbContext
                 .HasConstraintName("FK_UserRoles_Users");
         });
 
+        // THÊM: Cấu hình Fluent API cho bảng trung gian BranchStaffs mới
+        modelBuilder.Entity<BranchStaff>(entity =>
+        {
+            entity.HasKey(e => new { e.StaffId, e.BranchId });
+
+            entity.Property(e => e.AssignedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Branch).WithMany(p => p.BranchStaffs)
+                .HasForeignKey(d => d.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BranchStaffs_Branches");
+
+            entity.HasOne(d => d.Staff).WithMany(p => p.BranchStaffs)
+                .HasForeignKey(d => d.StaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_BranchStaffs_Users");
+        }); // <- Đóng ngoặc chuẩn cho BranchStaff ở đây!
+
+        // Tách riêng UserWorkoutHistory ra ngoài độc lập
         modelBuilder.Entity<UserWorkoutHistory>(entity =>
         {
             entity.HasKey(e => e.WorkoutHistoryId).HasName("PK__UserWork__8D7C9B3D08A78B66");
@@ -554,7 +553,7 @@ public partial class FlexFitDbContext : DbContext
         });
 
         OnModelCreatingPartial(modelBuilder);
-    }
+    } // <- Đóng phương thức OnModelCreating
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
-}
+} // <- Đóng class FlexFitDbContext

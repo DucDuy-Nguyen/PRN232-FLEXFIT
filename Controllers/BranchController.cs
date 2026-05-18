@@ -1,6 +1,5 @@
 ﻿using Flexfit.DTOs;
-using Flexfit.Models;
-using Flexfit.Repositories;
+using Flexfit.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Flexfit.Controllers
@@ -9,115 +8,126 @@ namespace Flexfit.Controllers
     [ApiController]
     public class BranchController : ControllerBase
     {
-        private readonly IBranchRepository _branchRepo;
-        public BranchController(IBranchRepository branchRepo) => _branchRepo = branchRepo;
+        private readonly IBranchService _branchService;
+
+        public BranchController(IBranchService branchService)
+        {
+            _branchService = branchService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAllBranches()
         {
-            var branches = await _branchRepo.GetAllAsync();
-            var dtos = branches.Select(b => new BranchDto
-            {
-                BranchId = b.BranchId,
-                GymId = b.GymId,
-                BranchName = b.BranchName,
-                Address = b.Address,
-                City = b.City,
-                District = b.District,
-                OpenTime = b.OpenTime,
-                CloseTime = b.CloseTime,
-                ThumbnailUrl = b.ThumbnailUrl,
-                IsActive = b.IsActive,
-                CreatedAt = b.CreatedAt
-            });
+            var dtos = await _branchService.GetAllBranchesAsync();
             return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetBranchById(Guid id)
         {
-            var b = await _branchRepo.GetByIdAsync(id);
-            if (b == null) return NotFound(new { message = "Không tìm thấy chi nhánh." });
-
-            return Ok(new BranchDto
-            {
-                BranchId = b.BranchId,
-                GymId = b.GymId,
-                BranchName = b.BranchName,
-                Address = b.Address,
-                City = b.City,
-                District = b.District,
-                OpenTime = b.OpenTime,
-                CloseTime = b.CloseTime,
-                ThumbnailUrl = b.ThumbnailUrl,
-                IsActive = b.IsActive,
-                CreatedAt = b.CreatedAt
-            });
+            var dto = await _branchService.GetBranchByIdAsync(id);
+            if (dto == null) return NotFound(new { message = "Không tìm thấy chi nhánh." });
+            return Ok(dto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBranch(CreateBranchRequest request)
+        public async Task<IActionResult> CreateBranch([FromBody] CreateBranchRequest request)
         {
-            var newBranch = new Branch
-            {
-                BranchId = Guid.NewGuid(),
-                GymId = request.GymId,
-                BranchName = request.BranchName,
-                Address = request.Address,
-                City = request.City,
-                District = request.District,
-                OpenTime = request.OpenTime,
-                CloseTime = request.CloseTime,
-                ThumbnailUrl = request.ThumbnailUrl,
-                IsActive = true, // Mặc định mở cửa
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _branchRepo.AddAsync(newBranch);
-            return Ok(new { message = "Tạo chi nhánh thành công!", branchId = newBranch.BranchId });
+            var branchId = await _branchService.CreateBranchAsync(request);
+            return Ok(new { message = "Tạo chi nhánh thành công!", branchId });
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBranch(Guid id, UpdateBranchRequest request)
+        public async Task<IActionResult> UpdateBranch(Guid id, [FromBody] UpdateBranchRequest request)
         {
-            var branch = await _branchRepo.GetByIdAsync(id);
-            if (branch == null) return NotFound(new { message = "Không tìm thấy chi nhánh." });
-
-            branch.BranchName = request.BranchName;
-            branch.Address = request.Address;
-            branch.City = request.City;
-            branch.District = request.District;
-            branch.OpenTime = request.OpenTime;
-            branch.CloseTime = request.CloseTime;
-            branch.ThumbnailUrl = request.ThumbnailUrl;
-            branch.UpdatedAt = DateTime.UtcNow;
-
-            await _branchRepo.UpdateAsync(branch);
-            return Ok(new { message = "Cập nhật thông tin chi nhánh thành công!" });
+            try
+            {
+                await _branchService.UpdateBranchAsync(id, request);
+                return Ok(new { message = "Cập nhật thông tin chi nhánh thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeBranchStatus(Guid id, [FromBody] bool isActive)
         {
-            var branch = await _branchRepo.GetByIdAsync(id);
-            if (branch == null) return NotFound(new { message = "Không tìm thấy chi nhánh." });
-
-            branch.IsActive = isActive;
-            branch.UpdatedAt = DateTime.UtcNow;
-
-            await _branchRepo.UpdateAsync(branch);
-            string statusMsg = isActive ? "Hoạt động" : "Tạm ngưng";
-            return Ok(new { message = $"Đã chuyển trạng thái chi nhánh thành: {statusMsg}" });
+            try
+            {
+                await _branchService.ChangeBranchStatusAsync(id, isActive);
+                string statusMsg = isActive ? "Hoạt động" : "Tạm ngưng";
+                return Ok(new { message = $"Đã chuyển trạng thái chi nhánh thành: {statusMsg}" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBranch(Guid id)
         {
-            var branch = await _branchRepo.GetByIdAsync(id);
-            if (branch == null) return NotFound(new { message = "Không tìm thấy chi nhánh." });
+            try
+            {
+                await _branchService.DeleteBranchAsync(id);
+                return Ok(new { message = "Xóa chi nhánh thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
 
-            await _branchRepo.DeleteAsync(id);
-            return Ok(new { message = "Xóa chi nhánh thành công!" });
+        [HttpPost("assign-staff")]
+        public async Task<IActionResult> AssignStaffToBranch([FromBody] AssignStaffDto dto)
+        {
+            try
+            {
+                await _branchService.AssignStaffToBranchAsync(dto);
+                return Ok(new { message = "Bổ nhiệm nhân viên vào làm việc tại chi nhánh thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("remove-staff")]
+        public async Task<IActionResult> RemoveStaffFromBranch([FromQuery] Guid staffId, [FromQuery] Guid branchId)
+        {
+            try
+            {
+                await _branchService.RemoveStaffFromBranchAsync(staffId, branchId);
+                return Ok(new { message = "Đã gỡ nhân viên ra khỏi chi nhánh và cập nhật lại quyền hạn tài khoản thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("update-staff")]
+        public async Task<IActionResult> UpdateBranchStaff([FromBody] UpdateBranchStaffDto dto)
+        {
+            try
+            {
+                await _branchService.UpdateBranchStaffAsync(dto);
+                return Ok(new { message = "Đã tự động thay thế và chuyển giao quyền quản lý chi nhánh thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

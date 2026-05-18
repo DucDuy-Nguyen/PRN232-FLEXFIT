@@ -64,6 +64,28 @@ namespace Flexfit.Repositories
                 _db.Users.Remove(user);
             }
         }
+        public async Task<Role?> GetRoleByNameAsync(string roleName)
+        {
+            return await _db.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
+        }
+
+        public async Task<UserRole?> GetUserRoleAsync(Guid userId, Guid roleId)
+        {
+            return await _db.UserRoles
+                .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+        }
+
+        public async Task AddUserRoleAsync(UserRole userRole)
+        {
+            await _db.UserRoles.AddAsync(userRole);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task RemoveUserRoleAsync(UserRole userRole)
+        {
+            _db.UserRoles.Remove(userRole);
+            await _db.SaveChangesAsync();
+        }
 
     }
 }

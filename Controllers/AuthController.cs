@@ -43,11 +43,13 @@ namespace Flexfit.Controllers
             return Ok(result);
         }
 
+
         [HttpPost("google-login")]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
         {
             var result = await _authService.LoginWithGoogleAsync(request);
             return Ok(result);
+
         }
     }
 }

@@ -35,7 +35,11 @@ public partial class Branch
 
     public virtual Gym Gym { get; set; } = null!;
 
+    public virtual ICollection<BranchStaff> BranchStaffs { get; set; } = new List<BranchStaff>();
+
+
     public virtual ICollection<GymSession> GymSessions { get; set; } = new List<GymSession>();
 
     public virtual ICollection<GymAmenity> Amenities { get; set; } = new List<GymAmenity>();
+
 }
