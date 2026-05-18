@@ -98,8 +98,12 @@ builder.Services.AddScoped<IGymRepository, GymRepository>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 // Register Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
+//Booking repository and service
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+//Credit repository and service
+builder.Services.AddScoped<ICreditRepository, CreditRepository>();
+builder.Services.AddScoped<ICreditService, CreditService>();
 
 builder.Services.AddSingleton<JwtHelper>();
 
