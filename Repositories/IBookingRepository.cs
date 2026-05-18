@@ -23,6 +23,8 @@ namespace Flexfit.Repositories
         Task<int> CountClassBookingsByClassIdAsync(Guid classId);
         Task<IEnumerable<GymBooking>> GetGymBookingsByOwnerIdAsync(Guid ownerId);
         Task<IEnumerable<ClassBooking>> GetClassBookingsByOwnerIdAsync(Guid ownerId);
+        Task<IEnumerable<GymBooking>> GetGymBookingsToRemindAsync(DateTime now, int hoursLeft);
+        Task<IEnumerable<ClassBooking>> GetClassBookingsToRemindAsync(DateTime now, int hoursLeft);
 
         Task SaveChangesAsync();
     }

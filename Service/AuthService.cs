@@ -61,7 +61,7 @@ namespace Flexfit.Service
             // 5. GỬI EMAIL XÁC THỰC
             var subject = "Mã xác thực tài khoản FlexFit";
             var body = $@"
-      <h3>Chào bạn,</h3>
+      <h3>Chào {user.FullName},</h3>
        <p>Mã xác thực (OTP) để kích hoạt tài khoản của bạn là:</p>
        <h2 style='color: #2e6c80; letter-spacing: 5px;'>{otpCode}</h2>
         <p><i>Mã này sẽ hết hiệu lực sau 2 phút. Vui lòng không chia sẻ mã này cho người khác.</i></p>";

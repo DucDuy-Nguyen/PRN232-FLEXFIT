@@ -104,6 +104,7 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 //Credit repository and service
 builder.Services.AddScoped<ICreditRepository, CreditRepository>();
 builder.Services.AddScoped<ICreditService, CreditService>();
+builder.Services.AddHostedService<BookingReminderWorker>();
 
 builder.Services.AddSingleton<JwtHelper>();
 

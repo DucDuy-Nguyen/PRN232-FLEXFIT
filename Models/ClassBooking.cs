@@ -42,4 +42,6 @@ public partial class ClassBooking
     public virtual User User { get; set; } = null!;
 
     public virtual ICollection<UserWorkoutHistory> UserWorkoutHistories { get; set; } = new List<UserWorkoutHistory>();
+    public bool IsReminded3h { get; set; } = false;
+    public bool IsReminded1h { get; set; } = false;
 }
