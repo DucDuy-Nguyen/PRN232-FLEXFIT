@@ -53,14 +53,14 @@ namespace Flexfit.Service
             // 1. QUÉT LỊCH TẬP GYM (GYM BOOKINGS)
             // ========================================================
 
-            // --- MỐC 3 TIẾNG (Chỉ lấy lịch còn từ > 1h đến <= 3h) ---
+            // --- MỐC 3 TIẾNG (Chỉ lấy lịch còn từ > 2h45 đến <= 3h) ---
             var gym3h = await bookingRepo.GetGymBookingsToRemindAsync(now, hoursLeft: 3);
             foreach (var booking in gym3h)
             {
                 var timeDiff = booking.Session.StartTime - now;
 
-                // Nếu thời gian còn lại nhỏ hơn hoặc bằng 1 tiếng -> BỎ QUA mốc 3h để mốc 1h xử lý
-                if (timeDiff.TotalHours <= 1.0)
+                // Nếu thời gian còn lại nhỏ hơn hoặc bằng 2h45 tiếng -> BỎ QUA mốc 3h để mốc 1h xử lý
+                if (timeDiff.TotalHours <= 2.75)
                 {
                     continue;
                 }
@@ -105,14 +105,14 @@ namespace Flexfit.Service
             // 2. QUÉT LỊCH LỚP HỌC (CLASS BOOKINGS)
             // ========================================================
 
-            // --- MỐC 3 TIẾNG (Chỉ lấy lịch còn từ > 1h đến <= 3h) ---
+            // --- MỐC 3 TIẾNG (Chỉ lấy lịch còn từ > 2h45 đến <= 3h) ---
             var class3h = await bookingRepo.GetClassBookingsToRemindAsync(now, hoursLeft: 3);
             foreach (var booking in class3h)
             {
                 var timeDiff = booking.Class.StartTime - now;
 
-                // Nếu thời gian còn lại <= 1 tiếng -> BỎ QUA mốc 3h
-                if (timeDiff.TotalHours <= 1.0)
+                // Nếu thời gian còn lại <= 2h45 tiếng -> BỎ QUA mốc 3h
+                if (timeDiff.TotalHours <= 2.75)
                 {
                     continue;
                 }
@@ -136,7 +136,7 @@ namespace Flexfit.Service
                 var timeDiff = booking.Class.StartTime - now;
 
                 // Điều kiện nghiêm ngặt: Nhỏ hơn hoặc bằng 1 tiếng và lớp chưa diễn ra
-                if (timeDiff.TotalHours <= 2.75 && timeDiff.TotalHours > 0)
+                if (timeDiff.TotalHours <= 1 && timeDiff.TotalHours > 0)
                 {
                     string email = booking.User?.Email ?? "khachhang@flexfit.com";
                     string name = booking.User?.FullName ?? "Hội viên Flexfit";
