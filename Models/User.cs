@@ -35,6 +35,7 @@ public partial class User
 
     public virtual ICollection<BranchStaff> BranchStaffs { get; set; } = new List<BranchStaff>();
 
+
     public virtual ICollection<CheckInLog> CheckInLogScannedByNavigations { get; set; } = new List<CheckInLog>();
 
     public virtual ICollection<CheckInLog> CheckInLogUsers { get; set; } = new List<CheckInLog>();

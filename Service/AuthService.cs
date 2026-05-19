@@ -177,5 +177,62 @@ namespace Flexfit.Service
                 throw new Exception("Xác thực Google thất bại: " + ex.Message);
             }
         }
+        // --- 1. LOGIC GỬI MÃ OTP QUÊN MẬT KHẨU ---
+        public async Task<string> ForgotPasswordAsync(ForgotPasswordRequest request)
+        {
+            // Kiểm tra email xem có tồn tại trong hệ thống không
+            var user = await _userRepository.GetByEmailAsync(request.Email);
+            if (user == null)
+                throw new Exception("Email này không tồn tại trên hệ thống.");
+
+            // Tạo mã OTP ngẫu nhiên gồm 6 chữ số
+            var random = new Random();
+            var otpCode = random.Next(100000, 999999).ToString();
+
+            // Lưu OTP tạm thời vào tài khoản User và đặt hạn 3 phút
+            user.EmailVerificationToken = otpCode;
+            user.VerificationTokenExpires = DateTime.UtcNow.AddMinutes(3);
+
+            await _userRepository.UpdateAsync(user);
+
+            // Tiến hành gửi Email chứa OTP cho người dùng
+            var subject = "Mã OTP khôi phục mật khẩu FlexFit";
+            var body = $@"
+                <h3>Chào {user.FullName},</h3>
+                <p>Bạn đã yêu cầu đặt lại mật khẩu tại FlexFit. Mã OTP xác thực của bạn là:</p>
+                <h2 style='color: #d9534f; letter-spacing: 5px;'>{otpCode}</h2>
+                <p><i>Mã này sẽ hết hiệu lực sau 3 phút. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</i></p>";
+
+            await _emailService.SendEmailAsync(user.Email, subject, body);
+
+            return "Mã OTP khôi phục mật khẩu đã được gửi đến Email của bạn.";
+        }
+
+        // --- 2. LOGIC XÁC THỰC OTP VÀ ĐỔI MẬT KHẨU MỚI ---
+        public async Task<string> ResetPasswordAsync(ResetPasswordRequest request)
+        {
+            var user = await _userRepository.GetByEmailAsync(request.Email);
+            if (user == null)
+                throw new Exception("Email không tồn tại.");
+
+            // Kiểm tra mã OTP gửi lên xem có khớp không
+            if (user.EmailVerificationToken != request.OtpCode)
+                throw new Exception("Mã OTP xác thực không chính xác.");
+
+            // Kiểm tra mã OTP còn hạn sử dụng không
+            if (user.VerificationTokenExpires < DateTime.UtcNow)
+                throw new Exception("Mã OTP đã hết hạn sử dụng. Vui lòng lấy mã mới.");
+
+            // Tiến hành mã hóa (Hash) mật khẩu mới và cập nhật cho User
+            user.PasswordHash = PasswordHasher.Hash(request.NewPassword);
+
+            // Dọn dẹp sạch mã OTP sau khi đổi thành công để bảo mật
+            user.EmailVerificationToken = null;
+            user.VerificationTokenExpires = null;
+
+            await _userRepository.UpdateAsync(user);
+
+            return "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.";
+        }
     }
 }

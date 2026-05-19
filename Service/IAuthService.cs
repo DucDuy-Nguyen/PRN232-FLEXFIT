@@ -8,5 +8,7 @@ namespace Flexfit.Service
         Task<AuthResponse> LoginAsync(LoginRequest request);
         Task<AuthResponse> LoginWithGoogleAsync(GoogleLoginRequest request);
         Task<string> VerifyEmailAsync(string email, string otpCode);
+        Task<string> ForgotPasswordAsync(ForgotPasswordRequest request);
+        Task<string> ResetPasswordAsync(ResetPasswordRequest request);
     }
 }

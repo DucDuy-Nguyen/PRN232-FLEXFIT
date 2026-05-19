@@ -85,9 +85,11 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 // Gym and Branch repositories
 builder.Services.AddScoped<IGymRepository, GymRepository>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
+builder.Services.AddScoped<IClassRepository, ClassRepository>();
 // Gym and Branch services
 builder.Services.AddScoped<IGymService, GymService>();
 builder.Services.AddScoped<IBranchService, BranchService>();
+builder.Services.AddScoped<IClassService, ClassService>();
 //builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<IUserService, UserService>();
 //builder.Services.AddScoped<BookingService>();
@@ -106,6 +108,9 @@ builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
+// Member profile repository and service
+builder.Services.AddScoped<IMemberProfileRepository, MemberProfileRepository>();
+builder.Services.AddScoped<IMemberProfileService, MemberProfileService>();
 //Credit repository and service
 builder.Services.AddScoped<ICreditRepository, CreditRepository>();
 builder.Services.AddScoped<ICreditService, CreditService>();

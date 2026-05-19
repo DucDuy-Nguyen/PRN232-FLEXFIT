@@ -10,7 +10,6 @@ public partial class MemberProfile
     public Guid UserId { get; set; }
 
     public string? Gender { get; set; }
-
     public decimal? HeightCm { get; set; }
 
     public decimal? WeightKg { get; set; }
