@@ -11,6 +11,7 @@
         public TimeOnly? OpenTime { get; set; }
         public TimeOnly? CloseTime { get; set; }
         public string? ThumbnailUrl { get; set; }
+        public int CreditCost { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
 
@@ -35,6 +36,7 @@
         public TimeOnly? OpenTime { get; set; }
         public TimeOnly? CloseTime { get; set; }
         public string? ThumbnailUrl { get; set; }
+        public int CreditCost { get; set; }
     }
 
     public class UpdateBranchRequest
@@ -46,5 +48,6 @@
         public TimeOnly? OpenTime { get; set; }
         public TimeOnly? CloseTime { get; set; }
         public string? ThumbnailUrl { get; set; }
+        public int CreditCost { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Flexfit.Models;
 using Flexfit.Repositories;
 using Microsoft.EntityFrameworkCore;
+using PayOS.Resources.V1.Payouts.Batch;
 
 namespace Flexfit.Services
 {
@@ -30,6 +31,7 @@ namespace Flexfit.Services
                 OpenTime = b.OpenTime,
                 CloseTime = b.CloseTime,
                 ThumbnailUrl = b.ThumbnailUrl,
+                CreditCost = b.CreditCost,
                 IsActive = b.IsActive,
                 CreatedAt = b.CreatedAt,
                 Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto
@@ -56,6 +58,7 @@ namespace Flexfit.Services
                 OpenTime = b.OpenTime,
                 CloseTime = b.CloseTime,
                 ThumbnailUrl = b.ThumbnailUrl,
+                CreditCost = b.CreditCost,
                 IsActive = b.IsActive,
                 CreatedAt = b.CreatedAt,
                 Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto
@@ -79,6 +82,7 @@ namespace Flexfit.Services
                 OpenTime = request.OpenTime,
                 CloseTime = request.CloseTime,
                 ThumbnailUrl = request.ThumbnailUrl,
+                CreditCost = request.CreditCost,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -99,6 +103,7 @@ namespace Flexfit.Services
             branch.OpenTime = request.OpenTime;
             branch.CloseTime = request.CloseTime;
             branch.ThumbnailUrl = request.ThumbnailUrl;
+            branch.CreditCost = request.CreditCost;
             branch.UpdatedAt = DateTime.UtcNow;
 
             await _branchRepo.UpdateAsync(branch);
