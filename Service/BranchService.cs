@@ -31,7 +31,6 @@ namespace Flexfit.Services
                 OpenTime = b.OpenTime,
                 CloseTime = b.CloseTime,
                 ThumbnailUrl = b.ThumbnailUrl,
-                CreditCost = b.CreditCost,
                 IsActive = b.IsActive,
                 CreatedAt = b.CreatedAt,
                 Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto

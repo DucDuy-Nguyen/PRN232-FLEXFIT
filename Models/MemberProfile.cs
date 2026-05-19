@@ -11,7 +11,7 @@ public partial class MemberProfile
 
     public string? Gender { get; set; }
 
-    public DateOnly? DateOfBirth { get; set; }
+    //public DateOnly? DateOfBirth { get; set; }
 
     public decimal? HeightCm { get; set; }
 

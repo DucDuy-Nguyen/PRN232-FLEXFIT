@@ -30,7 +30,7 @@ public partial class User
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-    public DateTime? DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
 
     public virtual ICollection<CheckInLog> CheckInLogScannedByNavigations { get; set; } = new List<CheckInLog>();
 

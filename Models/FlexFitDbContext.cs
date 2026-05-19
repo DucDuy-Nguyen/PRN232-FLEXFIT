@@ -162,7 +162,7 @@ public partial class FlexFitDbContext : DbContext
             entity.HasOne(d => d.Branch).WithMany(p => p.Classes)
                 .HasForeignKey(d => d.BranchId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Classes__BranchI__778AC167");
+                .HasConstraintName("FK__Classes__BranchI__778AC167");   
 
             entity.HasOne(d => d.Category).WithMany(p => p.Classes)
                 .HasForeignKey(d => d.CategoryId)
