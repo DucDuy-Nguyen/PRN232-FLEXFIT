@@ -30,6 +30,8 @@ namespace Flexfit.Repositories
         Task<UserCredit?> GetUserCreditAsync(Guid userId);
         Task AddCreditTransactionAsync(CreditTransaction transaction);
 
+        Task<Branch?> GetBranchByIdAsync(Guid branchId);
+
         Task SaveChangesAsync();
     }
 }

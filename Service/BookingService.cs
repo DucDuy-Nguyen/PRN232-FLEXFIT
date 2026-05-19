@@ -39,6 +39,10 @@ namespace Flexfit.Service
 
             if (session == null)
             {
+                var branch = await _bookingRepo.GetBranchByIdAsync(request.BranchId);
+                if (branch == null)
+                    throw new Exception("Không tìm thấy chi nhánh.");
+
                 session = new GymSession
                 {
                     SessionId = Guid.NewGuid(),
@@ -47,7 +51,7 @@ namespace Flexfit.Service
                     StartTime = request.StartTime,
                     EndTime = request.EndTime,
                     Capacity = 100, 
-                    CreditCost = 0, 
+                    CreditCost = branch.CreditCost, 
                     Status = "Active",
                     CreatedAt = DateTime.UtcNow
                 };
@@ -57,6 +61,15 @@ namespace Flexfit.Service
             var currentBookingsCount = await _bookingRepo.CountGymBookingsBySessionIdAsync(session.SessionId);
             if (currentBookingsCount >= session.Capacity)
                 throw new Exception("Session này đã hết chỗ.");
+
+            var userCredit = await _bookingRepo.GetUserCreditAsync(userId);
+            if (userCredit == null || userCredit.Balance < session.CreditCost)
+                throw new Exception("Tài khoản không đủ credit. Vui lòng nạp thêm credit để đặt lịch.");
+
+            int balanceBefore = userCredit.Balance;
+            userCredit.Balance -= session.CreditCost;
+            userCredit.TotalSpent += session.CreditCost;
+            userCredit.UpdatedAt = DateTime.UtcNow;
 
             var booking = new GymBooking
             {
@@ -71,6 +84,21 @@ namespace Flexfit.Service
             };
 
             await _bookingRepo.AddGymBookingAsync(booking);
+
+            var transaction = new CreditTransaction
+            {
+                TransactionId = Guid.NewGuid(),
+                UserId = userId,
+                Amount = -session.CreditCost,
+                BalanceBefore = balanceBefore,
+                BalanceAfter = userCredit.Balance,
+                Type = "Booking",
+                ReferenceId = booking.BookingId,
+                ReferenceType = "GymBooking",
+                Description = $"Đặt lịch tập Gym thành công. Khung giờ: {session.SessionName}",
+                CreatedAt = DateTime.UtcNow
+            };
+            await _bookingRepo.AddCreditTransactionAsync(transaction);
             await _bookingRepo.SaveChangesAsync();
 
             // ĐÃ SỬA: Lấy thông tin chi tiết qua Repo đã nạp đầy đủ Navigation Properties
@@ -134,6 +162,33 @@ namespace Flexfit.Service
             booking.CancelledAt = DateTime.UtcNow;
             booking.RefundCredit = booking.CreditUsed;
 
+            if (booking.CreditUsed > 0)
+            {
+                var userCredit = await _bookingRepo.GetUserCreditAsync(userId);
+                if (userCredit != null)
+                {
+                    int balanceBefore = userCredit.Balance;
+                    userCredit.Balance += booking.CreditUsed;
+                    userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - booking.CreditUsed);
+                    userCredit.UpdatedAt = DateTime.UtcNow;
+
+                    var transaction = new CreditTransaction
+                    {
+                        TransactionId = Guid.NewGuid(),
+                        UserId = userId,
+                        Amount = booking.CreditUsed,
+                        BalanceBefore = balanceBefore,
+                        BalanceAfter = userCredit.Balance,
+                        Type = "Refund",
+                        ReferenceId = booking.BookingId,
+                        ReferenceType = "GymBooking",
+                        Description = $"Hoàn trả credit do hủy lịch tập Gym thành công. Khung giờ: {booking.Session?.SessionName}",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _bookingRepo.AddCreditTransactionAsync(transaction);
+                }
+            }
+
             await _bookingRepo.UpdateGymBookingAsync(booking);
             await _bookingRepo.SaveChangesAsync();
 
@@ -173,6 +228,15 @@ namespace Flexfit.Service
             if (currentBookingsCount >= classObj.Capacity)
                 throw new Exception("Lớp học này đã hết chỗ.");
 
+            var userCredit = await _bookingRepo.GetUserCreditAsync(userId);
+            if (userCredit == null || userCredit.Balance < classObj.CreditCost)
+                throw new Exception("Tài khoản không đủ credit. Vui lòng nạp thêm credit để đặt lịch lớp học.");
+
+            int balanceBefore = userCredit.Balance;
+            userCredit.Balance -= classObj.CreditCost;
+            userCredit.TotalSpent += classObj.CreditCost;
+            userCredit.UpdatedAt = DateTime.UtcNow;
+
             var booking = new ClassBooking
             {
                 BookingId = Guid.NewGuid(),
@@ -186,6 +250,21 @@ namespace Flexfit.Service
             };
 
             await _bookingRepo.AddClassBookingAsync(booking);
+
+            var transaction = new CreditTransaction
+            {
+                TransactionId = Guid.NewGuid(),
+                UserId = userId,
+                Amount = -classObj.CreditCost,
+                BalanceBefore = balanceBefore,
+                BalanceAfter = userCredit.Balance,
+                Type = "Booking",
+                ReferenceId = booking.BookingId,
+                ReferenceType = "ClassBooking",
+                Description = $"Đặt lịch Class thành công. Lớp học: {classObj.ClassName}",
+                CreatedAt = DateTime.UtcNow
+            };
+            await _bookingRepo.AddCreditTransactionAsync(transaction);
             await _bookingRepo.SaveChangesAsync();
 
             // ĐÃ SỬA: Đồng bộ hóa nạp dữ liệu chi tiết
@@ -250,6 +329,33 @@ namespace Flexfit.Service
             booking.Status = "Cancelled";
             booking.CancelledAt = DateTime.UtcNow;
             booking.RefundCredit = booking.CreditUsed;
+
+            if (booking.CreditUsed > 0)
+            {
+                var userCredit = await _bookingRepo.GetUserCreditAsync(userId);
+                if (userCredit != null)
+                {
+                    int balanceBefore = userCredit.Balance;
+                    userCredit.Balance += booking.CreditUsed;
+                    userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - booking.CreditUsed);
+                    userCredit.UpdatedAt = DateTime.UtcNow;
+
+                    var transaction = new CreditTransaction
+                    {
+                        TransactionId = Guid.NewGuid(),
+                        UserId = userId,
+                        Amount = booking.CreditUsed,
+                        BalanceBefore = balanceBefore,
+                        BalanceAfter = userCredit.Balance,
+                        Type = "Refund",
+                        ReferenceId = booking.BookingId,
+                        ReferenceType = "ClassBooking",
+                        Description = $"Hoàn trả credit do hủy lịch Class thành công. Lớp học: {booking.Class?.ClassName}",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _bookingRepo.AddCreditTransactionAsync(transaction);
+                }
+            }
 
             await _bookingRepo.UpdateClassBookingAsync(booking);
             await _bookingRepo.SaveChangesAsync();

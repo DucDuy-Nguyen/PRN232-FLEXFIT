@@ -8,7 +8,7 @@
         public string? PhoneNumber { get; set; }
         public string? AvatarUrl { get; set; }
 
-        public DateTime? DateOfBirth { get; set; }
+        public DateOnly? DateOfBirth { get; set; }
 
         public bool IsEmailVerified { get; set; }
         public bool IsActive { get; set; }
@@ -23,7 +23,7 @@
         public string? AvatarUrl { get; set; }
 
         // THÊM: Ngày sinh cho phép update
-        public DateTime? DateOfBirth { get; set; }
+        public DateOnly? DateOfBirth { get; set; }
 
         // Tuyệt đối không để IsActive ở đây nữa
     }

@@ -15,6 +15,8 @@ public partial class User
 
     public string? PhoneNumber { get; set; }
 
+    public DateOnly? DateOfBirth { get; set; }
+
     public string? AvatarUrl { get; set; }
 
     public bool IsEmailVerified { get; set; }
@@ -30,7 +32,8 @@ public partial class User
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
-    public DateTime? DateOfBirth { get; set; }
+
+    public virtual ICollection<BranchStaff> BranchStaffs { get; set; } = new List<BranchStaff>();
 
     public virtual ICollection<CheckInLog> CheckInLogScannedByNavigations { get; set; } = new List<CheckInLog>();
 
@@ -64,9 +67,5 @@ public partial class User
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
-    public virtual ICollection<BranchStaff> BranchStaffs { get; set; } = new List<BranchStaff>();
-
-
     public virtual ICollection<UserWorkoutHistory> UserWorkoutHistories { get; set; } = new List<UserWorkoutHistory>();
-
 }

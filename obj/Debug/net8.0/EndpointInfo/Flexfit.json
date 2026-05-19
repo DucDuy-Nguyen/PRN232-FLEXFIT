@@ -1558,6 +1558,10 @@
           "thumbnailUrl": {
             "type": "string",
             "nullable": true
+          },
+          "creditCost": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -1761,6 +1765,10 @@
           "thumbnailUrl": {
             "type": "string",
             "nullable": true
+          },
+          "creditCost": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
@@ -1846,7 +1854,7 @@
           },
           "dateOfBirth": {
             "type": "string",
-            "format": "date-time",
+            "format": "date",
             "nullable": true
           }
         },

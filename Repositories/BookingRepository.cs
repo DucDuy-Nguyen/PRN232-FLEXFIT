@@ -168,6 +168,11 @@ namespace Flexfit.Repositories
             await _context.CreditTransactions.AddAsync(transaction);
         }
 
+        public async Task<Branch?> GetBranchByIdAsync(Guid branchId)
+        {
+            return await _context.Branches.FirstOrDefaultAsync(b => b.BranchId == branchId);
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
