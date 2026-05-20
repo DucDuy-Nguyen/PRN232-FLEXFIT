@@ -84,5 +84,26 @@ namespace Flexfit.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        // <summary>
+        /// API gửi lại mã OTP (Dùng chung cho cả kích hoạt tài khoản và quên mật khẩu)
+        /// </summary>
+        /// <param name="request">Chứa Email và Reason ("VERIFY_EMAIL" hoặc "FORGOT_PASSWORD")</param>
+        [HttpPost("resend-otp")]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpRequest request)
+        {
+            try
+            {
+                var result = await _authService.ResendOtpAsync(request);
+                return Ok(new { message = result });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

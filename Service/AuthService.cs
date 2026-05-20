@@ -233,6 +233,66 @@ namespace Flexfit.Service
             await _userRepository.UpdateAsync(user);
 
             return "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.";
+
+        }
+        // Resend OTP cho cả 2 trường hợp: Xác thực email và Quên mật khẩu
+        public async Task<string> ResendOtpAsync(ResendOtpRequest request)
+        {
+            // 1. Kiểm tra Email có tồn tại trong hệ thống không
+            var user = await _userRepository.GetByEmailAsync(request.Email);
+            if (user == null)
+                throw new Exception("Email không tồn tại trong hệ thống.");
+
+            // 2. Tạo mã OTP 6 số mới hoàn toàn
+            var random = new Random();
+            var newOtpCode = random.Next(100000, 999999).ToString();
+
+            string subject = "";
+            string body = "";
+
+            // 3. Phân nhánh xử lý theo lý do (Reason) gửi lại mã
+            switch (request.Reason.ToUpper())
+            {
+                case "VERIFY_EMAIL":
+                    if (user.IsEmailVerified)
+                        throw new Exception("Tài khoản của bạn đã được xác thực trước đó rồi.");
+
+                    // Reset mã mới và đặt lại hạn 2 phút
+                    user.EmailVerificationToken = newOtpCode;
+                    user.VerificationTokenExpires = DateTime.UtcNow.AddMinutes(2);
+
+                    subject = "Gửi lại: Mã xác thực tài khoản FlexFit";
+                    body = $@"
+                <h3>Chào {user.FullName},</h3>
+                <p>Bạn đã yêu cầu gửi lại mã xác thực tài khoản. Mã OTP mới của bạn là:</p>
+                <h2 style='color: #2e6c80; letter-spacing: 5px;'>{newOtpCode}</h2>
+                <p><i>Mã này sẽ hết hiệu lực sau 2 phút. Vui lòng không chia sẻ mã này.</i></p>";
+                    break;
+
+                case "FORGOT_PASSWORD":
+                    // Reset mã mới và đặt lại hạn 3 phút cho quên mật khẩu
+                    user.EmailVerificationToken = newOtpCode;
+                    user.VerificationTokenExpires = DateTime.UtcNow.AddMinutes(3);
+
+                    subject = "Gửi lại: Mã OTP khôi phục mật khẩu FlexFit";
+                    body = $@"
+                <h3>Chào {user.FullName},</h3>
+                <p>Bạn đã yêu cầu gửi lại mã khôi phục mật khẩu. Mã OTP mới của bạn là:</p>
+                <h2 style='color: #d9534f; letter-spacing: 5px;'>{newOtpCode}</h2>
+                <p><i>Mã này sẽ hết hiệu lực sau 3 minutes. Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</i></p>";
+                    break;
+
+                default:
+                    throw new ArgumentException("Lý do gửi lại OTP (Reason) không hợp lệ. Chỉ chấp nhận 'VERIFY_EMAIL' hoặc 'FORGOT_PASSWORD'.");
+            }
+
+            // 4. Cập nhật mã OTP mới lưu xuống Database
+            await _userRepository.UpdateAsync(user);
+
+            // 5. Tiến hành bắn Email
+            await _emailService.SendEmailAsync(user.Email, subject, body);
+
+            return "Mã OTP mới đã được gửi lại vào Email của bạn thành công!";
         }
     }
 }
