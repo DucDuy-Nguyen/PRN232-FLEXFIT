@@ -15,5 +15,7 @@ namespace Flexfit.Repositories
         Task DeleteAsync(Guid id);
         Task<bool> BranchExistsAsync(Guid branchId);
         Task<bool> CategoryExistsAsync(Guid categoryId);
+        Task<bool> CheckBranchOwnershipAsync(Guid branchId, Guid userId);
+        Task<bool> CheckClassOwnershipAsync(Guid classId, Guid userId);
     }
 }

@@ -73,5 +73,20 @@ namespace Flexfit.Repositories
         {
             return await _db.Categories.AnyAsync(c => c.CategoryId == categoryId);
         }
+
+        public async Task<bool> CheckBranchOwnershipAsync(Guid branchId, Guid userId)
+        {
+            return await _db.Branches
+                .Include(b => b.Gym)
+                .AnyAsync(b => b.BranchId == branchId && b.Gym.OwnerId == userId);
+        }
+
+        public async Task<bool> CheckClassOwnershipAsync(Guid classId, Guid userId)
+        {
+            return await _db.Classes
+                .Include(c => c.Branch)
+                    .ThenInclude(b => b.Gym)
+                .AnyAsync(c => c.ClassId == classId && c.Branch.Gym.OwnerId == userId);
+        }
     }
 }

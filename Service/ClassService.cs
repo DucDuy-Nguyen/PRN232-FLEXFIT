@@ -36,7 +36,7 @@ namespace Flexfit.Services
             return MapToDto(c);
         }
 
-        public async Task<Guid> CreateClassAsync(CreateClassRequest request)
+        public async Task<Guid> CreateClassAsync(CreateClassRequest request, Guid currentUserId)
         {
             // 1. Validation
             if (string.IsNullOrWhiteSpace(request.ClassName))
@@ -55,6 +55,11 @@ namespace Flexfit.Services
             var branchExists = await _classRepo.BranchExistsAsync(request.BranchId);
             if (!branchExists)
                 throw new KeyNotFoundException("Chi nhánh liên kết không tồn tại trên hệ thống.");
+
+            //  CHECK: Người tạo phải là chủ sở hữu của chi nhánh liên kết
+            var isOwner = await _classRepo.CheckBranchOwnershipAsync(request.BranchId, currentUserId);
+            if (!isOwner)
+                throw new UnauthorizedAccessException("Bạn không phải chủ của phòng gym sở hữu chi nhánh này nên không thể tạo lớp học.");
 
             // Check if Category exists via Repository
             var categoryExists = await _classRepo.CategoryExistsAsync(request.CategoryId);
@@ -85,12 +90,17 @@ namespace Flexfit.Services
             return newClass.ClassId;
         }
 
-        public async Task UpdateClassAsync(Guid id, UpdateClassRequest request)
+        public async Task UpdateClassAsync(Guid id, UpdateClassRequest request, Guid currentUserId)
         {
             // 1. Find existing class via Repository
             var existingClass = await _classRepo.GetByIdAsync(id);
             if (existingClass == null)
                 throw new KeyNotFoundException("Không tìm thấy lớp học.");
+
+            //  CHECK: Người sửa phải là chủ sở hữu lớp học này
+            var isOwner = await _classRepo.CheckClassOwnershipAsync(id, currentUserId);
+            if (!isOwner)
+                throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa lớp học này.");
 
             // 2. Validation
             if (string.IsNullOrWhiteSpace(request.ClassName))
@@ -133,11 +143,17 @@ namespace Flexfit.Services
             await _classRepo.UpdateAsync(existingClass);
         }
 
-        public async Task ChangeClassStatusAsync(Guid id, string status)
+        public async Task ChangeClassStatusAsync(Guid id, string status, Guid currentUserId)
         {
+            // 1. Find existing class via Repository
             var existingClass = await _classRepo.GetByIdAsync(id);
             if (existingClass == null)
                 throw new KeyNotFoundException("Không tìm thấy lớp học.");
+
+            //  CHECK: Người đổi trạng thái phải là chủ sở hữu lớp học này
+            var isOwner = await _classRepo.CheckClassOwnershipAsync(id, currentUserId);
+            if (!isOwner)
+                throw new UnauthorizedAccessException("Bạn không có quyền thay đổi trạng thái lớp học này.");
 
             var validStatuses = new[] { "Open", "Cancelled", "Completed" };
             if (!validStatuses.Contains(status, StringComparer.OrdinalIgnoreCase))
@@ -149,11 +165,16 @@ namespace Flexfit.Services
             await _classRepo.UpdateAsync(existingClass);
         }
 
-        public async Task DeleteClassAsync(Guid id)
+        public async Task DeleteClassAsync(Guid id, Guid currentUserId)
         {
             var existingClass = await _classRepo.GetByIdAsync(id);
             if (existingClass == null)
                 throw new KeyNotFoundException("Không tìm thấy lớp học.");
+
+            //  CHECK: Người xóa phải là chủ sở hữu lớp học này
+            var isOwner = await _classRepo.CheckClassOwnershipAsync(id, currentUserId);
+            if (!isOwner)
+                throw new UnauthorizedAccessException("Bạn không có quyền xóa lớp học này.");
 
             // Check for active bookings
             var hasActiveBookings = existingClass.ClassBookings.Any(cb => cb.Status == "Booked");

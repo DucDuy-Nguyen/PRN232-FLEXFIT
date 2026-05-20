@@ -10,9 +10,9 @@ namespace Flexfit.Services
         Task<IEnumerable<ClassDto>> GetAllClassesAsync();
         Task<IEnumerable<ClassDto>> GetClassesByBranchAsync(Guid branchId);
         Task<ClassDto?> GetClassByIdAsync(Guid id);
-        Task<Guid> CreateClassAsync(CreateClassRequest request);
-        Task UpdateClassAsync(Guid id, UpdateClassRequest request);
-        Task ChangeClassStatusAsync(Guid id, string status);
-        Task DeleteClassAsync(Guid id);
+        Task<Guid> CreateClassAsync(CreateClassRequest request, Guid currentUserId);
+        Task UpdateClassAsync(Guid id, UpdateClassRequest request, Guid currentUserId);
+        Task ChangeClassStatusAsync(Guid id, string status, Guid currentUserId);
+        Task DeleteClassAsync(Guid id, Guid currentUserId);
     }
 }

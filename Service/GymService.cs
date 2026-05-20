@@ -1,19 +1,20 @@
 ﻿using Flexfit.DTOs;
 using Flexfit.Models;
 using Flexfit.Repositories;
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Flexfit.Services
 {
     public class GymService : IGymService
     {
         private readonly IGymRepository _gymRepo;
-        private readonly FlexFitDbContext _context;
 
-        public GymService(IGymRepository gymRepo, FlexFitDbContext context)
+        public GymService(IGymRepository gymRepo)
         {
             _gymRepo = gymRepo;
-            _context = context;
         }
 
         public async Task<IEnumerable<GymDto>> GetAllGymsAsync()
@@ -56,8 +57,14 @@ namespace Flexfit.Services
             };
         }
 
-        public async Task<Guid> CreateGymAsync(CreateGymRequest request)
+        public async Task<Guid> CreateGymAsync(CreateGymRequest request, Guid currentUserId)
         {
+            // 🛑 CHECK: Chủ phòng tập chỉ được tạo phòng tập cho chính mình
+            if (request.OwnerId != currentUserId)
+            {
+                throw new UnauthorizedAccessException("Bạn không thể tạo phòng tập đứng tên tài khoản khác.");
+            }
+
             var newGym = new Gym
             {
                 GymId = Guid.NewGuid(),
@@ -75,21 +82,30 @@ namespace Flexfit.Services
 
             await _gymRepo.AddAsync(newGym);
 
-            var partnerRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "GymPartner");
+            var partnerRole = await _gymRepo.GetRoleByNameAsync("GymPartner");
             if (partnerRole != null)
             {
-                var hasPartnerRole = await _context.UserRoles.AnyAsync(ur => ur.UserId == request.OwnerId && ur.RoleId == partnerRole.RoleId);
+                var hasPartnerRole = await _gymRepo.UserHasRoleAsync(request.OwnerId, partnerRole.RoleId);
                 if (!hasPartnerRole)
                 {
-                    await _context.UserRoles.AddAsync(new UserRole { UserId = request.OwnerId, RoleId = partnerRole.RoleId, AssignedAt = DateTime.UtcNow });
-                    await _context.SaveChangesAsync();
+                    await _gymRepo.AddUserRoleAsync(new UserRole
+                    {
+                        UserId = request.OwnerId,
+                        RoleId = partnerRole.RoleId,
+                        AssignedAt = DateTime.UtcNow
+                    });
+                    await _gymRepo.SaveChangesAsync();
                 }
             }
             return newGym.GymId;
         }
 
-        public async Task UpdateGymAsync(Guid id, UpdateGymRequest request)
+        public async Task UpdateGymAsync(Guid id, UpdateGymRequest request, Guid currentUserId)
         {
+            // 🛑 CHECK quyền sở hữu
+            var isOwner = await _gymRepo.CheckGymOwnershipAsync(id, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này.");
+
             var gym = await _gymRepo.GetByIdAsync(id);
             if (gym == null) throw new KeyNotFoundException("Không tìm thấy phòng tập.");
 
@@ -103,8 +119,12 @@ namespace Flexfit.Services
             await _gymRepo.UpdateAsync(gym);
         }
 
-        public async Task ChangeGymStatusAsync(Guid id, string status)
+        public async Task ChangeGymStatusAsync(Guid id, string status, Guid currentUserId)
         {
+            // 🛑 CHECK quyền sở hữu
+            var isOwner = await _gymRepo.CheckGymOwnershipAsync(id, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này.");
+
             var gym = await _gymRepo.GetByIdAsync(id);
             if (gym == null) throw new KeyNotFoundException("Không tìm thấy phòng tập.");
 
@@ -114,20 +134,28 @@ namespace Flexfit.Services
             await _gymRepo.UpdateAsync(gym);
         }
 
-        public async Task DeleteGymAsync(Guid id)
+        public async Task DeleteGymAsync(Guid id, Guid currentUserId)
         {
+            // 🛑 CHECK quyền sở hữu
+            var isOwner = await _gymRepo.CheckGymOwnershipAsync(id, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này.");
+
             var gym = await _gymRepo.GetByIdAsync(id);
             if (gym == null) throw new KeyNotFoundException("Không tìm thấy phòng tập.");
 
             await _gymRepo.DeleteAsync(id);
         }
 
-        public async Task TransferGymOwnershipAsync(TransferGymOwnershipDto request)
+        public async Task TransferGymOwnershipAsync(TransferGymOwnershipDto request, Guid currentUserId)
         {
+            // 🛑 CHECK quyền sở hữu (Phải là chủ hiện tại mới được sang tên)
+            var isOwner = await _gymRepo.CheckGymOwnershipAsync(request.GymId, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này để thực hiện chuyển nhượng.");
+
             var gym = await _gymRepo.GetByIdAsync(request.GymId);
             if (gym == null) throw new KeyNotFoundException("Không tìm thấy phòng tập.");
 
-            var newOwner = await _context.Users.FindAsync(request.NewOwnerId);
+            var newOwner = await _gymRepo.GetUserByIdAsync(request.NewOwnerId);
             if (newOwner == null) throw new KeyNotFoundException("Người dùng được chọn làm chủ sở hữu mới không tồn tại.");
 
             if (gym.OwnerId == request.NewOwnerId)
@@ -138,22 +166,26 @@ namespace Flexfit.Services
             gym.UpdatedAt = DateTime.UtcNow;
             await _gymRepo.UpdateAsync(gym);
 
-            var partnerRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "GymPartner");
+            var partnerRole = await _gymRepo.GetRoleByNameAsync("GymPartner");
             if (partnerRole != null)
             {
-                var newOwnerHasRole = await _context.UserRoles.AnyAsync(ur => ur.UserId == request.NewOwnerId && ur.RoleId == partnerRole.RoleId);
+                var newOwnerHasRole = await _gymRepo.UserHasRoleAsync(request.NewOwnerId, partnerRole.RoleId);
                 if (!newOwnerHasRole)
                 {
-                    await _context.UserRoles.AddAsync(new UserRole { UserId = request.NewOwnerId, RoleId = partnerRole.RoleId, AssignedAt = DateTime.UtcNow });
+                    await _gymRepo.AddUserRoleAsync(new UserRole
+                    {
+                        UserId = request.NewOwnerId,
+                        RoleId = partnerRole.RoleId,
+                        AssignedAt = DateTime.UtcNow
+                    });
                 }
 
-                var oldOwnerRemainingGyms = await _context.Gyms.CountAsync(g => g.OwnerId == oldOwnerId);
+                var oldOwnerRemainingGyms = await _gymRepo.CountGymsByOwnerIdAsync(oldOwnerId);
                 if (oldOwnerRemainingGyms == 0)
                 {
-                    var oldUserRole = await _context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == oldOwnerId && ur.RoleId == partnerRole.RoleId);
-                    if (oldUserRole != null) _context.UserRoles.Remove(oldUserRole);
+                    await _gymRepo.RemoveUserRoleAsync(oldOwnerId, partnerRole.RoleId);
                 }
-                await _context.SaveChangesAsync();
+                await _gymRepo.SaveChangesAsync();
             }
         }
     }

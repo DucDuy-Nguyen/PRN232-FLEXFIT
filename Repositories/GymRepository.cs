@@ -1,5 +1,9 @@
 ﻿using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Flexfit.Repositories
 {
@@ -32,6 +36,51 @@ namespace Flexfit.Repositories
                 _db.Gyms.Remove(gym);
                 await _db.SaveChangesAsync();
             }
+        }
+
+        // --- TRIỂN KHAI HÀM CHECK SỞ HỮU ---
+        public async Task<bool> CheckGymOwnershipAsync(Guid gymId, Guid userId)
+        {
+            return await _db.Gyms.AnyAsync(g => g.GymId == gymId && g.OwnerId == userId);
+        }
+
+        public async Task<Role?> GetRoleByNameAsync(string roleName)
+        {
+            return await _db.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
+        }
+
+        public async Task<bool> UserHasRoleAsync(Guid userId, Guid roleId)
+        {
+            return await _db.UserRoles.AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+        }
+
+        public async Task AddUserRoleAsync(UserRole userRole)
+        {
+            await _db.UserRoles.AddAsync(userRole);
+        }
+
+        public async Task<User?> GetUserByIdAsync(Guid userId)
+        {
+            return await _db.Users.FindAsync(userId);
+        }
+
+        public async Task<int> CountGymsByOwnerIdAsync(Guid ownerId)
+        {
+            return await _db.Gyms.CountAsync(g => g.OwnerId == ownerId);
+        }
+
+        public async Task RemoveUserRoleAsync(Guid userId, Guid roleId)
+        {
+            var userRole = await _db.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+            if (userRole != null)
+            {
+                _db.UserRoles.Remove(userRole);
+            }
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _db.SaveChangesAsync();
         }
     }
 }

@@ -353,6 +353,58 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Flexfit.Controllers.CheckInLogController",
+    "Method": "GetAllLogs",
+    "RelativePath": "api/check-in-logs",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.CheckInLogController",
+    "Method": "CheckInClass",
+    "RelativePath": "api/check-in-logs/class",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.CheckInLog.CheckInClassRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.CheckInLogController",
+    "Method": "CheckInGym",
+    "RelativePath": "api/check-in-logs/gym",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.CheckInLog.CheckInGymRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.CheckInLogController",
+    "Method": "GetMyCheckInHistory",
+    "RelativePath": "api/check-in-logs/my-history",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Flexfit.Controllers.ClassController",
     "Method": "GetAllClasses",
     "RelativePath": "api/classes",

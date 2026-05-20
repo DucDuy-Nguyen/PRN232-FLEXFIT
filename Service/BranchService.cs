@@ -1,20 +1,16 @@
 ﻿using Flexfit.DTOs;
 using Flexfit.Models;
 using Flexfit.Repositories;
-using Microsoft.EntityFrameworkCore;
-using PayOS.Resources.V1.Payouts.Batch;
 
 namespace Flexfit.Services
 {
     public class BranchService : IBranchService
     {
         private readonly IBranchRepository _branchRepo;
-        private readonly FlexFitDbContext _context;
 
-        public BranchService(IBranchRepository branchRepo, FlexFitDbContext context)
+        public BranchService(IBranchRepository branchRepo)
         {
             _branchRepo = branchRepo;
-            _context = context;
         }
 
         public async Task<IEnumerable<BranchDto>> GetAllBranchesAsync()
@@ -37,7 +33,7 @@ namespace Flexfit.Services
                 Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto
                 {
                     StaffId = bs.StaffId,
-                    FullName = bs.Staff.FullName
+                    FullName = bs.Staff?.FullName ?? "N/A"
                 }).ToList()
             });
         }
@@ -64,13 +60,21 @@ namespace Flexfit.Services
                 Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto
                 {
                     StaffId = bs.StaffId,
-                    FullName = bs.Staff.FullName
+                    FullName = bs.Staff?.FullName ?? "N/A"
                 }).ToList()
             };
         }
 
-        public async Task<Guid> CreateBranchAsync(CreateBranchRequest request)
+        // ==========================================
+        // KHU VỰC THAY ĐỔI DỮ LIỆU - BẮT BUỘC CHECK CHỦ PHÒNG
+        // ==========================================
+
+        public async Task<Guid> CreateBranchAsync(CreateBranchRequest request, Guid currentUserId)
         {
+            //  CHECK: Người tạo phải là chủ của Gym này
+            var isOwner = await _branchRepo.CheckGymOwnershipAsync(request.GymId, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ của phòng gym này nên không thể tạo chi nhánh.");
+
             var newBranch = new Branch
             {
                 BranchId = Guid.NewGuid(),
@@ -91,8 +95,12 @@ namespace Flexfit.Services
             return newBranch.BranchId;
         }
 
-        public async Task UpdateBranchAsync(Guid id, UpdateBranchRequest request)
+        public async Task UpdateBranchAsync(Guid id, UpdateBranchRequest request, Guid currentUserId)
         {
+            // 🛑 CHECK: Người sửa phải là chủ sở hữu của chi nhánh này
+            var isOwner = await _branchRepo.CheckBranchOwnershipAsync(id, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa chi nhánh này.");
+
             var branch = await _branchRepo.GetByIdAsync(id);
             if (branch == null) throw new KeyNotFoundException("Không tìm thấy chi nhánh.");
 
@@ -109,8 +117,12 @@ namespace Flexfit.Services
             await _branchRepo.UpdateAsync(branch);
         }
 
-        public async Task ChangeBranchStatusAsync(Guid id, bool isActive)
+        public async Task ChangeBranchStatusAsync(Guid id, bool isActive, Guid currentUserId)
         {
+            //  CHECK: Người đổi trạng thái phải là chủ sở hữu chi nhánh
+            var isOwner = await _branchRepo.CheckBranchOwnershipAsync(id, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền thay đổi trạng thái chi nhánh này.");
+
             var branch = await _branchRepo.GetByIdAsync(id);
             if (branch == null) throw new KeyNotFoundException("Không tìm thấy chi nhánh.");
 
@@ -120,109 +132,117 @@ namespace Flexfit.Services
             await _branchRepo.UpdateAsync(branch);
         }
 
-        public async Task DeleteBranchAsync(Guid id)
+        public async Task DeleteBranchAsync(Guid id, Guid currentUserId)
         {
+            //  CHECK: Người xóa phải là chủ sở hữu chi nhánh
+            var isOwner = await _branchRepo.CheckBranchOwnershipAsync(id, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền xóa chi nhánh này.");
+
             var branch = await _branchRepo.GetByIdAsync(id);
             if (branch == null) throw new KeyNotFoundException("Không tìm thấy chi nhánh.");
 
             await _branchRepo.DeleteAsync(id);
         }
 
-        public async Task AssignStaffToBranchAsync(AssignStaffDto dto)
+        public async Task AssignStaffToBranchAsync(AssignStaffDto dto, Guid currentUserId)
         {
-            var branch = await _context.Branches.FindAsync(dto.BranchId);
+            // CHECK: Phải là chủ chi nhánh mới được bổ nhiệm nhân viên vào đây
+            var isOwner = await _branchRepo.CheckBranchOwnershipAsync(dto.BranchId, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền quản lý nhân sự tại chi nhánh này.");
+
+            var branch = await _branchRepo.GetByIdAsync(dto.BranchId);
             if (branch == null) throw new KeyNotFoundException("Chi nhánh không tồn tại trên hệ thống.");
 
-            var employee = await _context.Users.FindAsync(dto.UserId);
+            var employee = await _branchRepo.GetUserByIdAsync(dto.UserId);
             if (employee == null) throw new KeyNotFoundException("Người dùng được chọn làm nhân viên không tồn tại.");
 
-            var staffRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Staff");
+            var staffRole = await _branchRepo.GetRoleByNameAsync("Staff");
             if (staffRole == null) throw new ArgumentException("Hệ thống chưa cấu hình vai trò 'Staff' trong DB!");
 
-            var hasStaffRole = await _context.UserRoles.AnyAsync(ur => ur.UserId == dto.UserId && ur.RoleId == staffRole.RoleId);
+            var hasStaffRole = await _branchRepo.UserHasRoleAsync(dto.UserId, staffRole.RoleId);
             if (!hasStaffRole)
             {
-                var oldRoles = _context.UserRoles.Where(ur => ur.UserId == dto.UserId);
-                _context.UserRoles.RemoveRange(oldRoles);
-
-                await _context.UserRoles.AddAsync(new UserRole { UserId = dto.UserId, RoleId = staffRole.RoleId, AssignedAt = DateTime.UtcNow });
+                await _branchRepo.RemoveAllRolesOfUserAsync(dto.UserId);
+                await _branchRepo.AddUserRoleAsync(new UserRole { UserId = dto.UserId, RoleId = staffRole.RoleId, AssignedAt = DateTime.UtcNow });
             }
 
-            var isAlreadyStaffHere = await _context.BranchStaffs.AnyAsync(bs => bs.StaffId == dto.UserId && bs.BranchId == dto.BranchId);
+            var isAlreadyStaffHere = await _branchRepo.IsStaffInBranchAsync(dto.UserId, dto.BranchId);
             if (isAlreadyStaffHere) throw new ArgumentException("Người này đã là nhân viên của chi nhánh này rồi!");
 
-            var oldBranchAssignments = _context.BranchStaffs.Where(bs => bs.StaffId == dto.UserId);
-            _context.BranchStaffs.RemoveRange(oldBranchAssignments);
+            await _branchRepo.RemoveStaffFromAllBranchesAsync(dto.UserId);
+            await _branchRepo.AddBranchStaffAsync(new BranchStaff { StaffId = dto.UserId, BranchId = dto.BranchId, AssignedAt = DateTime.UtcNow });
 
-            await _context.BranchStaffs.AddAsync(new BranchStaff { StaffId = dto.UserId, BranchId = dto.BranchId, AssignedAt = DateTime.UtcNow });
-            await _context.SaveChangesAsync();
+            await _branchRepo.SaveChangesAsync();
         }
 
-        public async Task RemoveStaffFromBranchAsync(Guid staffId, Guid branchId)
+        public async Task RemoveStaffFromBranchAsync(Guid staffId, Guid branchId, Guid currentUserId)
         {
-            var branchStaff = await _context.BranchStaffs.FirstOrDefaultAsync(bs => bs.StaffId == staffId && bs.BranchId == branchId);
-            if (branchStaff == null) throw new KeyNotFoundException("Nhân viên này hiện không thuộc chi nhánh này hoặc không tồn tại bản ghi bổ nhiệm.");
+            //  CHECK: Phải là chủ chi nhánh mới được đuổi nhân viên
+            var isOwner = await _branchRepo.CheckBranchOwnershipAsync(branchId, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền gỡ nhân sự tại chi nhánh này.");
 
-            _context.BranchStaffs.Remove(branchStaff);
+            var branchStaff = await _branchRepo.GetBranchStaffAsync(staffId, branchId);
+            if (branchStaff == null) throw new KeyNotFoundException("Nhân viên này hiện không thuộc chi nhánh này.");
 
-            var remainingBranchesCount = await _context.BranchStaffs.CountAsync(bs => bs.StaffId == staffId && bs.BranchId != branchId);
+            await _branchRepo.RemoveBranchStaffAsync(branchStaff);
+
+            var remainingBranchesCount = await _branchRepo.CountBranchesForStaffAsync(staffId, branchId);
             if (remainingBranchesCount == 0)
             {
-                var staffRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Staff");
+                var staffRole = await _branchRepo.GetRoleByNameAsync("Staff");
                 if (staffRole != null)
                 {
-                    var userStaffRole = await _context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == staffId && ur.RoleId == staffRole.RoleId);
-                    if (userStaffRole != null) _context.UserRoles.Remove(userStaffRole);
+                    await _branchRepo.RemoveUserRoleAsync(staffId, staffRole.RoleId);
                 }
             }
-            await _context.SaveChangesAsync();
+            await _branchRepo.SaveChangesAsync();
         }
 
-        public async Task UpdateBranchStaffAsync(UpdateBranchStaffDto dto)
+        public async Task UpdateBranchStaffAsync(UpdateBranchStaffDto dto, Guid currentUserId)
         {
-            var branch = await _context.Branches.FindAsync(dto.BranchId);
+            //  CHECK: Phải là chủ chi nhánh mới được cập nhật nhân viên quản lý
+            var isOwner = await _branchRepo.CheckBranchOwnershipAsync(dto.BranchId, currentUserId);
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền chuyển giao nhân sự tại chi nhánh này.");
+
+            var branch = await _branchRepo.GetByIdAsync(dto.BranchId);
             if (branch == null) throw new KeyNotFoundException("Chi nhánh không tồn tại.");
 
-            var newEmployee = await _context.Users.FindAsync(dto.NewStaffId);
+            var newEmployee = await _branchRepo.GetUserByIdAsync(dto.NewStaffId);
             if (newEmployee == null) throw new KeyNotFoundException("Nhân viên mới được chọn không tồn tại.");
 
-            var oldAssignment = await _context.BranchStaffs.FirstOrDefaultAsync(bs => bs.BranchId == dto.BranchId);
+            var oldAssignment = await _branchRepo.GetBranchStaffByBranchIdAsync(dto.BranchId);
             if (oldAssignment != null)
             {
                 Guid oldStaffId = oldAssignment.StaffId;
-                if (oldStaffId == dto.NewStaffId) return; // Đã là nhân viên hiện tại, bỏ qua không báo lỗi
+                if (oldStaffId == dto.NewStaffId) return;
 
-                _context.BranchStaffs.Remove(oldAssignment);
+                await _branchRepo.RemoveBranchStaffAsync(oldAssignment);
 
-                var oldStaffRemainingCount = await _context.BranchStaffs.CountAsync(bs => bs.StaffId == oldStaffId && bs.BranchId != dto.BranchId);
+                var oldStaffRemainingCount = await _branchRepo.CountBranchesForStaffAsync(oldStaffId, dto.BranchId);
                 if (oldStaffRemainingCount == 0)
                 {
-                    var staffRoleName = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Staff");
+                    var staffRoleName = await _branchRepo.GetRoleByNameAsync("Staff");
                     if (staffRoleName != null)
                     {
-                        var oldUserStaffRole = await _context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == oldStaffId && ur.RoleId == staffRoleName.RoleId);
-                        if (oldUserStaffRole != null) _context.UserRoles.Remove(oldUserStaffRole);
+                        await _branchRepo.RemoveUserRoleAsync(oldStaffId, staffRoleName.RoleId);
                     }
                 }
             }
 
-            var staffRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Staff");
+            var staffRole = await _branchRepo.GetRoleByNameAsync("Staff");
             if (staffRole == null) throw new ArgumentException("Hệ thống chưa cấu hình vai trò 'Staff' trong DB!");
 
-            var hasStaffRole = await _context.UserRoles.AnyAsync(ur => ur.UserId == dto.NewStaffId && ur.RoleId == staffRole.RoleId);
+            var hasStaffRole = await _branchRepo.UserHasRoleAsync(dto.NewStaffId, staffRole.RoleId);
             if (!hasStaffRole)
             {
-                var oldRolesOfNewStaff = _context.UserRoles.Where(ur => ur.UserId == dto.NewStaffId);
-                _context.UserRoles.RemoveRange(oldRolesOfNewStaff);
-
-                await _context.UserRoles.AddAsync(new UserRole { UserId = dto.NewStaffId, RoleId = staffRole.RoleId, AssignedAt = DateTime.UtcNow });
+                await _branchRepo.RemoveAllRolesOfUserAsync(dto.NewStaffId);
+                await _branchRepo.AddUserRoleAsync(new UserRole { UserId = dto.NewStaffId, RoleId = staffRole.RoleId, AssignedAt = DateTime.UtcNow });
             }
 
-            var oldBranchAssignmentsOfNewStaff = _context.BranchStaffs.Where(bs => bs.StaffId == dto.NewStaffId);
-            _context.BranchStaffs.RemoveRange(oldBranchAssignmentsOfNewStaff);
+            await _branchRepo.RemoveStaffFromAllBranchesAsync(dto.NewStaffId);
+            await _branchRepo.AddBranchStaffAsync(new BranchStaff { StaffId = dto.NewStaffId, BranchId = dto.BranchId, AssignedAt = DateTime.UtcNow });
 
-            await _context.BranchStaffs.AddAsync(new BranchStaff { StaffId = dto.NewStaffId, BranchId = dto.BranchId, AssignedAt = DateTime.UtcNow });
-            await _context.SaveChangesAsync();
+            await _branchRepo.SaveChangesAsync();
         }
     }
 }

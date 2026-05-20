@@ -114,6 +114,9 @@ builder.Services.AddScoped<IMemberProfileService, MemberProfileService>();
 //Credit repository and service
 builder.Services.AddScoped<ICreditRepository, CreditRepository>();
 builder.Services.AddScoped<ICreditService, CreditService>();
+// check-in log repository and service
+builder.Services.AddScoped<ICheckInLogRepository, CheckInLogRepository>();
+builder.Services.AddScoped<ICheckInLogService, CheckInLogService>();
 builder.Services.AddHostedService<BookingReminderWorker>();
 
 builder.Services.AddSingleton<JwtHelper>();
