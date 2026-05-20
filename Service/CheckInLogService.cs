@@ -32,12 +32,19 @@ namespace Flexfit.Service
         // --- LUỒNG 1: CHECK-IN PHÒNG GYM TỰ DO ---
         public async Task<CheckInLogResponse> CheckInGymAsync(CheckInGymRequest request, Guid staffId)
         {
+            // 🚨 Kiểm tra quyền sở hữu hoặc làm việc tại chi nhánh
+            var hasPermission = await _checkInRepo.IsStaffOrOwnerForGymBookingAsync(request.GymBookingId, staffId);
+            if (!hasPermission)
+            {
+                throw new UnauthorizedAccessException("Tài khoản của bạn không thuộc chi nhánh hoặc phòng gym quản lý lịch đặt này!");
+            }
+
             var log = new CheckInLog
             {
                 CheckInLogId = Guid.NewGuid(),
                 UserId = request.UserId,
-                GymBookingId = request.GymBookingId,
-                ClassBookingId = null, // Đảm bảo trường Class luôn rỗng
+                GymBookingId = request.GymBookingId, // Trường liên kết FK trong CheckInLog giữ nguyên
+                ClassBookingId = null,
                 ScannedBy = staffId,
                 Status = request.Status,
                 Message = request.Message ?? "Check-in lịch tập Gym",
@@ -54,12 +61,19 @@ namespace Flexfit.Service
         // --- LUỒNG 2: CHECK-IN LỚP HỌC (CLASS) ---
         public async Task<CheckInLogResponse> CheckInClassAsync(CheckInClassRequest request, Guid staffId)
         {
+            // 🚨 Kiểm tra quyền sở hữu hoặc làm việc tại chi nhánh
+            var hasPermission = await _checkInRepo.IsStaffOrOwnerForClassBookingAsync(request.ClassBookingId, staffId);
+            if (!hasPermission)
+            {
+                throw new UnauthorizedAccessException("Tài khoản của bạn không có quyền quét mã tại lớp học thuộc cơ sở này!");
+            }
+
             var log = new CheckInLog
             {
                 CheckInLogId = Guid.NewGuid(),
                 UserId = request.UserId,
-                GymBookingId = null, // Đảm bảo trường Gym luôn rỗng
-                ClassBookingId = request.ClassBookingId,
+                GymBookingId = null,
+                ClassBookingId = request.ClassBookingId, // Trường liên kết FK trong CheckInLog giữ nguyên
                 ScannedBy = staffId,
                 Status = request.Status,
                 Message = request.Message ?? "Check-in lịch học lớp Class",
@@ -90,6 +104,23 @@ namespace Flexfit.Service
                 Message = log.Message,
                 ScannedAt = log.ScannedAt
             };
+        }
+        public async Task<IEnumerable<CheckInLogResponse>> GetManagedLogsAsync(Guid currentUserId, string role)
+        {
+            IEnumerable<CheckInLog> logs;
+
+            // Nếu người dùng đăng nhập là hệ thống Admin, cho phép quét và xem toàn bộ dữ liệu hệ thống
+            if (role == "Admin")
+            {
+                logs = await _checkInRepo.GetAllAsync();
+            }
+            // Nếu là Đối tác (GymPartner) hoặc Nhân viên (Staff), tiến hành lọc nghiêm ngặt theo phân hệ cơ sở phụ trách
+            else
+            {
+                logs = await _checkInRepo.GetLogsForManagerAsync(currentUserId);
+            }
+
+            return logs.Select(MapToResponse);
         }
     }
 }

@@ -11,6 +11,9 @@ namespace Flexfit.Repositories
         Task<IEnumerable<CheckInLog>> GetByUserIdAsync(Guid userId);
         Task<CheckInLog?> GetByIdAsync(Guid id);
         Task AddAsync(CheckInLog log);
+        Task<bool> IsStaffOrOwnerForGymBookingAsync(Guid gymBookingId, Guid scannerId);
+        Task<bool> IsStaffOrOwnerForClassBookingAsync(Guid classBookingId, Guid scannerId);
+        Task<IEnumerable<CheckInLog>> GetLogsForManagerAsync(Guid managerId);
         Task SaveChangesAsync();
     }
 }
