@@ -32,6 +32,8 @@ namespace Flexfit.Repositories
 
         Task<Branch?> GetBranchByIdAsync(Guid branchId);
 
+        Task<int> GetCancellationCountTodayAsync(Guid userId);
+
         Task SaveChangesAsync();
     }
 }

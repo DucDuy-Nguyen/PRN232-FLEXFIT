@@ -229,5 +229,25 @@ namespace Flexfit.Repositories
             }
             return Enumerable.Empty<ClassBooking>();
         }
+
+        public async Task<int> GetCancellationCountTodayAsync(Guid userId)
+        {
+            var localNow = DateTime.UtcNow.AddHours(7);
+            var localTodayStart = new DateTime(localNow.Year, localNow.Month, localNow.Day, 0, 0, 0, DateTimeKind.Unspecified);
+            var localTodayEnd = localTodayStart.AddDays(1);
+
+            var utcTodayStart = localTodayStart.AddHours(-7);
+            var utcTodayEnd = localTodayEnd.AddHours(-7);
+
+            var gymCancelledCount = await _context.GymBookings
+                .Where(b => b.UserId == userId && b.Status == "Cancelled" && b.CancelledAt >= utcTodayStart && b.CancelledAt < utcTodayEnd)
+                .CountAsync();
+
+            var classCancelledCount = await _context.ClassBookings
+                .Where(b => b.UserId == userId && b.Status == "Cancelled" && b.CancelledAt >= utcTodayStart && b.CancelledAt < utcTodayEnd)
+                .CountAsync();
+
+            return gymCancelledCount + classCancelledCount;
+        }
     }
 }

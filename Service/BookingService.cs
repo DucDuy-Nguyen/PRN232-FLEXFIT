@@ -158,31 +158,53 @@ namespace Flexfit.Service
             if (booking.Session != null && booking.Session.StartTime <= DateTime.UtcNow)
                 throw new Exception("Không thể huỷ khi session đã bắt đầu.");
 
+            var todayCancelledCount = await _bookingRepo.GetCancellationCountTodayAsync(userId);
+            if (todayCancelledCount >= 2)
+                throw new Exception("Mỗi ngày bạn chỉ được hủy tối đa 2 lịch đặt.");
+
+            double refundPercentage = 0;
+            if (booking.Session != null)
+            {
+                var timeRemaining = booking.Session.StartTime - DateTime.UtcNow;
+                if (timeRemaining.TotalHours >= 12)
+                    refundPercentage = 100;
+                else if (timeRemaining.TotalHours >= 6)
+                    refundPercentage = 70;
+                else if (timeRemaining.TotalHours >= 3)
+                    refundPercentage = 50;
+                else if (timeRemaining.TotalHours >= 1)
+                    refundPercentage = 25;
+                else
+                    refundPercentage = 0;
+            }
+
+            int refundAmount = (int)Math.Round(booking.CreditUsed * (refundPercentage / 100.0));
+
             booking.Status = "Cancelled";
             booking.CancelledAt = DateTime.UtcNow;
-            booking.RefundCredit = booking.CreditUsed;
+            booking.RefundCredit = refundAmount;
 
-            if (booking.CreditUsed > 0)
+            if (refundAmount > 0)
             {
                 var userCredit = await _bookingRepo.GetUserCreditAsync(userId);
                 if (userCredit != null)
                 {
                     int balanceBefore = userCredit.Balance;
-                    userCredit.Balance += booking.CreditUsed;
-                    userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - booking.CreditUsed);
+                    userCredit.Balance += refundAmount;
+                    userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - refundAmount);
                     userCredit.UpdatedAt = DateTime.UtcNow;
 
                     var transaction = new CreditTransaction
                     {
                         TransactionId = Guid.NewGuid(),
                         UserId = userId,
-                        Amount = booking.CreditUsed,
+                        Amount = refundAmount,
                         BalanceBefore = balanceBefore,
                         BalanceAfter = userCredit.Balance,
                         Type = "Refund",
                         ReferenceId = booking.BookingId,
                         ReferenceType = "GymBooking",
-                        Description = $"Hoàn trả credit do hủy lịch tập Gym thành công. Khung giờ: {booking.Session?.SessionName}",
+                        Description = $"Hoàn trả credit do hủy lịch tập Gym thành công ({refundPercentage}% hoàn trả). Khung giờ: {booking.Session?.SessionName}",
                         CreatedAt = DateTime.UtcNow
                     };
                     await _bookingRepo.AddCreditTransactionAsync(transaction);
@@ -326,31 +348,53 @@ namespace Flexfit.Service
             if (booking.Class != null && booking.Class.StartTime <= DateTime.UtcNow)
                 throw new Exception("Không thể huỷ khi lớp học đã bắt đầu.");
 
+            var todayCancelledCount = await _bookingRepo.GetCancellationCountTodayAsync(userId);
+            if (todayCancelledCount >= 2)
+                throw new Exception("Mỗi ngày bạn chỉ được hủy tối đa 2 lịch đặt.");
+
+            double refundPercentage = 0;
+            if (booking.Class != null)
+            {
+                var timeRemaining = booking.Class.StartTime - DateTime.UtcNow;
+                if (timeRemaining.TotalHours >= 12)
+                    refundPercentage = 100;
+                else if (timeRemaining.TotalHours >= 6)
+                    refundPercentage = 70;
+                else if (timeRemaining.TotalHours >= 3)
+                    refundPercentage = 50;
+                else if (timeRemaining.TotalHours >= 1)
+                    refundPercentage = 25;
+                else
+                    refundPercentage = 0;
+            }
+
+            int refundAmount = (int)Math.Round(booking.CreditUsed * (refundPercentage / 100.0));
+
             booking.Status = "Cancelled";
             booking.CancelledAt = DateTime.UtcNow;
-            booking.RefundCredit = booking.CreditUsed;
+            booking.RefundCredit = refundAmount;
 
-            if (booking.CreditUsed > 0)
+            if (refundAmount > 0)
             {
                 var userCredit = await _bookingRepo.GetUserCreditAsync(userId);
                 if (userCredit != null)
                 {
                     int balanceBefore = userCredit.Balance;
-                    userCredit.Balance += booking.CreditUsed;
-                    userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - booking.CreditUsed);
+                    userCredit.Balance += refundAmount;
+                    userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - refundAmount);
                     userCredit.UpdatedAt = DateTime.UtcNow;
 
                     var transaction = new CreditTransaction
                     {
                         TransactionId = Guid.NewGuid(),
                         UserId = userId,
-                        Amount = booking.CreditUsed,
+                        Amount = refundAmount,
                         BalanceBefore = balanceBefore,
                         BalanceAfter = userCredit.Balance,
                         Type = "Refund",
                         ReferenceId = booking.BookingId,
                         ReferenceType = "ClassBooking",
-                        Description = $"Hoàn trả credit do hủy lịch Class thành công. Lớp học: {booking.Class?.ClassName}",
+                        Description = $"Hoàn trả credit do hủy lịch Class thành công ({refundPercentage}% hoàn trả). Lớp học: {booking.Class?.ClassName}",
                         CreatedAt = DateTime.UtcNow
                     };
                     await _bookingRepo.AddCreditTransactionAsync(transaction);
