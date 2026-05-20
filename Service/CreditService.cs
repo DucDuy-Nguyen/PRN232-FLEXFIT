@@ -1,4 +1,5 @@
-﻿using Flexfit.DTOs.Credit;
+using Flexfit.DTOs.Credit;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using System;
@@ -68,7 +69,7 @@ namespace Flexfit.Services
                 Description = request.Description,
                 IsActive = true,
                 IsPopular = false,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _creditRepo.AddPackageAsync(package);
@@ -166,7 +167,7 @@ namespace Flexfit.Services
                         Balance = balanceAfter,
                         TotalEarned = package.CreditAmount, // Tích lũy lần đầu
                         TotalSpent = 0,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTimeHelper.GetVietnamTime()
                     };
                     await _creditRepo.AddUserCreditAsync(userCredit);
                 }
@@ -177,7 +178,7 @@ namespace Flexfit.Services
 
                     userCredit.Balance = balanceAfter;
                     userCredit.TotalEarned += package.CreditAmount; // Cộng dồn tích lũy
-                    userCredit.UpdatedAt = DateTime.UtcNow;
+                    userCredit.UpdatedAt = DateTimeHelper.GetVietnamTime();
                     await _creditRepo.UpdateUserCreditAsync(userCredit);
                 }
 
@@ -193,7 +194,7 @@ namespace Flexfit.Services
                     ReferenceId = package.PackageId,
                     ReferenceType = "CreditPackage",
                     Description = $"Nạp thành công {package.CreditAmount} credits từ gói '{package.PackageName}'",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
                 };
 
                 await _creditRepo.AddTransactionAsync(transaction);
@@ -233,7 +234,7 @@ namespace Flexfit.Services
                         Balance = balanceAfter,
                         TotalEarned = request.Amount,
                         TotalSpent = 0,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTimeHelper.GetVietnamTime()
                     };
                     await _creditRepo.AddUserCreditAsync(userCredit);
                 }
@@ -244,7 +245,7 @@ namespace Flexfit.Services
 
                     userCredit.Balance = balanceAfter;
                     userCredit.TotalEarned += request.Amount;
-                    userCredit.UpdatedAt = DateTime.UtcNow;
+                    userCredit.UpdatedAt = DateTimeHelper.GetVietnamTime();
                     await _creditRepo.UpdateUserCreditAsync(userCredit);
                 }
 
@@ -261,7 +262,7 @@ namespace Flexfit.Services
                     Description = string.IsNullOrWhiteSpace(request.Description)
                         ? $"Admin cộng {request.Amount} credits vào tài khoản."
                         : $"[Admin điều chỉnh] {request.Description}",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
                 };
 
                 await _creditRepo.AddTransactionAsync(transaction);

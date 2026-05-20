@@ -1,4 +1,5 @@
-﻿using Flexfit.DTOs;
+using Flexfit.DTOs;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 
@@ -60,7 +61,7 @@ namespace Flexfit.Services
             user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
             user.AvatarUrl = request.AvatarUrl ?? user.AvatarUrl;
             user.DateOfBirth = request.DateOfBirth ?? user.DateOfBirth;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _userRepo.UpdateAsync(user);
         }
@@ -71,7 +72,7 @@ namespace Flexfit.Services
             if (user == null) throw new KeyNotFoundException("Không tìm thấy người dùng.");
 
             user.IsActive = isActive;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _userRepo.UpdateAsync(user);
         }
@@ -102,7 +103,7 @@ namespace Flexfit.Services
             {
                 UserId = request.UserId,
                 RoleId = role.RoleId,
-                AssignedAt = DateTime.UtcNow
+                AssignedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _userRepo.AddUserRoleAsync(newUserRole);

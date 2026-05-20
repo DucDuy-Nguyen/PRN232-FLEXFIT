@@ -1,4 +1,5 @@
 using Flexfit.DTOs.Booking;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using System;
@@ -29,7 +30,7 @@ namespace Flexfit.Service
 
         public async Task<GymBookingResponse> BookGymSessionAsync(Guid userId, CreateGymBookingRequest request)
         {
-            if (request.StartTime <= DateTime.UtcNow)
+            if (request.StartTime <= DateTimeHelper.GetVietnamTime())
                 throw new Exception("Không thể đặt lịch cho thời gian trong quá khứ.");
 
             if (request.EndTime <= request.StartTime)
@@ -53,7 +54,7 @@ namespace Flexfit.Service
                     Capacity = 100, 
                     CreditCost = branch.CreditCost, 
                     Status = "Active",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
                 };
                 await _bookingRepo.AddGymSessionAsync(session);
             }
@@ -69,7 +70,7 @@ namespace Flexfit.Service
             int balanceBefore = userCredit.Balance;
             userCredit.Balance -= session.CreditCost;
             userCredit.TotalSpent += session.CreditCost;
-            userCredit.UpdatedAt = DateTime.UtcNow;
+            userCredit.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             var booking = new GymBooking
             {
@@ -80,7 +81,7 @@ namespace Flexfit.Service
                 CreditUsed = session.CreditCost,
                 CheckInStatus = "Pending",
                 Status = "Confirmed",
-                BookedAt = DateTime.UtcNow
+                BookedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _bookingRepo.AddGymBookingAsync(booking);
@@ -96,7 +97,7 @@ namespace Flexfit.Service
                 ReferenceId = booking.BookingId,
                 ReferenceType = "GymBooking",
                 Description = $"Đặt lịch tập Gym thành công. Khung giờ: {session.SessionName}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.GetVietnamTime()
             };
             await _bookingRepo.AddCreditTransactionAsync(transaction);
             await _bookingRepo.SaveChangesAsync();
@@ -155,7 +156,7 @@ namespace Flexfit.Service
             if (booking.Status == "Cancelled")
                 throw new Exception("Booking này đã được huỷ trước đó.");
 
-            if (booking.Session != null && booking.Session.StartTime <= DateTime.UtcNow)
+            if (booking.Session != null && booking.Session.StartTime <= DateTimeHelper.GetVietnamTime())
                 throw new Exception("Không thể huỷ khi session đã bắt đầu.");
 
             var todayCancelledCount = await _bookingRepo.GetCancellationCountTodayAsync(userId);
@@ -165,7 +166,7 @@ namespace Flexfit.Service
             double refundPercentage = 0;
             if (booking.Session != null)
             {
-                var timeRemaining = booking.Session.StartTime - DateTime.UtcNow;
+                var timeRemaining = booking.Session.StartTime - DateTimeHelper.GetVietnamTime();
                 if (timeRemaining.TotalHours >= 12)
                     refundPercentage = 100;
                 else if (timeRemaining.TotalHours >= 6)
@@ -181,7 +182,7 @@ namespace Flexfit.Service
             int refundAmount = (int)Math.Round(booking.CreditUsed * (refundPercentage / 100.0));
 
             booking.Status = "Cancelled";
-            booking.CancelledAt = DateTime.UtcNow;
+            booking.CancelledAt = DateTimeHelper.GetVietnamTime();
             booking.RefundCredit = refundAmount;
 
             if (refundAmount > 0)
@@ -192,7 +193,7 @@ namespace Flexfit.Service
                     int balanceBefore = userCredit.Balance;
                     userCredit.Balance += refundAmount;
                     userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - refundAmount);
-                    userCredit.UpdatedAt = DateTime.UtcNow;
+                    userCredit.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
                     var transaction = new CreditTransaction
                     {
@@ -205,7 +206,7 @@ namespace Flexfit.Service
                         ReferenceId = booking.BookingId,
                         ReferenceType = "GymBooking",
                         Description = $"Hoàn trả credit do hủy lịch tập Gym thành công ({refundPercentage}% hoàn trả). Khung giờ: {booking.Session?.SessionName}",
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTimeHelper.GetVietnamTime()
                     };
                     await _bookingRepo.AddCreditTransactionAsync(transaction);
                 }
@@ -243,7 +244,7 @@ namespace Flexfit.Service
             var classObj = await _bookingRepo.GetClassByIdAsync(request.ClassId);
             if (classObj == null) throw new Exception("Class không tồn tại.");
 
-            if (classObj.StartTime <= DateTime.UtcNow)
+            if (classObj.StartTime <= DateTimeHelper.GetVietnamTime())
                 throw new Exception("Không thể đặt lịch cho lớp đã bắt đầu hoặc kết thúc.");
 
             var currentBookingsCount = await _bookingRepo.CountClassBookingsByClassIdAsync(classObj.ClassId);
@@ -257,7 +258,7 @@ namespace Flexfit.Service
             int balanceBefore = userCredit.Balance;
             userCredit.Balance -= classObj.CreditCost;
             userCredit.TotalSpent += classObj.CreditCost;
-            userCredit.UpdatedAt = DateTime.UtcNow;
+            userCredit.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             var booking = new ClassBooking
             {
@@ -268,7 +269,7 @@ namespace Flexfit.Service
                 CreditUsed = classObj.CreditCost,
                 CheckInStatus = "Pending",
                 Status = "Confirmed",
-                BookedAt = DateTime.UtcNow
+                BookedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _bookingRepo.AddClassBookingAsync(booking);
@@ -284,7 +285,7 @@ namespace Flexfit.Service
                 ReferenceId = booking.BookingId,
                 ReferenceType = "ClassBooking",
                 Description = $"Đặt lịch Class thành công. Lớp học: {classObj.ClassName}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.GetVietnamTime()
             };
             await _bookingRepo.AddCreditTransactionAsync(transaction);
             await _bookingRepo.SaveChangesAsync();
@@ -345,7 +346,7 @@ namespace Flexfit.Service
             if (booking.Status == "Cancelled")
                 throw new Exception("Booking này đã được huỷ trước đó.");
 
-            if (booking.Class != null && booking.Class.StartTime <= DateTime.UtcNow)
+            if (booking.Class != null && booking.Class.StartTime <= DateTimeHelper.GetVietnamTime())
                 throw new Exception("Không thể huỷ khi lớp học đã bắt đầu.");
 
             var todayCancelledCount = await _bookingRepo.GetCancellationCountTodayAsync(userId);
@@ -355,7 +356,7 @@ namespace Flexfit.Service
             double refundPercentage = 0;
             if (booking.Class != null)
             {
-                var timeRemaining = booking.Class.StartTime - DateTime.UtcNow;
+                var timeRemaining = booking.Class.StartTime - DateTimeHelper.GetVietnamTime();
                 if (timeRemaining.TotalHours >= 12)
                     refundPercentage = 100;
                 else if (timeRemaining.TotalHours >= 6)
@@ -371,7 +372,7 @@ namespace Flexfit.Service
             int refundAmount = (int)Math.Round(booking.CreditUsed * (refundPercentage / 100.0));
 
             booking.Status = "Cancelled";
-            booking.CancelledAt = DateTime.UtcNow;
+            booking.CancelledAt = DateTimeHelper.GetVietnamTime();
             booking.RefundCredit = refundAmount;
 
             if (refundAmount > 0)
@@ -382,7 +383,7 @@ namespace Flexfit.Service
                     int balanceBefore = userCredit.Balance;
                     userCredit.Balance += refundAmount;
                     userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - refundAmount);
-                    userCredit.UpdatedAt = DateTime.UtcNow;
+                    userCredit.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
                     var transaction = new CreditTransaction
                     {
@@ -395,7 +396,7 @@ namespace Flexfit.Service
                         ReferenceId = booking.BookingId,
                         ReferenceType = "ClassBooking",
                         Description = $"Hoàn trả credit do hủy lịch Class thành công ({refundPercentage}% hoàn trả). Lớp học: {booking.Class?.ClassName}",
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTimeHelper.GetVietnamTime()
                     };
                     await _bookingRepo.AddCreditTransactionAsync(transaction);
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Flexfit.DTOs.Payment;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using PayOS;
@@ -66,7 +67,7 @@ namespace Flexfit.Service
                 PaymentMethod = request.PaymentMethod.ToUpper(),
                 Status = "Pending",
                 ProviderTransactionCode = providerTransactionCode,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _paymentRepository.CreatePaymentAsync(payment);
@@ -165,7 +166,7 @@ namespace Flexfit.Service
                         Balance = totalCreditToAdd,
                         TotalEarned = totalCreditToAdd,
                         TotalSpent = 0,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTimeHelper.GetVietnamTime()
                     };
                     await _paymentRepository.CreateUserCreditAsync(userCredit);
                 }
@@ -189,7 +190,7 @@ namespace Flexfit.Service
                     ReferenceId = payment.PaymentId,
                     ReferenceType = "Payment",
                     Description = $"Nạp tín dụng từ gói {package.PackageName}",
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
                 };
 
                 await _paymentRepository.AddCreditTransactionAsync(transaction);
@@ -248,7 +249,7 @@ namespace Flexfit.Service
                     Balance = totalCreditToAdd,
                     TotalEarned = totalCreditToAdd,
                     TotalSpent = 0,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTimeHelper.GetVietnamTime()
                 };
                 await _paymentRepository.CreateUserCreditAsync(userCredit);
             }
@@ -272,7 +273,7 @@ namespace Flexfit.Service
                 ReferenceId = payment.PaymentId,
                 ReferenceType = "Payment",
                 Description = $"Nạp tín dụng từ gói {package.PackageName} qua PayOS (VietQR)",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _paymentRepository.AddCreditTransactionAsync(transaction);

@@ -1,4 +1,5 @@
-﻿using Flexfit.DTOs;
+using Flexfit.DTOs;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 
@@ -88,7 +89,7 @@ namespace Flexfit.Services
                 ThumbnailUrl = request.ThumbnailUrl,
                 CreditCost = request.CreditCost,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _branchRepo.AddAsync(newBranch);
@@ -112,7 +113,7 @@ namespace Flexfit.Services
             branch.CloseTime = request.CloseTime;
             branch.ThumbnailUrl = request.ThumbnailUrl;
             branch.CreditCost = request.CreditCost;
-            branch.UpdatedAt = DateTime.UtcNow;
+            branch.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _branchRepo.UpdateAsync(branch);
         }
@@ -127,7 +128,7 @@ namespace Flexfit.Services
             if (branch == null) throw new KeyNotFoundException("Không tìm thấy chi nhánh.");
 
             branch.IsActive = isActive;
-            branch.UpdatedAt = DateTime.UtcNow;
+            branch.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _branchRepo.UpdateAsync(branch);
         }
@@ -163,14 +164,14 @@ namespace Flexfit.Services
             if (!hasStaffRole)
             {
                 await _branchRepo.RemoveAllRolesOfUserAsync(dto.UserId);
-                await _branchRepo.AddUserRoleAsync(new UserRole { UserId = dto.UserId, RoleId = staffRole.RoleId, AssignedAt = DateTime.UtcNow });
+                await _branchRepo.AddUserRoleAsync(new UserRole { UserId = dto.UserId, RoleId = staffRole.RoleId, AssignedAt = DateTimeHelper.GetVietnamTime() });
             }
 
             var isAlreadyStaffHere = await _branchRepo.IsStaffInBranchAsync(dto.UserId, dto.BranchId);
             if (isAlreadyStaffHere) throw new ArgumentException("Người này đã là nhân viên của chi nhánh này rồi!");
 
             await _branchRepo.RemoveStaffFromAllBranchesAsync(dto.UserId);
-            await _branchRepo.AddBranchStaffAsync(new BranchStaff { StaffId = dto.UserId, BranchId = dto.BranchId, AssignedAt = DateTime.UtcNow });
+            await _branchRepo.AddBranchStaffAsync(new BranchStaff { StaffId = dto.UserId, BranchId = dto.BranchId, AssignedAt = DateTimeHelper.GetVietnamTime() });
 
             await _branchRepo.SaveChangesAsync();
         }
@@ -236,11 +237,11 @@ namespace Flexfit.Services
             if (!hasStaffRole)
             {
                 await _branchRepo.RemoveAllRolesOfUserAsync(dto.NewStaffId);
-                await _branchRepo.AddUserRoleAsync(new UserRole { UserId = dto.NewStaffId, RoleId = staffRole.RoleId, AssignedAt = DateTime.UtcNow });
+                await _branchRepo.AddUserRoleAsync(new UserRole { UserId = dto.NewStaffId, RoleId = staffRole.RoleId, AssignedAt = DateTimeHelper.GetVietnamTime() });
             }
 
             await _branchRepo.RemoveStaffFromAllBranchesAsync(dto.NewStaffId);
-            await _branchRepo.AddBranchStaffAsync(new BranchStaff { StaffId = dto.NewStaffId, BranchId = dto.BranchId, AssignedAt = DateTime.UtcNow });
+            await _branchRepo.AddBranchStaffAsync(new BranchStaff { StaffId = dto.NewStaffId, BranchId = dto.BranchId, AssignedAt = DateTimeHelper.GetVietnamTime() });
 
             await _branchRepo.SaveChangesAsync();
         }

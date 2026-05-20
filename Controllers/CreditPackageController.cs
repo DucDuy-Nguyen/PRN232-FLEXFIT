@@ -1,4 +1,5 @@
-﻿using Flexfit.DTOs.Credit;
+using Flexfit.DTOs.Credit;
+using Flexfit.Helpers;
 using Flexfit.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -156,7 +157,7 @@ namespace Flexfit.Controllers
                     balance = 0,
                     totalEarned = 0,
                     totalSpent = 0,
-                    updatedAt = DateTime.UtcNow
+                    updatedAt = DateTimeHelper.GetVietnamTime()
                 });
             }
             return Ok(response);

@@ -1,4 +1,5 @@
-﻿using Flexfit.Service;
+using Flexfit.Helpers;
+using Flexfit.Service;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,7 +47,7 @@ namespace Flexfit.Service
             var bookingRepo = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
             var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-            var now = DateTime.Now;
+            var now = DateTimeHelper.GetVietnamTime();
             bool hasChanges = false;
 
             // ========================================================

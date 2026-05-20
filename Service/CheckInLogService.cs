@@ -1,4 +1,5 @@
-﻿using Flexfit.DTOs.CheckInLog;
+using Flexfit.DTOs.CheckInLog;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using System;
@@ -41,7 +42,7 @@ namespace Flexfit.Service
                 ScannedBy = staffId,
                 Status = request.Status,
                 Message = request.Message ?? "Check-in lịch tập Gym",
-                ScannedAt = DateTime.UtcNow
+                ScannedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _checkInRepo.AddAsync(log);
@@ -63,7 +64,7 @@ namespace Flexfit.Service
                 ScannedBy = staffId,
                 Status = request.Status,
                 Message = request.Message ?? "Check-in lịch học lớp Class",
-                ScannedAt = DateTime.UtcNow
+                ScannedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _checkInRepo.AddAsync(log);

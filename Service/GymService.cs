@@ -1,4 +1,5 @@
-﻿using Flexfit.DTOs;
+using Flexfit.DTOs;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using System;
@@ -77,7 +78,7 @@ namespace Flexfit.Services
                 Status = "Pending",
                 RatingAverage = 0,
                 TotalReviews = 0,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _gymRepo.AddAsync(newGym);
@@ -92,7 +93,7 @@ namespace Flexfit.Services
                     {
                         UserId = request.OwnerId,
                         RoleId = partnerRole.RoleId,
-                        AssignedAt = DateTime.UtcNow
+                        AssignedAt = DateTimeHelper.GetVietnamTime()
                     });
                     await _gymRepo.SaveChangesAsync();
                 }
@@ -114,7 +115,7 @@ namespace Flexfit.Services
             gym.ThumbnailUrl = request.ThumbnailUrl;
             gym.PhoneNumber = request.PhoneNumber;
             gym.Email = request.Email;
-            gym.UpdatedAt = DateTime.UtcNow;
+            gym.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _gymRepo.UpdateAsync(gym);
         }
@@ -129,7 +130,7 @@ namespace Flexfit.Services
             if (gym == null) throw new KeyNotFoundException("Không tìm thấy phòng tập.");
 
             gym.Status = status;
-            gym.UpdatedAt = DateTime.UtcNow;
+            gym.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _gymRepo.UpdateAsync(gym);
         }
@@ -163,7 +164,7 @@ namespace Flexfit.Services
 
             Guid oldOwnerId = gym.OwnerId;
             gym.OwnerId = request.NewOwnerId;
-            gym.UpdatedAt = DateTime.UtcNow;
+            gym.UpdatedAt = DateTimeHelper.GetVietnamTime();
             await _gymRepo.UpdateAsync(gym);
 
             var partnerRole = await _gymRepo.GetRoleByNameAsync("GymPartner");
@@ -176,7 +177,7 @@ namespace Flexfit.Services
                     {
                         UserId = request.NewOwnerId,
                         RoleId = partnerRole.RoleId,
-                        AssignedAt = DateTime.UtcNow
+                        AssignedAt = DateTimeHelper.GetVietnamTime()
                     });
                 }
 

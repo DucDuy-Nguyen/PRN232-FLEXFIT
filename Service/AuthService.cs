@@ -44,13 +44,13 @@ namespace Flexfit.Service
                 Email = request.Email,
                 PhoneNumber = request.PhoneNumber,
                 PasswordHash = PasswordHasher.Hash(request.Password),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeHelper.GetVietnamTime(),
                 IsActive = true,
 
                 // --- PHẦN VERIFY EMAIL ---
                 IsEmailVerified = false,
                 EmailVerificationToken = otpCode, // Gán trực tiếp mã 6 số
-                VerificationTokenExpires = DateTime.UtcNow.AddMinutes(2), // Hẹn giờ 2 phút
+                VerificationTokenExpires = DateTimeHelper.GetVietnamTime().AddMinutes(2), // Hẹn giờ 2 phút
 
                 // Khởi tạo ví tín dụng ban đầu với số dư = 0
                 UserCredit = new UserCredit
@@ -59,7 +59,7 @@ namespace Flexfit.Service
                     Balance = 0,
                     TotalEarned = 0,
                     TotalSpent = 0,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTimeHelper.GetVietnamTime()
                 }
             };
 
@@ -98,7 +98,7 @@ namespace Flexfit.Service
             }
 
             // 2. Kiểm tra xem mã còn hạn trong 2 phút không?
-            if (user.VerificationTokenExpires < DateTime.UtcNow)
+            if (user.VerificationTokenExpires < DateTimeHelper.GetVietnamTime())
             {
                 return "Mã xác thực đã hết hạn. Vui lòng yêu cầu gửi mã mới.";
             }
@@ -157,7 +157,7 @@ namespace Flexfit.Service
                             Balance = 0,
                             TotalEarned = 0,
                             TotalSpent = 0,
-                            UpdatedAt = DateTime.UtcNow
+                            UpdatedAt = DateTimeHelper.GetVietnamTime()
                         }
                     };
                     await _userRepository.AddAsync(user);
@@ -191,7 +191,7 @@ namespace Flexfit.Service
 
             // Lưu OTP tạm thời vào tài khoản User và đặt hạn 3 phút
             user.EmailVerificationToken = otpCode;
-            user.VerificationTokenExpires = DateTime.UtcNow.AddMinutes(3);
+            user.VerificationTokenExpires = DateTimeHelper.GetVietnamTime().AddMinutes(3);
 
             await _userRepository.UpdateAsync(user);
 
@@ -220,7 +220,7 @@ namespace Flexfit.Service
                 throw new Exception("Mã OTP xác thực không chính xác.");
 
             // Kiểm tra mã OTP còn hạn sử dụng không
-            if (user.VerificationTokenExpires < DateTime.UtcNow)
+            if (user.VerificationTokenExpires < DateTimeHelper.GetVietnamTime())
                 throw new Exception("Mã OTP đã hết hạn sử dụng. Vui lòng lấy mã mới.");
 
             // Tiến hành mã hóa (Hash) mật khẩu mới và cập nhật cho User

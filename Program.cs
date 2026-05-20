@@ -173,7 +173,7 @@ using (var scope = app.Services.CreateScope())
                     Description = "Gói tín dụng cơ bản cho người mới bắt đầu.",
                     IsPopular = false,
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
                 },
                 new CreditPackage
                 {
@@ -185,7 +185,7 @@ using (var scope = app.Services.CreateScope())
                     Description = "Nhận thêm 50 tín dụng bonus cực hấp dẫn.",
                     IsPopular = true,
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
                 },
                 new CreditPackage
                 {
@@ -197,7 +197,7 @@ using (var scope = app.Services.CreateScope())
                     Description = "Tiết kiệm tối đa, nhận thêm 150 tín dụng bonus!",
                     IsPopular = false,
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
                 }
             );
             context.SaveChanges();

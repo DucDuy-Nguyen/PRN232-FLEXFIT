@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -61,7 +62,7 @@ namespace Flexfit.Repositories
                 }
                 if (status == "Success")
                 {
-                    payment.PaidAt = DateTime.UtcNow;
+                    payment.PaidAt = DateTimeHelper.GetVietnamTime();
                 }
                 _db.Payments.Update(payment);
                 await _db.SaveChangesAsync();
@@ -82,7 +83,7 @@ namespace Flexfit.Repositories
 
         public async Task UpdateUserCreditAsync(UserCredit userCredit)
         {
-            userCredit.UpdatedAt = DateTime.UtcNow;
+            userCredit.UpdatedAt = DateTimeHelper.GetVietnamTime();
             _db.UserCredits.Update(userCredit);
             await _db.SaveChangesAsync();
         }

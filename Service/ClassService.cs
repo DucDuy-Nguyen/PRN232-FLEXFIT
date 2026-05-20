@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Flexfit.DTOs;
+using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 
@@ -83,7 +84,7 @@ namespace Flexfit.Services
                 CaloriesBurnEstimate = request.CaloriesBurnEstimate,
                 ThumbnailUrl = request.ThumbnailUrl,
                 Status = "Open",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeHelper.GetVietnamTime()
             };
 
             await _classRepo.AddAsync(newClass);
@@ -138,7 +139,7 @@ namespace Flexfit.Services
             existingClass.CaloriesBurnEstimate = request.CaloriesBurnEstimate;
             existingClass.ThumbnailUrl = request.ThumbnailUrl;
             existingClass.Status = request.Status;
-            existingClass.UpdatedAt = DateTime.UtcNow;
+            existingClass.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _classRepo.UpdateAsync(existingClass);
         }
@@ -160,7 +161,7 @@ namespace Flexfit.Services
                 throw new ArgumentException("Trạng thái không hợp lệ. Trạng thái phải là: 'Open', 'Cancelled', hoặc 'Completed'.");
 
             existingClass.Status = status;
-            existingClass.UpdatedAt = DateTime.UtcNow;
+            existingClass.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _classRepo.UpdateAsync(existingClass);
         }
