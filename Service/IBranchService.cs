@@ -1,17 +1,25 @@
 ﻿using Flexfit.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Flexfit.Services
 {
     public interface IBranchService
     {
+        // 🔓 Hàm đọc dữ liệu công khai - Không cần check UserId
         Task<IEnumerable<BranchDto>> GetAllBranchesAsync();
         Task<BranchDto?> GetBranchByIdAsync(Guid id);
-        Task<Guid> CreateBranchAsync(CreateBranchRequest request);
-        Task UpdateBranchAsync(Guid id, UpdateBranchRequest request);
-        Task ChangeBranchStatusAsync(Guid id, bool isActive);
-        Task DeleteBranchAsync(Guid id);
-        Task AssignStaffToBranchAsync(AssignStaffDto dto);
-        Task RemoveStaffFromBranchAsync(Guid staffId, Guid branchId);
-        Task UpdateBranchStaffAsync(UpdateBranchStaffDto dto);
+
+        // 🔐 Hàm thay đổi dữ liệu - Bắt buộc truyền currentUserId để kiểm tra quyền sở hữu
+        Task<Guid> CreateBranchAsync(CreateBranchRequest request, Guid currentUserId);
+        Task UpdateBranchAsync(Guid id, UpdateBranchRequest request, Guid currentUserId);
+        Task ChangeBranchStatusAsync(Guid id, bool isActive, Guid currentUserId);
+        Task DeleteBranchAsync(Guid id, Guid currentUserId);
+
+        // 👥 Hàm quản lý nhân sự chi nhánh - Kiểm tra quyền sở hữu chi nhánh
+        Task AssignStaffToBranchAsync(AssignStaffDto dto, Guid currentUserId);
+        Task RemoveStaffFromBranchAsync(Guid staffId, Guid branchId, Guid currentUserId);
+        Task UpdateBranchStaffAsync(UpdateBranchStaffDto dto, Guid currentUserId);
     }
 }
