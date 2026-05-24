@@ -19,9 +19,9 @@ namespace Flexfit.Repositories
         public async Task<IEnumerable<CheckInLog>> GetAllAsync()
         {
             return await _context.CheckInLogs
-                .Include(c => c.User) // Thông tin hội viên
-                .Include(c => c.ScannedByNavigation) // Thông tin nhân viên quét
-                .Include(c => c.ClassBooking).ThenInclude(cb => cb!.Class) // Thông tin lớp học (nếu có)
+                .Include(c => c.User)
+                .Include(c => c.ScannedByNavigation)
+                .Include(c => c.ClassBooking).ThenInclude(cb => cb!.Class)
                 .OrderByDescending(c => c.ScannedAt)
                 .ToListAsync();
         }
@@ -53,6 +53,81 @@ namespace Flexfit.Repositories
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        // =========================================================================
+        // KIỂM TRA QUYỀN SCAN CHO GYM BOOKING (Đi qua Session -> Branch)
+        // =========================================================================
+        public async Task<bool> IsStaffOrOwnerForGymBookingAsync(Guid bookingId, Guid scannerId)
+        {
+            // ĐƯỜNG ĐI ĐÚNG: GymBookings -> Session -> Branch -> Gym & BranchStaffs
+            var booking = await _context.GymBookings
+                .Include(gb => gb.Session)
+                    .ThenInclude(s => s.Branch)
+                        .ThenInclude(b => b.Gym)
+                .Include(gb => gb.Session)
+                    .ThenInclude(s => s.Branch)
+                        .ThenInclude(b => b.BranchStaffs)
+                .FirstOrDefaultAsync(gb => gb.BookingId == bookingId);
+
+            // Kiểm tra dữ liệu liên kết tuyến tính tránh lỗi NullReferenceException
+            if (booking == null || booking.Session == null || booking.Session.Branch == null)
+                return false;
+
+            var branch = booking.Session.Branch;
+
+            // Tiến hành so khớp ID người quét mã
+            bool isOwner = branch.Gym?.OwnerId == scannerId;
+            bool isBranchStaff = branch.BranchStaffs?.Any(bs => bs.StaffId == scannerId) ?? false;
+
+            return isOwner || isBranchStaff;
+        }
+
+        // =========================================================================
+        // KIỂM TRA QUYỀN SCAN CHO CLASS BOOKING (Đi qua Class -> Branch)
+        // =========================================================================
+        public async Task<bool> IsStaffOrOwnerForClassBookingAsync(Guid bookingId, Guid scannerId)
+        {
+            // ĐƯỜNG ĐI ĐÚNG: ClassBookings -> Class -> Branch -> Gym & BranchStaffs
+            var booking = await _context.ClassBookings
+                .Include(cb => cb.Class)
+                    .ThenInclude(c => c.Branch)
+                        .ThenInclude(b => b.Gym)
+                .Include(cb => cb.Class)
+                    .ThenInclude(c => c.Branch)
+                        .ThenInclude(b => b.BranchStaffs)
+                .FirstOrDefaultAsync(cb => cb.BookingId == bookingId);
+
+            if (booking == null || booking.Class == null || booking.Class.Branch == null)
+                return false;
+
+            var branch = booking.Class.Branch;
+
+            // Tiến hành so khớp ID người quét mã
+            bool isOwner = branch.Gym?.OwnerId == scannerId;
+            bool isBranchStaff = branch.BranchStaffs?.Any(bs => bs.StaffId == scannerId) ?? false;
+
+            return isOwner || isBranchStaff;
+        }
+        public async Task<IEnumerable<CheckInLog>> GetLogsForManagerAsync(Guid managerId)
+        {
+            return await _context.CheckInLogs
+                .Include(c => c.User)
+                .Include(c => c.ScannedByNavigation)
+                .Include(c => c.ClassBooking).ThenInclude(cb => cb!.Class)
+                .Where(c =>
+                    // 1. Nếu lượt check-in thuộc về Gym Booking công ty/chi nhánh đó quản lý
+                    (c.GymBooking != null &&
+                        (c.GymBooking.Session.Branch.Gym.OwnerId == managerId ||
+                         c.GymBooking.Session.Branch.BranchStaffs.Any(bs => bs.StaffId == managerId)))
+                    ||
+                    // 2. Nếu lượt check-in thuộc về Class Booking lớp học đó quản lý
+                    (c.ClassBooking != null &&
+                        (c.ClassBooking.Class.Branch.Gym.OwnerId == managerId ||
+                         c.ClassBooking.Class.Branch.BranchStaffs.Any(bs => bs.StaffId == managerId)))
+                )
+                .OrderByDescending(c => c.ScannedAt)
+                .ToListAsync();
         }
     }
 }

@@ -65,6 +65,22 @@
   },
   {
     "ContainingType": "Flexfit.Controllers.AuthController",
+    "Method": "ResendOtp",
+    "RelativePath": "api/Auth/resend-otp",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.ResendOtpRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.AuthController",
     "Method": "ResetPassword",
     "RelativePath": "api/Auth/reset-password",
     "HttpMethod": "POST",
@@ -433,8 +449,8 @@
   },
   {
     "ContainingType": "Flexfit.Controllers.CheckInLogController",
-    "Method": "GetAllLogs",
-    "RelativePath": "api/check-in-logs",
+    "Method": "GetAllLogsForAdmin",
+    "RelativePath": "api/check-in-logs/admin/all",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -471,6 +487,16 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.CheckInLogController",
+    "Method": "GetLogsForManager",
+    "RelativePath": "api/check-in-logs/manager/all",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {

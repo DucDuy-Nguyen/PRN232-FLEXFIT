@@ -30,9 +30,9 @@ namespace Flexfit.Controllers
         /// <summary>
         /// [Staff/Admin/GymPartner] Lấy toàn bộ nhật ký check-in của tất cả hội viên
         /// </summary>
-        [HttpGet]
-        [Authorize(Roles = "Admin,Staff,GymPartner")] // 👈 Chỉ những quyền quản lý này mới được xem tất cả
-        public async Task<IActionResult> GetAllLogs()
+        [HttpGet("admin/all")]
+        [Authorize(Roles = "Admin")] // 👈 Chỉ những quyền quản lý này mới được xem tất cả
+        public async Task<IActionResult> GetAllLogsForAdmin()
         {
             var result = await _checkInService.GetAllLogsAsync();
             return Ok(result);
@@ -88,6 +88,29 @@ namespace Flexfit.Controllers
                 var staffId = GetCurrentUserId();
                 var result = await _checkInService.CheckInClassAsync(request, staffId);
                 return Ok(new { Message = "Điểm danh lớp học thành công!", Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+        /// <summary>
+        /// [Staff/Admin/GymPartner] Lấy nhật ký check-in (Admin xem toàn bộ, Staff/Owner chỉ xem theo cơ sở thuộc quyền quản lý)
+        /// </summary>
+        [HttpGet("manager/all")]
+        [Authorize(Roles = "Staff,GymPartner")]
+        public async Task<IActionResult> GetLogsForManager()
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+
+                // Trích xuất vai trò (Role) từ Claims Token
+                var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+                // Gọi hàm lọc bảo mật thông tin cơ sở mới tạo
+                var result = await _checkInService.GetManagedLogsAsync(currentUserId, userRole ?? "");
+                return Ok(result);
             }
             catch (Exception ex)
             {

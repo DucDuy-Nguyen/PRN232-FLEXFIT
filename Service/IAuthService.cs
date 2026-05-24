@@ -10,5 +10,6 @@ namespace Flexfit.Service
         Task<string> VerifyEmailAsync(string email, string otpCode);
         Task<string> ForgotPasswordAsync(ForgotPasswordRequest request);
         Task<string> ResetPasswordAsync(ResetPasswordRequest request);
+        Task<string> ResendOtpAsync(ResendOtpRequest request);
     }
 }
