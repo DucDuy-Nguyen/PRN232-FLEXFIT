@@ -90,6 +90,7 @@ builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IGymService, GymService>();
 builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 //builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<IUserService, UserService>();
 //builder.Services.AddScoped<BookingService>();
