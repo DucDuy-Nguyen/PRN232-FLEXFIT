@@ -1,0 +1,11 @@
+using Flexfit.DTOs.Review;
+using System;
+using System.Threading.Tasks;
+
+namespace Flexfit.Service
+{
+    public interface IReviewService
+    {
+        Task<ReviewResponse> CreateBookingReviewAsync(Guid userId, CreateReviewRequest request);
+    }
+}

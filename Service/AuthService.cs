@@ -175,6 +175,9 @@ namespace Flexfit.Service
                         FullName = payload.Name,
                         Email = payload.Email,
                         PasswordHash = "", // Google login doesn't need password hash
+                        IsActive = true,
+                        IsEmailVerified = true,
+                        CreatedAt = DateTimeHelper.GetVietnamTime(),
                         UserCredit = new UserCredit
                         {
                             UserCreditId = Guid.NewGuid(),
@@ -186,6 +189,30 @@ namespace Flexfit.Service
                     };
                     await _userRepository.AddAsync(user);
                     await _userRepository.SaveChangesAsync();
+                }
+
+                // Tự động cấp quyền Member nếu chưa có
+                if (user.UserRoles == null)
+                {
+                    user.UserRoles = new List<UserRole>();
+                }
+
+                if (!user.UserRoles.Any(ur => ur.Role?.RoleName == "Member"))
+                {
+                    var memberRole = await _userRepository.GetRoleByNameAsync("Member");
+                    if (memberRole != null)
+                    {
+                        user.UserRoles.Add(new UserRole
+                        {
+                            UserId = user.UserId,
+                            RoleId = memberRole.RoleId,
+                            AssignedAt = DateTimeHelper.GetVietnamTime()
+                        });
+                        await _userRepository.UpdateAsync(user);
+                        
+                        // Nạp lại thông tin User kèm Roles đầy đủ
+                        user = await _userRepository.GetByEmailAsync(user.Email);
+                    }
                 }
 
                 var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();

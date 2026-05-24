@@ -53,6 +53,17 @@ namespace Flexfit.Service
             };
 
             await _checkInRepo.AddAsync(log);
+
+            // Cập nhật trạng thái của GymBooking tương ứng thành CheckedIn và Completed
+            var booking = await _checkInRepo.GetGymBookingByIdAsync(request.GymBookingId);
+            if (booking != null)
+            {
+                booking.CheckInStatus = "CheckedIn";
+                booking.CheckInTime = DateTimeHelper.GetVietnamTime();
+                booking.Status = "Completed";
+                await _checkInRepo.UpdateGymBookingAsync(booking);
+            }
+
             await _checkInRepo.SaveChangesAsync();
 
             var createdLog = await _checkInRepo.GetByIdAsync(log.CheckInLogId);
@@ -82,6 +93,17 @@ namespace Flexfit.Service
             };
 
             await _checkInRepo.AddAsync(log);
+
+            // Cập nhật trạng thái của ClassBooking tương ứng thành CheckedIn và Completed
+            var booking = await _checkInRepo.GetClassBookingByIdAsync(request.ClassBookingId);
+            if (booking != null)
+            {
+                booking.CheckInStatus = "CheckedIn";
+                booking.CheckInTime = DateTimeHelper.GetVietnamTime();
+                booking.Status = "Completed";
+                await _checkInRepo.UpdateClassBookingAsync(booking);
+            }
+
             await _checkInRepo.SaveChangesAsync();
 
             var createdLog = await _checkInRepo.GetByIdAsync(log.CheckInLogId);

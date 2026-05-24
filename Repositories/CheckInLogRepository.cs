@@ -1,4 +1,4 @@
-﻿using Flexfit.Models;
+using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -128,6 +128,28 @@ namespace Flexfit.Repositories
                 )
                 .OrderByDescending(c => c.ScannedAt)
                 .ToListAsync();
+        }
+
+        public async Task<GymBooking?> GetGymBookingByIdAsync(Guid bookingId)
+        {
+            return await _context.GymBookings.FindAsync(bookingId);
+        }
+
+        public async Task<ClassBooking?> GetClassBookingByIdAsync(Guid bookingId)
+        {
+            return await _context.ClassBookings.FindAsync(bookingId);
+        }
+
+        public async Task UpdateGymBookingAsync(GymBooking booking)
+        {
+            _context.GymBookings.Update(booking);
+            await Task.CompletedTask;
+        }
+
+        public async Task UpdateClassBookingAsync(ClassBooking booking)
+        {
+            _context.ClassBookings.Update(booking);
+            await Task.CompletedTask;
         }
     }
 }

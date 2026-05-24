@@ -126,7 +126,10 @@ builder.Services.AddScoped<IFavoriteGymService, FavoriteGymService>();
 // Đăng ký cho cụm Favorite Class mới tạo
 builder.Services.AddScoped<IFavoriteClassRepository, FavoriteClassRepository>();
 builder.Services.AddScoped<IFavoriteClassService, FavoriteClassService>();
+// Review service - Đánh giá lịch đặt (chỉ được đánh giá sau khi Check-in & 1 lần/booking)
+builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddHostedService<BookingReminderWorker>();
+
 
 
 builder.Services.AddSingleton<JwtHelper>();

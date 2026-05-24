@@ -784,6 +784,58 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Flexfit.Controllers.FavoriteClassController",
+    "Method": "GetMyFavorites",
+    "RelativePath": "api/favorite-classes/my-list",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.FavoriteClassController",
+    "Method": "ToggleFavorite",
+    "RelativePath": "api/favorite-classes/toggle/{classId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "classId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.FavoriteGymController",
+    "Method": "GetMyFavorites",
+    "RelativePath": "api/favorite-gyms/my-list",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.FavoriteGymController",
+    "Method": "ToggleFavorite",
+    "RelativePath": "api/favorite-gyms/toggle/{gymId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "gymId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Flexfit.Controllers.GymController",
     "Method": "GetAllGyms",
     "RelativePath": "api/gyms",
@@ -1034,6 +1086,22 @@
       {
         "Name": "request",
         "Type": "Flexfit.DTOs.MemberProfile.UpdateMemberProfileRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.ReviewController",
+    "Method": "CreateReview",
+    "RelativePath": "api/Review",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.Review.CreateReviewRequest",
         "IsRequired": true
       }
     ],

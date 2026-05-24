@@ -485,6 +485,9 @@ public partial class FlexFitDbContext : DbContext
             entity.Property(e => e.ReviewId).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
 
+            entity.Property(e => e.ClassBookingId).HasColumnName("ClassBookingId");
+            entity.Property(e => e.GymBookingId).HasColumnName("GymBookingId");
+
             entity.HasOne(d => d.Class).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.ClassId)
                 .HasConstraintName("FK__Reviews__ClassId__44CA3770");
@@ -492,6 +495,14 @@ public partial class FlexFitDbContext : DbContext
             entity.HasOne(d => d.Gym).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.GymId)
                 .HasConstraintName("FK__Reviews__GymId__43D61337");
+
+            entity.HasOne(d => d.ClassBooking).WithMany()
+                .HasForeignKey(d => d.ClassBookingId)
+                .HasConstraintName("FK__Reviews__ClassBookingId");
+
+            entity.HasOne(d => d.GymBooking).WithMany()
+                .HasForeignKey(d => d.GymBookingId)
+                .HasConstraintName("FK__Reviews__GymBookingId");
 
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.UserId)
