@@ -47,7 +47,7 @@ namespace Flexfit.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "GymPartner")] // Chỉ những người đăng ký làm chủ phòng mới có quyền gọi
+        [Authorize(Roles = "Admin")] // Chỉ những người đăng ký làm chủ phòng mới có quyền gọi
         public async Task<IActionResult> CreateGym([FromBody] CreateGymRequest request)
         {
             try

@@ -69,4 +69,5 @@ public partial class User
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
     public virtual ICollection<UserWorkoutHistory> UserWorkoutHistories { get; set; } = new List<UserWorkoutHistory>();
+    public virtual ICollection<FavoriteClass> FavoriteClasses { get; set; } = new List<FavoriteClass>();
 }

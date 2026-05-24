@@ -46,4 +46,5 @@ public partial class Class
     public virtual ICollection<ClassSchedule> ClassSchedules { get; set; } = new List<ClassSchedule>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public virtual ICollection<FavoriteClass> FavoriteClasses { get; set; } = new List<FavoriteClass>();
 }

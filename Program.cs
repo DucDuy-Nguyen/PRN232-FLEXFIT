@@ -118,7 +118,16 @@ builder.Services.AddScoped<ICreditService, CreditService>();
 // check-in log repository and service
 builder.Services.AddScoped<ICheckInLogRepository, CheckInLogRepository>();
 builder.Services.AddScoped<ICheckInLogService, CheckInLogService>();
+// Đăng ký cặp Repository xử lý Database của FavoriteGym
+builder.Services.AddScoped<IFavoriteGymRepository, FavoriteGymRepository>();
+
+// Đăng ký cặp Service xử lý nghiệp vụ Toggle của FavoriteGym
+builder.Services.AddScoped<IFavoriteGymService, FavoriteGymService>();
+// Đăng ký cho cụm Favorite Class mới tạo
+builder.Services.AddScoped<IFavoriteClassRepository, FavoriteClassRepository>();
+builder.Services.AddScoped<IFavoriteClassService, FavoriteClassService>();
 builder.Services.AddHostedService<BookingReminderWorker>();
+
 
 builder.Services.AddSingleton<JwtHelper>();
 

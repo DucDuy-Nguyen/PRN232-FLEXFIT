@@ -89,7 +89,6 @@ namespace Flexfit.Service
         // Hàm xử lý khi người dùng click vào link xác thực
         public async Task<string> VerifyEmailAsync(string email, string otpCode)
         {
-            // 1. Tìm user theo email
             var user = await _userRepository.GetByEmailAsync(email);
 
             if (user == null || user.EmailVerificationToken != otpCode)
@@ -97,20 +96,45 @@ namespace Flexfit.Service
                 return "Mã xác thực không hợp lệ hoặc sai email.";
             }
 
-            // 2. Kiểm tra xem mã còn hạn trong 2 phút không?
             if (user.VerificationTokenExpires < DateTimeHelper.GetVietnamTime())
             {
                 return "Mã xác thực đã hết hạn. Vui lòng yêu cầu gửi mã mới.";
             }
 
-            // 3. Nếu đúng hết -> Cho phép kích hoạt tài khoản
+            // 1. Kích hoạt trạng thái tài khoản
             user.IsEmailVerified = true;
-            user.EmailVerificationToken = null; // Xóa mã đi
+            user.EmailVerificationToken = null;
             user.VerificationTokenExpires = null;
 
+            // 2. TỰ ĐỘNG CẤP QUYỀN ROLE: "Member"
+            // Kiểm tra xem User đã có danh sách Roles chưa để tránh lỗi NullReferenceException
+            if (user.UserRoles == null)
+            {
+                user.UserRoles = new List<UserRole>();
+            }
+
+            // Đảm bảo không add trùng nếu tài khoản đã lỡ có quyền Member trước đó
+            if (!user.UserRoles.Any(ur => ur.Role?.RoleName == "Member"))
+            {
+                // Bạn cần chắc chắn trong DB bảng Roles đã có sẵn dòng dữ liệu "Member" nhé.
+                // Đoạn này lấy ra RoleId của Role "Member" từ DB hoặc nếu DB cấu hình cứng bằng cách nạp trực tiếp qua Repository.
+                // Ở đây tôi giả định cấu hình thực thể của bạn là thực thể trung gian UserRole(UserId, RoleId).
+
+                var memberRole = await _userRepository.GetRoleByNameAsync("Member");
+                if (memberRole != null)
+                {
+                    user.UserRoles.Add(new UserRole
+                    {
+                        UserId = user.UserId,
+                        RoleId = memberRole.RoleId
+                    });
+                }
+            }
+
+            // 3. Cập nhật thực thể đã nạp quyền mới xuống DB
             await _userRepository.UpdateAsync(user);
 
-            return "Xác thực tài khoản thành công!";
+            return "Xác thực tài khoản và kích hoạt quyền Hội viên thành công!";
         }
 
         public async Task<AuthResponse> LoginAsync(LoginRequest request)

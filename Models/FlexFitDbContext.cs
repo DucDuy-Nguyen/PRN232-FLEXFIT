@@ -68,6 +68,7 @@ public partial class FlexFitDbContext : DbContext
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
     public virtual DbSet<UserWorkoutHistory> UserWorkoutHistories { get; set; }
+    public virtual DbSet<FavoriteClass> FavoriteClasses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -294,6 +295,27 @@ public partial class FlexFitDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__FavoriteG__UserI__4A8310C6");
+        });
+        modelBuilder.Entity<FavoriteClass>(entity =>
+        {
+            // Cấu hình Khóa chính hỗn hợp (Composite Key)
+            entity.HasKey(e => new { e.UserId, e.ClassId });
+
+            entity.ToTable("FavoriteClasses");
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            // Cấu hình mối quan hệ với bảng Class
+            entity.HasOne(d => d.Class)
+                .WithMany(p => p.FavoriteClasses)
+                .HasForeignKey(d => d.ClassId)
+                .OnDelete(DeleteBehavior.Cascade); // Xóa lớp thì tự động xóa lượt yêu thích của lớp đó
+
+            // Cấu hình mối quan hệ với bảng User
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.FavoriteClasses) // Đảm bảo trong Model User.cs cũng có ICollection<FavoriteClass>
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Gym>(entity =>
