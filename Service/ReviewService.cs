@@ -4,6 +4,7 @@ using Flexfit.Models;
 using Flexfit.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -61,6 +62,7 @@ namespace Flexfit.Service
                 throw new InvalidOperationException("Lịch đặt này đã được bạn đánh giá trước đó. Mỗi lịch đặt chỉ được đánh giá 1 lần.");
 
             // Tạo review mới
+            var gymId = booking.Class?.Branch?.GymId;
             var review = new Review
             {
                 ReviewId = Guid.NewGuid(),
@@ -73,8 +75,14 @@ namespace Flexfit.Service
             };
 
             await _context.Reviews.AddAsync(review);
-            // Lưu ý: Model Class không có thuộc tính RatingAverage nên chỉ lưu review
             await _context.SaveChangesAsync();
+
+            // Cập nhật điểm đánh giá trung bình của phòng tập
+            if (gymId.HasValue)
+            {
+                await UpdateGymRatingAverageAsync(gymId.Value);
+                await _context.SaveChangesAsync();
+            }
 
             return MapToResponse(review, booking.User?.FullName ?? "");
         }
@@ -113,12 +121,14 @@ namespace Flexfit.Service
             };
 
             await _context.Reviews.AddAsync(review);
+            await _context.SaveChangesAsync();
 
             // Cập nhật điểm đánh giá trung bình của phòng tập
             if (gymId.HasValue)
+            {
                 await UpdateGymRatingAverageAsync(gymId.Value);
-
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+            }
 
             return MapToResponse(review, booking.User?.FullName ?? "");
         }
@@ -132,13 +142,34 @@ namespace Flexfit.Service
             if (gym == null) return;
 
             var reviews = await _context.Reviews
-                .Where(r => r.GymId == gymId)
+                .Where(r => r.GymId == gymId || r.Class.Branch.GymId == gymId)
                 .ToListAsync();
 
             if (reviews.Count > 0)
-                gym.RatingAverage = (decimal)reviews.Average(r => r.Rating);
+                gym.RatingAverage = Math.Round((decimal)reviews.Average(r => r.Rating), 2);
 
             _context.Gyms.Update(gym);
+        }
+
+        public async Task<IEnumerable<ReviewResponse>> GetGymReviewsAsync(Guid gymId)
+        {
+            // Kiểm tra Gym có tồn tại không
+            var gymExists = await _context.Gyms.AnyAsync(g => g.GymId == gymId);
+            if (!gymExists)
+            {
+                throw new KeyNotFoundException("Không tìm thấy phòng tập này.");
+            }
+
+            // Lấy danh sách đánh giá của Gym kèm thông tin User
+            var reviews = await _context.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Class)
+                    .ThenInclude(c => c.Branch)
+                .Where(r => r.GymId == gymId || r.Class.Branch.GymId == gymId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            return reviews.Select(r => MapToResponse(r, r.User?.FullName ?? "N/A"));
         }
 
         // =============================================
@@ -151,7 +182,7 @@ namespace Flexfit.Service
                 ReviewId = review.ReviewId,
                 UserId = review.UserId,
                 UserFullName = fullName,
-                GymId = review.GymId,
+                GymId = review.GymId ?? review.Class?.Branch?.GymId,
                 ClassId = review.ClassId,
                 ClassBookingId = review.ClassBookingId,
                 GymBookingId = review.GymBookingId,

@@ -3,6 +3,7 @@ using Flexfit.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -56,6 +57,34 @@ namespace Flexfit.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            {
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                return StatusCode(500, new { message = "Lỗi cập nhật cơ sở dữ liệu.", detail = innerMessage });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi không mong muốn.", detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Lấy danh sách tất cả các đánh giá của một phòng tập cụ thể.
+        /// Cho phép truy cập không cần đăng nhập.
+        /// </summary>
+        [HttpGet("gym/{gymId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetGymReviews(Guid gymId)
+        {
+            try
+            {
+                var reviews = await _reviewService.GetGymReviewsAsync(gymId);
+                return Ok(reviews);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
