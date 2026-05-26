@@ -1,3 +1,4 @@
+using Flexfit.DTOs; // Đảm bảo đã import namespace chứa CustomerBookingHistoryResponse
 using Flexfit.DTOs.Booking;
 using Flexfit.Helpers;
 using Flexfit.Models;
@@ -22,6 +23,93 @@ namespace Flexfit.Service
         {
             var random = new Random();
             return "BK" + random.Next(100000, 999999).ToString();
+        }
+
+        // ========================================================
+        // NEW METHOD FOR PARTNER/STAFF: LẤY DANH SÁCH BOOKING CỦA KHÁCH HÀNG THEO 3 TABS
+        // ========================================================
+        // ========================================================
+        // 3. PARTNER / STAFF METHODS (TÁCH BIỆT GYM & CLASS)
+        // ========================================================
+
+        public async Task<Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>> GetPartnerGymBookingTabsAsync(Guid ownerId)
+        {
+            var now = DateTimeHelper.GetVietnamTime();
+            var gymBookingsList = new List<CustomerBookingHistoryResponse>();
+
+            // 1. Chỉ lấy lịch đặt GYM thuộc quyền quản lý của Owner/Partner
+            var gymBookings = await _bookingRepo.GetGymBookingsByOwnerIdAsync(ownerId);
+            if (gymBookings != null)
+            {
+                gymBookingsList.AddRange(gymBookings.Select(gb => new CustomerBookingHistoryResponse
+                {
+                    BookingId = gb.BookingId,
+                    BookingCode = gb.BookingCode,
+                    BookingType = "GYM",
+                    Name = gb.Session?.SessionName ?? "Tập Gym Tự Do",
+                    BranchName = gb.Session?.Branch?.BranchName ?? "Chi nhánh Flexfit",
+                    StartTime = gb.Session?.StartTime ?? DateTime.MinValue,
+                    EndTime = gb.Session?.EndTime ?? DateTime.MinValue,
+                    CreditUsed = gb.CreditUsed,
+                    Status = gb.Status,
+                    CheckInStatus = gb.CheckInStatus,
+                    CheckInTime = gb.CheckInTime,
+                    CustomerName = gb.User?.FullName ?? "Hội viên Flexfit",
+                    CustomerEmail = gb.User?.Email ?? ""
+                }));
+            }
+
+            // 2. Phân loại cấu trúc 3 Tabs cho GYM
+            var active = gymBookingsList.Where(b => b.Status != "Cancelled" && b.StartTime <= now && b.EndTime >= now).OrderBy(b => b.StartTime);
+            var upcoming = gymBookingsList.Where(b => b.Status != "Cancelled" && b.StartTime > now).OrderBy(b => b.StartTime);
+            var past = gymBookingsList.Where(b => b.Status == "Cancelled" || b.EndTime < now).OrderByDescending(b => b.EndTime);
+
+            return new Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>
+    {
+        { "Active", active },
+        { "Upcoming", upcoming },
+        { "Past", past }
+    };
+        }
+
+        public async Task<Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>> GetPartnerClassBookingTabsAsync(Guid ownerId)
+        {
+            var now = DateTimeHelper.GetVietnamTime();
+            var classBookingsList = new List<CustomerBookingHistoryResponse>();
+
+            // 1. Chỉ lấy lịch đặt CLASS thuộc quyền quản lý của Owner/Partner
+            var classBookings = await _bookingRepo.GetClassBookingsByOwnerIdAsync(ownerId);
+            if (classBookings != null)
+            {
+                classBookingsList.AddRange(classBookings.Select(cb => new CustomerBookingHistoryResponse
+                {
+                    BookingId = cb.BookingId,
+                    BookingCode = cb.BookingCode,
+                    BookingType = "CLASS",
+                    Name = cb.Class?.ClassName ?? "Lớp học thể thao",
+                    BranchName = cb.Class?.Branch?.BranchName ?? "Chi nhánh Flexfit",
+                    StartTime = cb.Class?.StartTime ?? DateTime.MinValue,
+                    EndTime = cb.Class?.EndTime ?? DateTime.MinValue,
+                    CreditUsed = cb.CreditUsed,
+                    Status = cb.Status,
+                    CheckInStatus = cb.CheckInStatus,
+                    CheckInTime = cb.CheckInTime,
+                    CustomerName = cb.User?.FullName ?? "Hội viên Flexfit",
+                    CustomerEmail = cb.User?.Email ?? ""
+                }));
+            }
+
+            // 2. Phân loại cấu trúc 3 Tabs cho CLASS
+            var active = classBookingsList.Where(b => b.Status != "Cancelled" && b.StartTime <= now && b.EndTime >= now).OrderBy(b => b.StartTime);
+            var upcoming = classBookingsList.Where(b => b.Status != "Cancelled" && b.StartTime > now).OrderBy(b => b.StartTime);
+            var past = classBookingsList.Where(b => b.Status == "Cancelled" || b.EndTime < now).OrderByDescending(b => b.EndTime);
+
+            return new Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>
+    {
+        { "Active", active },
+        { "Upcoming", upcoming },
+        { "Past", past }
+    };
         }
 
         // ========================================================
@@ -51,8 +139,8 @@ namespace Flexfit.Service
                     SessionName = request.SessionName,
                     StartTime = request.StartTime,
                     EndTime = request.EndTime,
-                    Capacity = 100, 
-                    CreditCost = branch.CreditCost, 
+                    Capacity = 100,
+                    CreditCost = branch.CreditCost,
                     Status = "Active",
                     CreatedAt = DateTimeHelper.GetVietnamTime()
                 };
@@ -102,7 +190,6 @@ namespace Flexfit.Service
             await _bookingRepo.AddCreditTransactionAsync(transaction);
             await _bookingRepo.SaveChangesAsync();
 
-            // ĐÃ SỬA: Lấy thông tin chi tiết qua Repo đã nạp đầy đủ Navigation Properties
             var detailedBooking = await _bookingRepo.GetGymBookingByIdAsync(booking.BookingId);
 
             return new GymBookingResponse
@@ -119,7 +206,6 @@ namespace Flexfit.Service
                 Status = booking.Status,
                 CreditUsed = booking.CreditUsed,
                 BookedAt = booking.BookedAt,
-                // ĐÃ FIX: Đảm bảo bốc dữ liệu thực từ bản ghi liên kết, fallback an toàn nếu Repo chưa kịp Include
                 UserEmail = detailedBooking?.User?.Email ?? booking.User?.Email ?? "",
                 UserFullName = detailedBooking?.User?.FullName ?? booking.User?.FullName ?? "Hội viên Flexfit"
             };
@@ -229,7 +315,6 @@ namespace Flexfit.Service
                 Status = booking.Status,
                 CreditUsed = booking.CreditUsed,
                 BookedAt = booking.BookedAt,
-                // ĐÃ FIX: Lấy thông tin định danh chính xác phục vụ gửi mail hủy lịch
                 UserEmail = booking.User?.Email ?? "",
                 UserFullName = booking.User?.FullName ?? ""
             };
@@ -290,7 +375,6 @@ namespace Flexfit.Service
             await _bookingRepo.AddCreditTransactionAsync(transaction);
             await _bookingRepo.SaveChangesAsync();
 
-            // ĐÃ SỬA: Đồng bộ hóa nạp dữ liệu chi tiết
             var detailedBooking = await _bookingRepo.GetClassBookingByIdAsync(booking.BookingId);
 
             return new ClassBookingResponse
@@ -308,7 +392,6 @@ namespace Flexfit.Service
                 Status = booking.Status,
                 CreditUsed = booking.CreditUsed,
                 BookedAt = booking.BookedAt,
-                // ĐÃ FIX: Rút trích thông tin thực từ hệ thống cơ sở dữ liệu liên kết
                 UserEmail = detailedBooking?.User?.Email ?? booking.User?.Email ?? "",
                 UserFullName = detailedBooking?.User?.FullName ?? booking.User?.FullName ?? "Hội viên Flexfit"
             };
@@ -420,7 +503,6 @@ namespace Flexfit.Service
                 Status = booking.Status,
                 CreditUsed = booking.CreditUsed,
                 BookedAt = booking.BookedAt,
-                // ĐÃ FIX: Khôi phục cấu trúc thông tin định danh cho Mail lớp học
                 UserEmail = booking.User?.Email ?? "",
                 UserFullName = booking.User?.FullName ?? ""
             };
