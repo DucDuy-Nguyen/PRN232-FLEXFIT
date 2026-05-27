@@ -46,18 +46,27 @@ namespace Flexfit.Controllers
             return Ok(dto);
         }
 
+        // ========================================================
+        // TẠO PHÒNG GYM (ADMIN TẠO HỘ OWNER)
+        // ========================================================
+
         [HttpPost]
-        [Authorize(Roles = "Admin")] // Chỉ những người đăng ký làm chủ phòng mới có quyền gọi
+        [Authorize(Roles = "Admin")] // 🔒 Bắt buộc phải là Admin mới có quyền tạo hộ
         public async Task<IActionResult> CreateGym([FromBody] CreateGymRequest request)
         {
             try
             {
+                // Truyền request và ID của Admin thực hiện vào Service
                 var gymId = await _gymService.CreateGymAsync(request, GetCurrentUserId());
-                return Ok(new { message = "Tạo phòng tập và tự động cấp quyền thành công!", gymId });
+                return Ok(new { message = "Admin đã tạo phòng tập và tự động cấp quyền GymPartner cho Chủ phòng thành công!", gymId });
             }
-            catch (UnauthorizedAccessException ex)
+            catch (KeyNotFoundException ex)
             {
-                return StatusCode(403, new { message = ex.Message });
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
 
