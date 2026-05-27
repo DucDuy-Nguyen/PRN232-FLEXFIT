@@ -12,10 +12,12 @@ namespace Flexfit.Service
     public class CheckInLogService : ICheckInLogService
     {
         private readonly ICheckInLogRepository _checkInRepo;
+        private readonly IWorkoutHistoryService _workoutHistoryService;
 
-        public CheckInLogService(ICheckInLogRepository checkInRepo)
+        public CheckInLogService(ICheckInLogRepository checkInRepo, IWorkoutHistoryService workoutHistoryService)
         {
             _checkInRepo = checkInRepo;
+            _workoutHistoryService = workoutHistoryService;
         }
 
         public async Task<IEnumerable<CheckInLogResponse>> GetAllLogsAsync()
@@ -62,6 +64,9 @@ namespace Flexfit.Service
                 booking.CheckInTime = DateTimeHelper.GetVietnamTime();
                 booking.Status = "Completed";
                 await _checkInRepo.UpdateGymBookingAsync(booking);
+
+                // TỰ ĐỘNG GHI NHẬN LỊCH SỬ TẬP LUYỆN
+                await _workoutHistoryService.CreateHistoryFromCheckInAsync(request.UserId, null, booking.BookingId);
             }
 
             await _checkInRepo.SaveChangesAsync();
@@ -102,6 +107,9 @@ namespace Flexfit.Service
                 booking.CheckInTime = DateTimeHelper.GetVietnamTime();
                 booking.Status = "Completed";
                 await _checkInRepo.UpdateClassBookingAsync(booking);
+
+                // TỰ ĐỘNG GHI NHẬN LỊCH SỬ TẬP LUYỆN
+                await _workoutHistoryService.CreateHistoryFromCheckInAsync(request.UserId, booking.BookingId, null);
             }
 
             await _checkInRepo.SaveChangesAsync();

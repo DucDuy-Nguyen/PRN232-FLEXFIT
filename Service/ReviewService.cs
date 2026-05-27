@@ -146,7 +146,15 @@ namespace Flexfit.Service
                 .ToListAsync();
 
             if (reviews.Count > 0)
+            {
                 gym.RatingAverage = Math.Round((decimal)reviews.Average(r => r.Rating), 2);
+                gym.TotalReviews = reviews.Count;
+            }
+            else
+            {
+                gym.RatingAverage = 0;
+                gym.TotalReviews = 0;
+            }
 
             _context.Gyms.Update(gym);
         }

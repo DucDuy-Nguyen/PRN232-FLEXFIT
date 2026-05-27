@@ -128,6 +128,11 @@ builder.Services.AddScoped<IFavoriteClassRepository, FavoriteClassRepository>();
 builder.Services.AddScoped<IFavoriteClassService, FavoriteClassService>();
 // Review service - Đánh giá lịch đặt (chỉ được đánh giá sau khi Check-in & 1 lần/booking)
 builder.Services.AddScoped<IReviewService, ReviewService>();
+
+// Workout History service and repository
+builder.Services.AddScoped<IWorkoutHistoryRepository, WorkoutHistoryRepository>();
+builder.Services.AddScoped<IWorkoutHistoryService, WorkoutHistoryService>();
+
 builder.Services.AddHostedService<BookingReminderWorker>();
 
 

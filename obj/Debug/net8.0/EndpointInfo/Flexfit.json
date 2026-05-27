@@ -2132,6 +2132,90 @@
           }
         }
       }
+    },
+    "/api/WorkoutHistory/my-history": {
+      "get": {
+        "tags": [
+          "WorkoutHistory"
+        ],
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/WorkoutHistory/statistics": {
+      "get": {
+        "tags": [
+          "WorkoutHistory"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/WorkoutHistory/{id}": {
+      "put": {
+        "tags": [
+          "WorkoutHistory"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkoutHistoryRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkoutHistoryRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkoutHistoryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2824,6 +2908,24 @@
             "type": "string",
             "format": "date",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateWorkoutHistoryRequest": {
+        "type": "object",
+        "properties": {
+          "caloriesBurned": {
+            "maximum": 5000,
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "workoutDurationMinutes": {
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false

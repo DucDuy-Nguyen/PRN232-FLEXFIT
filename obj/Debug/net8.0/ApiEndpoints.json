@@ -1295,5 +1295,57 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.WorkoutHistoryController",
+    "Method": "UpdateWorkoutHistory",
+    "RelativePath": "api/WorkoutHistory/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.WorkoutHistory.UpdateWorkoutHistoryRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.WorkoutHistoryController",
+    "Method": "GetMyHistory",
+    "RelativePath": "api/WorkoutHistory/my-history",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "startDate",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "endDate",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.WorkoutHistoryController",
+    "Method": "GetStatistics",
+    "RelativePath": "api/WorkoutHistory/statistics",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
   }
 ]
