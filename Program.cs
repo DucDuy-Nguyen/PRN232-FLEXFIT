@@ -1,13 +1,13 @@
 using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
+using Flexfit.Repository;
 using Flexfit.Service;
-using PayOS;
 using Flexfit.Services;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using PayOS;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -128,7 +128,11 @@ builder.Services.AddScoped<IFavoriteClassRepository, FavoriteClassRepository>();
 builder.Services.AddScoped<IFavoriteClassService, FavoriteClassService>();
 // Review service - Đánh giá lịch đặt (chỉ được đánh giá sau khi Check-in & 1 lần/booking)
 builder.Services.AddScoped<IReviewService, ReviewService>();
+// Booking Reminder Worker
 builder.Services.AddHostedService<BookingReminderWorker>();
+// Promotion repository and service
+builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+builder.Services.AddScoped<IPromotionService, PromotionService>();
 
 
 
