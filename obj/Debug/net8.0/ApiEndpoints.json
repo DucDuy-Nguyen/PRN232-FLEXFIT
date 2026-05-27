@@ -952,6 +952,26 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Flexfit.Controllers.PartnerBookingController",
+    "Method": "GetPartnerClassBookingTabs",
+    "RelativePath": "api/partner-bookings/class/tabs",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PartnerBookingController",
+    "Method": "GetPartnerGymBookingTabs",
+    "RelativePath": "api/partner-bookings/gym/tabs",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Flexfit.Controllers.PaymentController",
     "Method": "PaymentCallback",
     "RelativePath": "api/payment/callback",
@@ -1275,26 +1295,5 @@
       }
     ],
     "ReturnTypes": []
-  },
-  {
-    "ContainingType": "Flexfit.Controllers.WeatherForecastController",
-    "Method": "Get",
-    "RelativePath": "WeatherForecast",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": [
-      {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[Flexfit.WeatherForecast, Flexfit, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ],
-    "EndpointName": "GetWeatherForecast"
   }
 ]
