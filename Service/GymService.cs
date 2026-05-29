@@ -60,12 +60,14 @@ namespace Flexfit.Services
 
         public async Task<Guid> CreateGymAsync(CreateGymRequest request, Guid currentUserId)
         {
-            // 🛑 CHECK: Chủ phòng tập chỉ được tạo phòng tập cho chính mình
-            if (request.OwnerId != currentUserId)
+            // 1. 🛑 CHECK: Đảm bảo người dùng được chỉ định làm Owner tồn tại trong hệ thống
+            var ownerUser = await _gymRepo.GetUserByIdAsync(request.OwnerId);
+            if (ownerUser == null)
             {
-                throw new UnauthorizedAccessException("Bạn không thể tạo phòng tập đứng tên tài khoản khác.");
+                throw new KeyNotFoundException("Không tìm thấy thông tin tài khoản Người nhận quyền sở hữu (OwnerId).");
             }
 
+            // 2. Khởi tạo đối tượng Gym mới gán cho OwnerId từ request
             var newGym = new Gym
             {
                 GymId = Guid.NewGuid(),
@@ -83,9 +85,23 @@ namespace Flexfit.Services
 
             await _gymRepo.AddAsync(newGym);
 
+            // 3. 🔑 XỬ LÝ CHUYỂN ĐỔI QUYỀN LỰC: XÓA ROLE CŨ & THÊM ROLE GYMPARTNER
             var partnerRole = await _gymRepo.GetRoleByNameAsync("GymPartner");
             if (partnerRole != null)
             {
+                // Bước A: Tìm và xóa Role cũ (Ví dụ ở đây là role "Member")
+                var memberRole = await _gymRepo.GetRoleByNameAsync("Member");
+                if (memberRole != null)
+                {
+                    var hasMemberRole = await _gymRepo.UserHasRoleAsync(request.OwnerId, memberRole.RoleId);
+                    if (hasMemberRole)
+                    {
+                        // Xóa liên kết role cũ của user này
+                        await _gymRepo.RemoveUserRoleAsync(request.OwnerId, memberRole.RoleId);
+                    }
+                }
+
+                // Bước B: Cấp quyền GymPartner mới cho Owner nếu chưa có
                 var hasPartnerRole = await _gymRepo.UserHasRoleAsync(request.OwnerId, partnerRole.RoleId);
                 if (!hasPartnerRole)
                 {
@@ -95,9 +111,12 @@ namespace Flexfit.Services
                         RoleId = partnerRole.RoleId,
                         AssignedAt = DateTimeHelper.GetVietnamTime()
                     });
-                    await _gymRepo.SaveChangesAsync();
                 }
             }
+
+            // Lưu toàn bộ thay đổi (Tạo phòng tập, xóa role cũ, thêm role mới)
+            await _gymRepo.SaveChangesAsync();
+
             return newGym.GymId;
         }
 

@@ -1,13 +1,13 @@
 using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
+using Flexfit.Repository;
 using Flexfit.Service;
-using PayOS;
 using Flexfit.Services;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using PayOS;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -133,7 +133,11 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IWorkoutHistoryRepository, WorkoutHistoryRepository>();
 builder.Services.AddScoped<IWorkoutHistoryService, WorkoutHistoryService>();
 
+// Booking Reminder Worker
 builder.Services.AddHostedService<BookingReminderWorker>();
+// Promotion repository and service
+builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+builder.Services.AddScoped<IPromotionService, PromotionService>();
 
 
 

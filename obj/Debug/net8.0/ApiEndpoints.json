@@ -1112,6 +1112,70 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Flexfit.Controllers.PromotionController",
+    "Method": "GetAll",
+    "RelativePath": "api/promotions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "isActiveOnly",
+        "Type": "System.Nullable\u00601[[System.Boolean, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PromotionController",
+    "Method": "Create",
+    "RelativePath": "api/promotions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.Promotion.CreatePromotionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PromotionController",
+    "Method": "GetById",
+    "RelativePath": "api/promotions/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PromotionController",
+    "Method": "Delete",
+    "RelativePath": "api/promotions/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Flexfit.Controllers.ReviewController",
     "Method": "CreateReview",
     "RelativePath": "api/Review",
