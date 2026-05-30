@@ -15,11 +15,13 @@ namespace Flexfit.Service
     {
         private readonly IBookingRepository _bookingRepo;
         private readonly IPromotionRepository _promotionRepo; // THÊM REPOSITORY PROMOTION
+        private readonly ISystemLogService _systemLogService;
 
-        public BookingService(IBookingRepository bookingRepo, IPromotionRepository promotionRepo)
+        public BookingService(IBookingRepository bookingRepo, IPromotionRepository promotionRepo, ISystemLogService systemLogService)
         {
             _bookingRepo = bookingRepo;
             _promotionRepo = promotionRepo;
+            _systemLogService = systemLogService;
         }
 
         private string GenerateBookingCode()
@@ -207,6 +209,7 @@ namespace Flexfit.Service
             };
             await _bookingRepo.AddCreditTransactionAsync(transaction);
             await _bookingRepo.SaveChangesAsync();
+            await _systemLogService.LogActionAsync(userId, "BOOK_GYM", $"Đặt lịch tập Gym thành công. Khung giờ: {session.SessionName}, Mã đặt chỗ: {booking.BookingCode}", null);
 
             var detailedBooking = await _bookingRepo.GetGymBookingByIdAsync(booking.BookingId);
 
@@ -316,6 +319,7 @@ namespace Flexfit.Service
 
             await _bookingRepo.UpdateGymBookingAsync(booking);
             await _bookingRepo.SaveChangesAsync();
+            await _systemLogService.LogActionAsync(userId, "CANCEL_GYM", $"Hủy lịch tập Gym thành công. Mã đặt chỗ: {booking.BookingCode}", null);
 
             return new GymBookingResponse
             {
@@ -411,6 +415,7 @@ namespace Flexfit.Service
             };
             await _bookingRepo.AddCreditTransactionAsync(transaction);
             await _bookingRepo.SaveChangesAsync();
+            await _systemLogService.LogActionAsync(userId, "BOOK_CLASS", $"Đặt lịch lớp học {classObj.ClassName} thành công. Mã đặt chỗ: {booking.BookingCode}", null);
 
             var detailedBooking = await _bookingRepo.GetClassBookingByIdAsync(booking.BookingId);
 
@@ -521,6 +526,7 @@ namespace Flexfit.Service
 
             await _bookingRepo.UpdateClassBookingAsync(booking);
             await _bookingRepo.SaveChangesAsync();
+            await _systemLogService.LogActionAsync(userId, "CANCEL_CLASS", $"Hủy lịch lớp học {booking.Class?.ClassName} thành công. Mã đặt chỗ: {booking.BookingCode}", null);
 
             return new ClassBookingResponse
             {

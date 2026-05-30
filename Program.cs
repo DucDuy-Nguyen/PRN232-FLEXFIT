@@ -73,12 +73,14 @@ builder.Services.AddAuthentication(options =>
 
 // Add Authorization (Role-based)
 builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
 
 // Register Repositories (DI)
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<ISystemLogRepository, SystemLogRepository>();
 
 
 
@@ -128,6 +130,7 @@ builder.Services.AddScoped<IFavoriteClassRepository, FavoriteClassRepository>();
 builder.Services.AddScoped<IFavoriteClassService, FavoriteClassService>();
 // Review service - Đánh giá lịch đặt (chỉ được đánh giá sau khi Check-in & 1 lần/booking)
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 
 // Workout History service and repository
 builder.Services.AddScoped<IWorkoutHistoryRepository, WorkoutHistoryRepository>();

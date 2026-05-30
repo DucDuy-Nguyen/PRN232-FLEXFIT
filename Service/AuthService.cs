@@ -9,18 +9,20 @@ namespace Flexfit.Service
 
     public class AuthService : IAuthService
     {
-        private readonly IUserRepository _userRepository;
+                private readonly IUserRepository _userRepository;
         private readonly JwtHelper _jwt;
         private readonly IConfiguration _config;
         private readonly IEmailService _emailService; // Thêm EmailService
+        private readonly ISystemLogService _systemLogService;
 
 
-        public AuthService(IUserRepository userRepository, JwtHelper jwt, IConfiguration config, IEmailService emailService)
+        public AuthService(IUserRepository userRepository, JwtHelper jwt, IConfiguration config, IEmailService emailService, ISystemLogService systemLogService)
         {
             _userRepository = userRepository;
             _jwt = jwt;
             _config = config;
             _emailService = emailService;
+            _systemLogService = systemLogService;
         }
 
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -67,6 +69,7 @@ namespace Flexfit.Service
             await _userRepository.AddAsync(user);
             // Lưu ý: Nếu hàm AddAsync của bạn chưa có SaveChanges, thì cần gọi hàm dưới đây:
             await _userRepository.SaveChangesAsync();
+            await _systemLogService.LogActionAsync(user.UserId, "REGISTER", $"Đăng ký tài khoản mới: {user.Email}", null);
 
             // 5. GỬI EMAIL XÁC THỰC
             var subject = "Mã xác thực tài khoản FlexFit";
@@ -133,6 +136,7 @@ namespace Flexfit.Service
 
             // 3. Cập nhật thực thể đã nạp quyền mới xuống DB
             await _userRepository.UpdateAsync(user);
+            await _systemLogService.LogActionAsync(user.UserId, "VERIFY_EMAIL", $"Xác thực email tài khoản thành công: {email}", null);
 
             return "Xác thực tài khoản và kích hoạt quyền Hội viên thành công!";
         }
@@ -146,6 +150,8 @@ namespace Flexfit.Service
                 throw new Exception("Mật khẩu không đúng");
 
             var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();
+
+            await _systemLogService.LogActionAsync(user.UserId, "LOGIN", $"Đăng nhập hệ thống thành công: {user.Email}", null);
 
             return new AuthResponse
             {
@@ -217,6 +223,8 @@ namespace Flexfit.Service
 
                 var roles = user.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>();
 
+                await _systemLogService.LogActionAsync(user.UserId, "LOGIN_GOOGLE", $"Đăng nhập bằng tài khoản Google thành công: {user.Email}", null);
+
                 return new AuthResponse
                 {
                     Token = _jwt.GenerateToken(user.UserId, user.Email, roles),
@@ -245,6 +253,7 @@ namespace Flexfit.Service
             user.VerificationTokenExpires = DateTimeHelper.GetVietnamTime().AddMinutes(3);
 
             await _userRepository.UpdateAsync(user);
+            await _systemLogService.LogActionAsync(user.UserId, "FORGOT_PASSWORD", $"Yêu cầu gửi OTP khôi phục mật khẩu cho email: {user.Email}", null);
 
             // Tiến hành gửi Email chứa OTP cho người dùng
             var subject = "Mã OTP khôi phục mật khẩu FlexFit";
@@ -282,6 +291,7 @@ namespace Flexfit.Service
             user.VerificationTokenExpires = null;
 
             await _userRepository.UpdateAsync(user);
+            await _systemLogService.LogActionAsync(user.UserId, "RESET_PASSWORD", $"Đặt lại mật khẩu thành công cho email: {user.Email}", null);
 
             return "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.";
 

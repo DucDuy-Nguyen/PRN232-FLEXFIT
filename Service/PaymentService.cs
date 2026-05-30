@@ -16,11 +16,13 @@ namespace Flexfit.Service
     {
         private readonly IPaymentRepository _paymentRepository;
         private readonly PayOSClient _payOSClient;
+        private readonly ISystemLogService _systemLogService;
 
-        public PaymentService(IPaymentRepository paymentRepository, PayOSClient payOSClient)
+        public PaymentService(IPaymentRepository paymentRepository, PayOSClient payOSClient, ISystemLogService systemLogService)
         {
             _paymentRepository = paymentRepository;
             _payOSClient = payOSClient;
+            _systemLogService = systemLogService;
         }
 
         public async Task<IEnumerable<CreditPackageResponse>> GetPackagesAsync()
@@ -194,6 +196,7 @@ namespace Flexfit.Service
                 };
 
                 await _paymentRepository.AddCreditTransactionAsync(transaction);
+                await _systemLogService.LogActionAsync(payment.UserId, "DEPOSIT_SUCCESS", $"Nạp tín dụng thành công từ gói {package.PackageName}. Số tiền: {payment.Amount:N0} VNĐ. Nhận được: {totalCreditToAdd} Credits.", null);
                 return true;
             }
             else
@@ -277,6 +280,7 @@ namespace Flexfit.Service
             };
 
             await _paymentRepository.AddCreditTransactionAsync(transaction);
+            await _systemLogService.LogActionAsync(payment.UserId, "DEPOSIT_SUCCESS", $"Nạp tín dụng thành công từ gói {package.PackageName} qua PayOS (VietQR). Số tiền: {payment.Amount:N0} VNĐ. Nhận được: {totalCreditToAdd} Credits.", null);
             return true;
         }
 

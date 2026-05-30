@@ -155,10 +155,10 @@ D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\staticwebassets.build.json.cache
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\staticwebassets.development.json
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\swae.build.ex.cache
-D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\Flexfit.csproj.Up2Date
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\Flexfit.dll
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\refint\Flexfit.dll
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\Flexfit.pdb
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\Flexfit.genruntimeconfig.cache
 D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\ref\Flexfit.dll
+D:\FlexFit\test merge\FlexFit\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
