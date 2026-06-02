@@ -3,7 +3,8 @@ using Flexfit.DTOs.Booking;
 using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
-using Flexfit.Repository; // Đảm bảo import namespace chứa IPromotionRepository
+using Flexfit.Repository;
+using Flexfit.Service; // Thêm namespace của INotificationService
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +15,17 @@ namespace Flexfit.Service
     public class BookingService : IBookingService
     {
         private readonly IBookingRepository _bookingRepo;
-        private readonly IPromotionRepository _promotionRepo; // THÊM REPOSITORY PROMOTION
+        private readonly IPromotionRepository _promotionRepo;
+        private readonly INotificationService _notificationService; // THÊM INOTIFICATIONSERVICE
 
-        public BookingService(IBookingRepository bookingRepo, IPromotionRepository promotionRepo)
+        public BookingService(
+            IBookingRepository bookingRepo,
+            IPromotionRepository promotionRepo,
+            INotificationService notificationService) // Inject thông báo qua Constructor
         {
             _bookingRepo = bookingRepo;
             _promotionRepo = promotionRepo;
+            _notificationService = notificationService;
         }
 
         private string GenerateBookingCode()
@@ -109,7 +115,7 @@ namespace Flexfit.Service
         }
 
         // ========================================================
-        // 1. GYM SESSION BOOKING (TÍCH HỢP PROMOTION)
+        // 1. GYM SESSION BOOKING (TÍCH HỢP PROMOTION & NOTIFICATION)
         // ========================================================
 
         public async Task<GymBookingResponse> BookGymSessionAsync(Guid userId, CreateGymBookingRequest request)
@@ -148,7 +154,6 @@ namespace Flexfit.Service
             if (currentBookingsCount >= session.Capacity)
                 throw new Exception("Session này đã hết chỗ.");
 
-            // LOGIC TÍNH TOÁN GIẢM GIÁ CREDIT QUA PROMOTION
             int finalCreditCost = session.CreditCost;
             if (request.PromotionId.HasValue)
             {
@@ -160,10 +165,9 @@ namespace Flexfit.Service
 
                 if (promo.DiscountPercent.HasValue)
                 {
-                    // Giảm giá theo phần trăm và làm tròn số credit
                     double discountAmount = session.CreditCost * (promo.DiscountPercent.Value / 100.0);
                     finalCreditCost = session.CreditCost - (int)Math.Round(discountAmount);
-                    if (finalCreditCost < 0) finalCreditCost = 0; // Đảm bảo không bị âm credit
+                    if (finalCreditCost < 0) finalCreditCost = 0;
                 }
             }
 
@@ -182,7 +186,7 @@ namespace Flexfit.Service
                 UserId = userId,
                 SessionId = session.SessionId,
                 BookingCode = GenerateBookingCode(),
-                CreditUsed = finalCreditCost, // Lưu số credit thực tế đã trừ sau khi giảm giá
+                CreditUsed = finalCreditCost,
                 CheckInStatus = "Pending",
                 Status = "Confirmed",
                 BookedAt = now
@@ -209,6 +213,19 @@ namespace Flexfit.Service
             await _bookingRepo.SaveChangesAsync();
 
             var detailedBooking = await _bookingRepo.GetGymBookingByIdAsync(booking.BookingId);
+
+            // 🔔 GỬI THÔNG BÁO ĐẶT LỊCH GYM THÀNH CÔNG
+            try
+            {
+                string branchName = detailedBooking?.Session?.Branch?.BranchName ?? "Chi nhánh hệ thống";
+                await _notificationService.SendAsync(
+                    userId,
+                    title: "Đặt lịch tập Gym thành công! 🎉",
+                    content: $"Bạn đã đặt lịch tập tại [{branchName}] vào lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã đặt chỗ: {booking.BookingCode}. Tài khoản trừ {finalCreditCost} Credits.",
+                    type: "BookingSuccess"
+                );
+            }
+            catch { /* Đảm bảo lỗi gửi thông báo không làm crash tính năng đặt lịch chính */ }
 
             return new GymBookingResponse
             {
@@ -280,7 +297,6 @@ namespace Flexfit.Service
                 else refundPercentage = 0;
             }
 
-            // Hoàn tiền dựa trên lượng `CreditUsed` đã lưu (đã tính giảm giá trước đó nên hoàn cực kỳ chuẩn)
             int refundAmount = (int)Math.Round(booking.CreditUsed * (refundPercentage / 100.0));
 
             booking.Status = "Cancelled";
@@ -317,6 +333,19 @@ namespace Flexfit.Service
             await _bookingRepo.UpdateGymBookingAsync(booking);
             await _bookingRepo.SaveChangesAsync();
 
+            // 🔔 GỬI THÔNG BÁO HỦY LỊCH GYM THÀNH CÔNG
+            try
+            {
+                string sessionName = booking.Session?.SessionName ?? "Lịch tập Gym";
+                await _notificationService.SendAsync(
+                    userId,
+                    title: "Hủy lịch tập Gym thành công ↩️",
+                    content: $"Bạn đã hủy thành công khung giờ [{sessionName}]. Hệ thống đã hoàn trả {refundAmount} Credits vào tài khoản của bạn.",
+                    type: "BookingCancelled"
+                );
+            }
+            catch { /* Khử crash */ }
+
             return new GymBookingResponse
             {
                 BookingId = booking.BookingId,
@@ -337,7 +366,7 @@ namespace Flexfit.Service
         }
 
         // ========================================================
-        // 2. CLASS BOOKING (TÍCH HỢP PROMOTION)
+        // 2. CLASS BOOKING (TÍCH HỢP PROMOTION & NOTIFICATION)
         // ========================================================
 
         public async Task<ClassBookingResponse> BookClassAsync(Guid userId, CreateClassBookingRequest request)
@@ -353,7 +382,6 @@ namespace Flexfit.Service
             if (currentBookingsCount >= classObj.Capacity)
                 throw new Exception("Lớp học này đã hết chỗ.");
 
-            // LOGIC TÍNH TOÁN GIẢM GIÁ CREDIT QUA PROMOTION CHO CLASS
             int finalCreditCost = classObj.CreditCost;
             if (request.PromotionId.HasValue)
             {
@@ -386,7 +414,7 @@ namespace Flexfit.Service
                 UserId = userId,
                 ClassId = classObj.ClassId,
                 BookingCode = GenerateBookingCode(),
-                CreditUsed = finalCreditCost, // Lưu số credit thực tế sau giảm giá
+                CreditUsed = finalCreditCost,
                 CheckInStatus = "Pending",
                 Status = "Confirmed",
                 BookedAt = now
@@ -413,6 +441,19 @@ namespace Flexfit.Service
             await _bookingRepo.SaveChangesAsync();
 
             var detailedBooking = await _bookingRepo.GetClassBookingByIdAsync(booking.BookingId);
+
+            // 🔔 GỬI THÔNG BÁO ĐẶT LỊCH CLASS THÀNH CÔNG
+            try
+            {
+                string coachText = !string.IsNullOrEmpty(classObj.CoachName) ? $" cùng HLV {classObj.CoachName}" : "";
+                await _notificationService.SendAsync(
+                    userId,
+                    title: "Đặt lớp học thành công! 🧘‍♂️",
+                    content: $"Bạn đã đăng ký thành công lớp [{classObj.ClassName}]{coachText}. Thời gian học: {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã vé lớp học: {booking.BookingCode}.",
+                    type: "BookingSuccess"
+                );
+            }
+            catch { /* Khử crash */ }
 
             return new ClassBookingResponse
             {
@@ -521,6 +562,19 @@ namespace Flexfit.Service
 
             await _bookingRepo.UpdateClassBookingAsync(booking);
             await _bookingRepo.SaveChangesAsync();
+
+            // 🔔 GỬI THÔNG BÁO HỦY LỊCH CLASS THÀNH CÔNG
+            try
+            {
+                string className = booking.Class?.ClassName ?? "Lớp học";
+                await _notificationService.SendAsync(
+                    userId,
+                    title: "Hủy lớp học thành công ↩️",
+                    content: $"Bạn đã hủy thành công lịch học lớp [{className}]. Hệ thống đã hoàn trả {refundAmount} Credits về ví của bạn.",
+                    type: "BookingCancelled"
+                );
+            }
+            catch { /* Khử crash */ }
 
             return new ClassBookingResponse
             {
