@@ -1,5 +1,41 @@
 [
   {
+    "ContainingType": "Flexfit.Controllers.AIController",
+    "Method": "Chat",
+    "RelativePath": "api/AI/chat",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Flexfit.DTOs.AI.AIChatRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.AIController",
+    "Method": "GetClassSuggestion",
+    "RelativePath": "api/AI/suggest-classes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.AIController",
+    "Method": "GetWorkoutSuggestion",
+    "RelativePath": "api/AI/suggest-workout",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Flexfit.Controllers.AuthController",
     "Method": "ForgotPassword",
     "RelativePath": "api/Auth/forgot-password",

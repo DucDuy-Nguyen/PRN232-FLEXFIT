@@ -3,6 +3,7 @@ using Flexfit.Models;
 using Flexfit.Repositories;
 using Flexfit.Repository;
 using Flexfit.Service;
+using Flexfit.Service.AI;
 using Flexfit.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -135,6 +136,10 @@ builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 // Workout History service and repository
 builder.Services.AddScoped<IWorkoutHistoryRepository, WorkoutHistoryRepository>();
 builder.Services.AddScoped<IWorkoutHistoryService, WorkoutHistoryService>();
+
+// AI Service
+builder.Services.AddScoped<IAIContextBuilder, AIContextBuilder>();
+builder.Services.AddHttpClient<IAIService, AIService>();
 
 // Booking Reminder Worker
 builder.Services.AddHostedService<BookingReminderWorker>();
