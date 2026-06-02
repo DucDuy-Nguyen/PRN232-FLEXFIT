@@ -186,7 +186,7 @@ namespace Flexfit.Controllers
         // ========================================================
 
         [HttpGet("partner/gym")]
-        [Authorize(Roles = "GymPartner")]
+        [Authorize(Roles = "Staff,GymPartner")]
         public async Task<IActionResult> GetPartnerGymBookings()
         {
             try
@@ -199,7 +199,7 @@ namespace Flexfit.Controllers
         }
 
         [HttpGet("partner/class")]
-        [Authorize(Roles = "GymPartner")]
+        [Authorize(Roles = "Staff,GymPartner")]
         public async Task<IActionResult> GetPartnerClassBookings()
         {
             try
