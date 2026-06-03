@@ -292,7 +292,7 @@ namespace Flexfit.Service
                 await _notificationService.SendAsync(
                     payment.UserId,
                     "Nạp ví thành công qua PayOS 💸",
-                    $"Hệ thống đã ghi nhận thanh toán VietQR. Bạn đã nhận được +{totalCreditToAdd} tín dụng.",
+                    $"Hệ thống đã ghi nhận thanh toán VietQR. Bạn đã nhận được +{totalCreditToAdd} Credits.",
                     NotificationTypes.PaymentSuccess // Hãy đổi thành Notification.PaymentSuccess nếu dùng theo cách 2
                 );
             }
