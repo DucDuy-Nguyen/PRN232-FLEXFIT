@@ -1,4 +1,5 @@
-﻿using Flexfit.Service;
+﻿using Flexfit.DTOs.Notification; // Đảm bảo đã using thư mục chứa AdminCreateNotificationRequest DTO
+using Flexfit.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -9,7 +10,7 @@ namespace Flexfit.Controllers
 {
     [Route("api/notifications")]
     [ApiController]
-    [Authorize] // Phải đăng nhập mới xem được thông báo của mình
+    [Authorize] // Phải đăng nhập mới dùng được các API bên dưới (mặc định cho Member)
     public class NotificationController : ControllerBase
     {
         private readonly INotificationService _notificationService;
@@ -26,7 +27,7 @@ namespace Flexfit.Controllers
             return Guid.Parse(userIdValue);
         }
 
-        // Lấy toàn bộ thông báo của Member hiện tại
+        // 1. Lấy toàn bộ thông báo của Member hiện tại
         [HttpGet]
         public async Task<IActionResult> GetMyNotifications()
         {
@@ -41,7 +42,7 @@ namespace Flexfit.Controllers
             }
         }
 
-        // API Đánh dấu một thông báo là đã đọc
+        // 2. API Đánh dấu một thông báo là đã đọc
         [HttpPatch("{id}/read")]
         public async Task<IActionResult> MarkAsRead(Guid id)
         {
@@ -55,18 +56,53 @@ namespace Flexfit.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        // API Đánh dấu ĐỌC TẤT CẢ thông báo của Member hiện tại
+
+        // 3. API Đánh dấu ĐỌC TẤT CẢ thông báo của Member hiện tại
         [HttpPatch("read-all")]
         public async Task<IActionResult> MarkAllAsRead()
         {
             try
             {
-                await _notificationService.MarkAllAsReadAsync(GetCurrentUserId());
-                return Ok(new { message = "Đã đánh dấu đọc tất cả thông báo thành công." });
+                try
+                {
+                    await _notificationService.MarkAllAsReadAsync(GetCurrentUserId());
+                    return Ok(new { message = "Đã đánh dấu đọc tất cả thông báo thành công." });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { message = ex.Message });
+                }
             }
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // ==========================================
+        // TÍCH HỢP: API DÀNH RIÊNG CHO ADMIN
+        // ==========================================
+        [HttpPost("admin/create")]
+        [Authorize(Roles = "Admin")] // Ghi đè cấu hình: Chỉ tài khoản có Role là Admin mới gọi được API này
+        public async Task<IActionResult> AdminCreateNotification([FromBody] AdminCreateNotificationRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _notificationService.SendAdminNotificationAsync(request);
+                if (result)
+                {
+                    return Ok(new { message = "Admin tạo và gửi thông báo thành công." });
+                }
+                return BadRequest(new { message = "Không thể gửi thông báo." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Đã xảy ra lỗi hệ thống: {ex.Message}" });
             }
         }
     }
