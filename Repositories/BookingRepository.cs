@@ -136,6 +136,26 @@ namespace Flexfit.Repositories
 
         public async Task<IEnumerable<GymBooking>> GetGymBookingsByOwnerIdAsync(Guid ownerId)
         {
+            var isStaff = await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == ownerId && ur.Role.RoleName == "Staff");
+
+            if (isStaff)
+            {
+                var branchIds = await _context.BranchStaffs
+                    .Where(bs => bs.StaffId == ownerId)
+                    .Select(bs => bs.BranchId)
+                    .ToListAsync();
+
+                return await _context.GymBookings
+                    .Include(b => b.User)
+                    .Include(b => b.Session)
+                        .ThenInclude(s => s.Branch)
+                            .ThenInclude(br => br.Gym)
+                    .Where(b => branchIds.Contains(b.Session.BranchId))
+                    .OrderByDescending(b => b.BookedAt)
+                    .ToListAsync();
+            }
+
             return await _context.GymBookings
                 .Include(b => b.User) // <-- THÊM: Để chủ phòng gym biết ai đã đặt lịch tập ở cơ sở của họ
                 .Include(b => b.Session)
@@ -148,6 +168,26 @@ namespace Flexfit.Repositories
 
         public async Task<IEnumerable<ClassBooking>> GetClassBookingsByOwnerIdAsync(Guid ownerId)
         {
+            var isStaff = await _context.UserRoles
+                .AnyAsync(ur => ur.UserId == ownerId && ur.Role.RoleName == "Staff");
+
+            if (isStaff)
+            {
+                var branchIds = await _context.BranchStaffs
+                    .Where(bs => bs.StaffId == ownerId)
+                    .Select(bs => bs.BranchId)
+                    .ToListAsync();
+
+                return await _context.ClassBookings
+                    .Include(b => b.User)
+                    .Include(b => b.Class)
+                        .ThenInclude(c => c.Branch)
+                            .ThenInclude(br => br.Gym)
+                    .Where(b => branchIds.Contains(b.Class.BranchId))
+                    .OrderByDescending(b => b.BookedAt)
+                    .ToListAsync();
+            }
+
             return await _context.ClassBookings
                 .Include(b => b.User) // <-- THÊM: Để chủ phòng gym biết ai đã đặt lịch lớp học ở cơ sở của họ
                 .Include(b => b.Class)
@@ -157,6 +197,7 @@ namespace Flexfit.Repositories
                 .OrderByDescending(b => b.BookedAt)
                 .ToListAsync();
         }
+
 
         public async Task<UserCredit?> GetUserCreditAsync(Guid userId)
         {
