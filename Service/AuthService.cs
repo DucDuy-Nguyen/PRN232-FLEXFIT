@@ -345,5 +345,33 @@ namespace Flexfit.Service
 
             return "Mã OTP mới đã được gửi lại vào Email của bạn thành công!";
         }
+        // --- 3. LOGIC ĐỔI MẬT KHẨU KHI ĐÃ ĐĂNG NHẬP ---
+        public async Task<string> ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
+        {
+            // 1. Tìm người dùng trong Database theo ID từ Token
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new KeyNotFoundException("Không tìm thấy thông tin tài khoản người dùng.");
+
+            // 2. Đối với tài khoản đăng nhập qua Google không có mật khẩu (PasswordHash rỗng)
+            if (string.IsNullOrEmpty(user.PasswordHash))
+                throw new Exception("Tài khoản của bạn được đăng nhập bằng Google, không thể thực hiện đổi mật khẩu theo cách này.");
+
+            // 3. Kiểm tra mật khẩu hiện tại (CurrentPassword) xem có chính xác không
+            if (!PasswordHasher.Verify(request.CurrentPassword, user.PasswordHash))
+                throw new Exception("Mật khẩu hiện tại không chính xác.");
+
+            // 4. Kiểm tra xem mật khẩu mới có bị trùng với mật khẩu cũ không
+            if (PasswordHasher.Verify(request.NewPassword, user.PasswordHash))
+                throw new Exception("Mật khẩu mới không được trùng với mật khẩu hiện tại.");
+
+            // 5. Tiến hành băm (Hash) mật khẩu mới và lưu lại
+            user.PasswordHash = PasswordHasher.Hash(request.NewPassword);
+            user.UpdatedAt = DateTimeHelper.GetVietnamTime();
+
+            await _userRepository.UpdateAsync(user);
+
+            return "Đổi mật khẩu thành công!";
+        }
     }
 }
