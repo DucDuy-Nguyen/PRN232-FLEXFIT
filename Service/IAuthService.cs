@@ -11,5 +11,6 @@ namespace Flexfit.Service
         Task<string> ForgotPasswordAsync(ForgotPasswordRequest request);
         Task<string> ResetPasswordAsync(ResetPasswordRequest request);
         Task<string> ResendOtpAsync(ResendOtpRequest request);
+        Task<string> ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
     }
 }

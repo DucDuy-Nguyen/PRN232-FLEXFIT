@@ -1,8 +1,10 @@
 namespace Flexfit.Controllers
 {
-    using Flexfit.Service;
-    using Microsoft.AspNetCore.Mvc;
     using Flexfit.DTOs;
+    using Flexfit.Service;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Security.Claims;
 
     [ApiController]
     [Route("api/[controller]")]
@@ -103,6 +105,33 @@ namespace Flexfit.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+        [Authorize] // 🔒 Bắt buộc phải đăng nhập mới sử dụng được chức năng này
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            try
+            {
+                // Trích xuất UserId từ các Claim trong JWT Token đã đăng nhập
+                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdStr))
+                    return Unauthorized(new { Message = "Không tìm thấy định danh người dùng trong Token." });
+
+                var userId = Guid.Parse(userIdStr);
+
+                // Gọi xử lý tầng Service
+                var result = await _authService.ChangePasswordAsync(userId, request);
+
+                return Ok(new { Message = result });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
             }
         }
     }

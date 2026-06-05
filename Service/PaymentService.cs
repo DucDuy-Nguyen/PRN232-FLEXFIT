@@ -17,13 +17,17 @@ namespace Flexfit.Service
         private readonly IPaymentRepository _paymentRepository;
         private readonly PayOSClient _payOSClient;
         private readonly ISystemLogService _systemLogService;
+        private readonly INotificationService _notificationService; // <-- THÊM ĐỊNH NGHĨA SERVICE
 
-        public PaymentService(IPaymentRepository paymentRepository, PayOSClient payOSClient, ISystemLogService systemLogService)
+
+        public PaymentService(IPaymentRepository paymentRepository, PayOSClient payOSClient, ISystemLogService systemLogService, INotificationService notificationService)
         {
             _paymentRepository = paymentRepository;
             _payOSClient = payOSClient;
             _systemLogService = systemLogService;
+            _notificationService = notificationService; 
         }
+
 
         public async Task<IEnumerable<CreditPackageResponse>> GetPackagesAsync()
         {
@@ -54,7 +58,6 @@ namespace Flexfit.Service
             long orderCode = 0;
             if (request.PaymentMethod.ToUpper() == "PAYOS")
             {
-                // Generate unique numeric order code (ticks in milliseconds is perfectly unique and under JavaScript safe integer)
                 orderCode = DateTime.UtcNow.Ticks / 10000;
                 providerTransactionCode = orderCode.ToString();
             }
@@ -74,7 +77,6 @@ namespace Flexfit.Service
 
             await _paymentRepository.CreatePaymentAsync(payment);
 
-            // Generate payment URL based on method (MOCK, VNPAY, MOMO, PAYOS)
             string paymentUrl = "";
             switch (request.PaymentMethod.ToUpper())
             {
@@ -100,16 +102,13 @@ namespace Flexfit.Service
                     }
                     break;
                 case "VNPAY":
-                    // TODO: Tích hợp SDK VNPAY tại đây trong tương lai
                     paymentUrl = $"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?mock=true&paymentId={paymentId}&amount={package.Price}";
                     break;
                 case "MOMO":
-                    // TODO: Tích hợp SDK MoMo tại đây trong tương lai
                     paymentUrl = $"https://test-payment.momo.vn/v2/gateway/api/create?mock=true&paymentId={paymentId}&amount={package.Price}";
                     break;
                 case "MOCK":
                 default:
-                    // Hệ thống Mock giả lập thanh toán
                     paymentUrl = $"/api/payment/mock-checkout?paymentId={paymentId}&amount={package.Price}";
                     break;
             }
@@ -135,7 +134,6 @@ namespace Flexfit.Service
                 return false;
             }
 
-            // Tránh xử lý lại giao dịch đã thành công/thất bại
             if (payment.Status != "Pending")
             {
                 return payment.Status == "Success";
@@ -143,24 +141,20 @@ namespace Flexfit.Service
 
             if (callbackData.Status.Equals("Success", StringComparison.OrdinalIgnoreCase))
             {
-                // 1. Cập nhật trạng thái thanh toán
                 await _paymentRepository.UpdatePaymentStatusAsync(
-                    payment.PaymentId, 
-                    "Success", 
+                    payment.PaymentId,
+                    "Success",
                     callbackData.ProviderTransactionCode ?? $"MOCK_TXN_{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}"
                 );
 
-                // 2. Lấy thông tin gói
                 var package = payment.Package;
                 int totalCreditToAdd = package.CreditAmount + package.BonusCredit;
 
-                // 3. Cập nhật số dư UserCredit
                 var userCredit = await _paymentRepository.GetUserCreditAsync(payment.UserId);
                 int balanceBefore = 0;
 
                 if (userCredit == null)
                 {
-                    // Tạo mới ví nếu chưa có (mặc dù đã có cơ chế tạo khi Register)
                     userCredit = new UserCredit
                     {
                         UserCreditId = Guid.NewGuid(),
@@ -180,7 +174,6 @@ namespace Flexfit.Service
                     await _paymentRepository.UpdateUserCreditAsync(userCredit);
                 }
 
-                // 4. Lưu lịch sử giao dịch tín dụng (CreditTransaction)
                 var transaction = new CreditTransaction
                 {
                     TransactionId = Guid.NewGuid(),
@@ -197,6 +190,25 @@ namespace Flexfit.Service
 
                 await _paymentRepository.AddCreditTransactionAsync(transaction);
                 await _systemLogService.LogActionAsync(payment.UserId, "DEPOSIT_SUCCESS", $"Nạp tín dụng thành công từ gói {package.PackageName}. Số tiền: {payment.Amount:N0} VNĐ. Nhận được: {totalCreditToAdd} Credits.", null);
+
+
+                // ==========================================
+                // TÍCH HỢP: GỬI THÔNG BÁO CHO CALLBACK (MOCK)
+                // ==========================================
+                try
+                {
+                    await _notificationService.SendAsync(
+                        payment.UserId,
+                        "Nạp ví thành công 🎉",
+                        $"Tài khoản của bạn đã được cộng +{totalCreditToAdd} tín dụng từ gói {package.PackageName}.",
+                        NotificationTypes.PaymentSuccess // Hãy đổi thành Notification.PaymentSuccess nếu dùng theo cách 2
+                    );
+                }
+                catch (Exception)
+                {
+                    // Log lỗi nếu cần, tránh làm crash luồng xử lý chính của giao dịch
+                }
+
                 return true;
             }
             else
@@ -208,38 +220,32 @@ namespace Flexfit.Service
 
         public async Task<bool> ProcessPayOSWebhookAsync(Webhook webhookBody)
         {
-            // 1. Xác minh chữ ký bảo mật từ PayOS
             var verifiedData = await _payOSClient.Webhooks.VerifyAsync(webhookBody);
             if (verifiedData == null)
             {
                 throw new Exception("Xác thực chữ ký PayOS thất bại hoặc dữ liệu không hợp lệ.");
             }
 
-            // 2. Tìm giao dịch trong CSDL theo OrderCode (lưu trong ProviderTransactionCode)
             var payment = await _paymentRepository.GetPaymentByTransactionCodeAsync(verifiedData.OrderCode.ToString());
             if (payment == null)
             {
                 return false;
             }
 
-            // 3. Tránh xử lý trùng lặp giao dịch đã hoàn tất
             if (payment.Status != "Pending")
             {
                 return true;
             }
 
-            // 4. Cập nhật trạng thái thanh toán thành công
             await _paymentRepository.UpdatePaymentStatusAsync(
-                payment.PaymentId, 
-                "Success", 
+                payment.PaymentId,
+                "Success",
                 verifiedData.OrderCode.ToString()
             );
 
-            // 5. Lấy gói nạp và tính toán tín dụng
             var package = payment.Package;
             int totalCreditToAdd = package.CreditAmount + package.BonusCredit;
 
-            // 6. Cập nhật ví UserCredit
             var userCredit = await _paymentRepository.GetUserCreditAsync(payment.UserId);
             int balanceBefore = 0;
 
@@ -264,7 +270,6 @@ namespace Flexfit.Service
                 await _paymentRepository.UpdateUserCreditAsync(userCredit);
             }
 
-            // 7. Ghi nhận lịch sử giao dịch tín dụng (Deposit)
             var transaction = new CreditTransaction
             {
                 TransactionId = Guid.NewGuid(),
@@ -281,6 +286,25 @@ namespace Flexfit.Service
 
             await _paymentRepository.AddCreditTransactionAsync(transaction);
             await _systemLogService.LogActionAsync(payment.UserId, "DEPOSIT_SUCCESS", $"Nạp tín dụng thành công từ gói {package.PackageName} qua PayOS (VietQR). Số tiền: {payment.Amount:N0} VNĐ. Nhận được: {totalCreditToAdd} Credits.", null);
+
+
+            // ==========================================
+            // TÍCH HỢP: GỬI THÔNG BÁO CHO WEBHOOK (PAYOS)
+            // ==========================================
+            try
+            {
+                await _notificationService.SendAsync(
+                    payment.UserId,
+                    "Nạp ví thành công qua PayOS 💸",
+                    $"Hệ thống đã ghi nhận thanh toán VietQR. Bạn đã nhận được +{totalCreditToAdd} Credits.",
+                    NotificationTypes.PaymentSuccess // Hãy đổi thành Notification.PaymentSuccess nếu dùng theo cách 2
+                );
+            }
+            catch (Exception)
+            {
+                // Tránh lỗi gửi thông báo làm gián đoạn phản hồi Webhook thành công với bên PayOS
+            }
+
             return true;
         }
 

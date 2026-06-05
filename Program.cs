@@ -146,6 +146,9 @@ builder.Services.AddHostedService<BookingReminderWorker>();
 // Promotion repository and service
 builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 builder.Services.AddScoped<IPromotionService, PromotionService>();
+// notification repository and service
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 
 

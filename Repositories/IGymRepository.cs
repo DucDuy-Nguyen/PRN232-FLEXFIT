@@ -15,6 +15,7 @@ namespace Flexfit.Repositories
 
         // --- CÁC HÀM BỔ SUNG ---
         Task<bool> CheckGymOwnershipAsync(Guid gymId, Guid userId); // 👈 Thêm hàm check quyền sở hữu này
+
         Task<Role?> GetRoleByNameAsync(string roleName);
         Task<bool> UserHasRoleAsync(Guid userId, Guid roleId);
         Task AddUserRoleAsync(UserRole userRole);

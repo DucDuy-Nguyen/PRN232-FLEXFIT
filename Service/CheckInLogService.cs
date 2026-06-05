@@ -35,29 +35,57 @@ namespace Flexfit.Service
         // --- LUỒNG 1: CHECK-IN PHÒNG GYM TỰ DO ---
         public async Task<CheckInLogResponse> CheckInGymAsync(CheckInGymRequest request, Guid staffId)
         {
-            // 🚨 Kiểm tra quyền sở hữu hoặc làm việc tại chi nhánh
+            // 1. 🚨 Kiểm tra quyền sở hữu hoặc làm việc tại chi nhánh
             var hasPermission = await _checkInRepo.IsStaffOrOwnerForGymBookingAsync(request.GymBookingId, staffId);
             if (!hasPermission)
             {
                 throw new UnauthorizedAccessException("Tài khoản của bạn không thuộc chi nhánh hoặc phòng gym quản lý lịch đặt này!");
             }
 
+            // Lấy thông tin chi tiết của GymBooking tương ứng
+            var booking = await _checkInRepo.GetGymBookingByIdAsync(request.GymBookingId);
+            if (booking == null)
+            {
+                throw new ArgumentException("Lịch đặt phòng Gym không tồn tại.");
+            }
+
+            // 2. 🚨 VALIDATE TRẠNG THÁI VÀ THỜI GIAN CHECK-IN
+            var now = DateTimeHelper.GetVietnamTime();
+
+            // Kiểm tra trạng thái đã check-in
+            if (booking.CheckInStatus == "CheckedIn" || booking.Status == "Completed")
+            {
+                throw new InvalidOperationException("Booking này đã được check-in.");
+            }
+
+            // Kiểm tra thời gian bắt đầu tập (trỏ qua thực thể Session)
+            if (now < booking.Session.StartTime.AddMinutes(-15))
+            {
+                throw new InvalidOperationException("Chưa đến giờ check-in.");
+            }
+
+            // Kiểm tra thời gian kết thúc tập (trỏ qua thực thể Session)
+            if (now > booking.Session.EndTime.AddMinutes(10))
+            {
+                throw new InvalidOperationException("Booking đã hết thời gian check-in.");
+            }
+
+            // 3. Tiến hành ghi nhận Log
             var log = new CheckInLog
             {
                 CheckInLogId = Guid.NewGuid(),
                 UserId = request.UserId,
-                GymBookingId = request.GymBookingId, // Trường liên kết FK trong CheckInLog giữ nguyên
+                GymBookingId = request.GymBookingId,
                 ClassBookingId = null,
                 ScannedBy = staffId,
                 Status = request.Status,
                 Message = request.Message ?? "Check-in lịch tập Gym",
-                ScannedAt = DateTimeHelper.GetVietnamTime()
+                ScannedAt = now
             };
 
             await _checkInRepo.AddAsync(log);
 
             // Cập nhật trạng thái của GymBooking tương ứng thành CheckedIn và Completed
-            var booking = await _checkInRepo.GetGymBookingByIdAsync(request.GymBookingId);
             if (booking != null)
             {
                 booking.CheckInStatus = "CheckedIn";
@@ -78,29 +106,57 @@ namespace Flexfit.Service
         // --- LUỒNG 2: CHECK-IN LỚP HỌC (CLASS) ---
         public async Task<CheckInLogResponse> CheckInClassAsync(CheckInClassRequest request, Guid staffId)
         {
-            // 🚨 Kiểm tra quyền sở hữu hoặc làm việc tại chi nhánh
+            // 1. 🚨 Kiểm tra quyền sở hữu hoặc làm việc tại chi nhánh
             var hasPermission = await _checkInRepo.IsStaffOrOwnerForClassBookingAsync(request.ClassBookingId, staffId);
             if (!hasPermission)
             {
                 throw new UnauthorizedAccessException("Tài khoản của bạn không có quyền quét mã tại lớp học thuộc cơ sở này!");
             }
 
+            // Lấy thông tin chi tiết của ClassBooking tương ứng
+            var booking = await _checkInRepo.GetClassBookingByIdAsync(request.ClassBookingId);
+            if (booking == null)
+            {
+                throw new ArgumentException("Lịch đặt lớp học không tồn tại.");
+            }
+
+            // 2. 🚨 VALIDATE TRẠNG THÁI VÀ THỜI GIAN CHECK-IN
+            var now = DateTimeHelper.GetVietnamTime();
+
+            // Kiểm tra trạng thái đã check-in
+            if (booking.CheckInStatus == "CheckedIn" || booking.Status == "Completed")
+            {
+                throw new InvalidOperationException("Booking này đã được check-in.");
+            }
+
+            // Kiểm tra thời gian bắt đầu lớp học (trỏ qua thực thể Class)
+            if (now < booking.Class.StartTime.AddMinutes(-15))
+            {
+                throw new InvalidOperationException("Chưa đến giờ check-in.");
+            }
+
+            // Kiểm tra thời gian kết thúc lớp học (trỏ qua thực thể Class)
+            if (now > booking.Class.EndTime.AddMinutes(10))
+            {
+                throw new InvalidOperationException("Booking đã hết thời gian check-in.");
+            }
+
+            // 3. Tiến hành ghi nhận Log
             var log = new CheckInLog
             {
                 CheckInLogId = Guid.NewGuid(),
                 UserId = request.UserId,
                 GymBookingId = null,
-                ClassBookingId = request.ClassBookingId, // Trường liên kết FK trong CheckInLog giữ nguyên
+                ClassBookingId = request.ClassBookingId,
                 ScannedBy = staffId,
                 Status = request.Status,
                 Message = request.Message ?? "Check-in lịch học lớp Class",
-                ScannedAt = DateTimeHelper.GetVietnamTime()
+                ScannedAt = now
             };
 
             await _checkInRepo.AddAsync(log);
 
             // Cập nhật trạng thái của ClassBooking tương ứng thành CheckedIn và Completed
-            var booking = await _checkInRepo.GetClassBookingByIdAsync(request.ClassBookingId);
             if (booking != null)
             {
                 booking.CheckInStatus = "CheckedIn";
@@ -111,6 +167,7 @@ namespace Flexfit.Service
                 // TỰ ĐỘNG GHI NHẬN LỊCH SỬ TẬP LUYỆN
                 await _workoutHistoryService.CreateHistoryFromCheckInAsync(request.UserId, booking.BookingId, null);
             }
+
 
             await _checkInRepo.SaveChangesAsync();
 
@@ -136,16 +193,15 @@ namespace Flexfit.Service
                 ScannedAt = log.ScannedAt
             };
         }
+
         public async Task<IEnumerable<CheckInLogResponse>> GetManagedLogsAsync(Guid currentUserId, string role)
         {
             IEnumerable<CheckInLog> logs;
 
-            // Nếu người dùng đăng nhập là hệ thống Admin, cho phép quét và xem toàn bộ dữ liệu hệ thống
             if (role == "Admin")
             {
                 logs = await _checkInRepo.GetAllAsync();
             }
-            // Nếu là Đối tác (GymPartner) hoặc Nhân viên (Staff), tiến hành lọc nghiêm ngặt theo phân hệ cơ sở phụ trách
             else
             {
                 logs = await _checkInRepo.GetLogsForManagerAsync(currentUserId);

@@ -109,6 +109,7 @@ namespace Flexfit.Repositories
 
             return isOwner || isBranchStaff;
         }
+
         public async Task<IEnumerable<CheckInLog>> GetLogsForManagerAsync(Guid managerId)
         {
             return await _context.CheckInLogs
@@ -130,14 +131,21 @@ namespace Flexfit.Repositories
                 .ToListAsync();
         }
 
+        // =========================================================================
+        // CẬP NHẬT: THÊM .INCLUDE() ĐỂ LẤY THÔNG TIN THỜI GIAN KHÔNG BỊ LỖI NULL
+        // =========================================================================
         public async Task<GymBooking?> GetGymBookingByIdAsync(Guid bookingId)
         {
-            return await _context.GymBookings.FindAsync(bookingId);
+            return await _context.GymBookings
+                .Include(b => b.Session) // <-- Nạp kèm Session để lấy StartTime, EndTime ở tầng Service
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
         }
 
         public async Task<ClassBooking?> GetClassBookingByIdAsync(Guid bookingId)
         {
-            return await _context.ClassBookings.FindAsync(bookingId);
+            return await _context.ClassBookings
+                .Include(b => b.Class) // <-- Nạp kèm Class để lấy StartTime, EndTime ở tầng Service
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
         }
 
         public async Task UpdateGymBookingAsync(GymBooking booking)
