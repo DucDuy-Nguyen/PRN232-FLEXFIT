@@ -2,16 +2,23 @@ using Flexfit.DTOs;
 using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
+using Flexfit.Service;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Flexfit.Services
 {
     public class BranchService : IBranchService
     {
         private readonly IBranchRepository _branchRepo;
+        private readonly INotificationService _notificationService; // 🔔 THÊM INOTIFICATIONSERVICE
 
-        public BranchService(IBranchRepository branchRepo)
+        public BranchService(IBranchRepository branchRepo, INotificationService notificationService)
         {
             _branchRepo = branchRepo;
+            _notificationService = notificationService; // 🔔 Khởi tạo notification service
         }
 
         public async Task<IEnumerable<BranchDto>> GetAllBranchesAsync()
@@ -66,13 +73,8 @@ namespace Flexfit.Services
             };
         }
 
-        // ==========================================
-        // KHU VỰC THAY ĐỔI DỮ LIỆU - BẮT BUỘC CHECK CHỦ PHÒNG
-        // ==========================================
-
         public async Task<Guid> CreateBranchAsync(CreateBranchRequest request, Guid currentUserId)
         {
-            //  CHECK: Người tạo phải là chủ của Gym này
             var isOwner = await _branchRepo.CheckGymOwnershipAsync(request.GymId, currentUserId);
             if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ của phòng gym này nên không thể tạo chi nhánh.");
 
@@ -98,7 +100,6 @@ namespace Flexfit.Services
 
         public async Task UpdateBranchAsync(Guid id, UpdateBranchRequest request, Guid currentUserId)
         {
-            // 🛑 CHECK: Người sửa phải là chủ sở hữu của chi nhánh này
             var isOwner = await _branchRepo.CheckBranchOwnershipAsync(id, currentUserId);
             if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa chi nhánh này.");
 
@@ -120,7 +121,6 @@ namespace Flexfit.Services
 
         public async Task ChangeBranchStatusAsync(Guid id, bool isActive, Guid currentUserId)
         {
-            //  CHECK: Người đổi trạng thái phải là chủ sở hữu chi nhánh
             var isOwner = await _branchRepo.CheckBranchOwnershipAsync(id, currentUserId);
             if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền thay đổi trạng thái chi nhánh này.");
 
@@ -135,7 +135,6 @@ namespace Flexfit.Services
 
         public async Task DeleteBranchAsync(Guid id, Guid currentUserId)
         {
-            //  CHECK: Người xóa phải là chủ sở hữu chi nhánh
             var isOwner = await _branchRepo.CheckBranchOwnershipAsync(id, currentUserId);
             if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền xóa chi nhánh này.");
 
@@ -145,9 +144,12 @@ namespace Flexfit.Services
             await _branchRepo.DeleteAsync(id);
         }
 
+        // ==========================================================
+        // KHU VỰC THAY ĐỔI NHÂN SỰ - CÓ GỬI NOTIFICATION CHO STAFF
+        // ==========================================================
+
         public async Task AssignStaffToBranchAsync(AssignStaffDto dto, Guid currentUserId)
         {
-            // CHECK: Phải là chủ chi nhánh mới được bổ nhiệm nhân viên vào đây
             var isOwner = await _branchRepo.CheckBranchOwnershipAsync(dto.BranchId, currentUserId);
             if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền quản lý nhân sự tại chi nhánh này.");
 
@@ -174,13 +176,27 @@ namespace Flexfit.Services
             await _branchRepo.AddBranchStaffAsync(new BranchStaff { StaffId = dto.UserId, BranchId = dto.BranchId, AssignedAt = DateTimeHelper.GetVietnamTime() });
 
             await _branchRepo.SaveChangesAsync();
+
+            // 🔔 GỬI THÔNG BÁO BỔ NHIỆM CHO NHÂN VIÊN
+            try
+            {
+                await _notificationService.SendAsync(
+                    dto.UserId,
+                    "Bạn có nhiệm vụ mới! 💼",
+                    $"Bạn đã được bổ nhiệm làm nhân viên (Staff) quản lý tại chi nhánh [{branch.BranchName}]. Hãy kiểm tra hệ thống.",
+                    "StaffAssignment"
+                );
+            }
+            catch { }
         }
 
         public async Task RemoveStaffFromBranchAsync(Guid staffId, Guid branchId, Guid currentUserId)
         {
-            //  CHECK: Phải là chủ chi nhánh mới được đuổi nhân viên
             var isOwner = await _branchRepo.CheckBranchOwnershipAsync(branchId, currentUserId);
             if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền gỡ nhân sự tại chi nhánh này.");
+
+            var branch = await _branchRepo.GetByIdAsync(branchId);
+            if (branch == null) throw new KeyNotFoundException("Chi nhánh không tồn tại.");
 
             var branchStaff = await _branchRepo.GetBranchStaffAsync(staffId, branchId);
             if (branchStaff == null) throw new KeyNotFoundException("Nhân viên này hiện không thuộc chi nhánh này.");
@@ -197,11 +213,22 @@ namespace Flexfit.Services
                 }
             }
             await _branchRepo.SaveChangesAsync();
+
+            // 🔔 GỬI THÔNG BÁO THU HỒI QUYỀN CHO NHÂN VIÊN
+            try
+            {
+                await _notificationService.SendAsync(
+                    staffId,
+                    "Thay đổi nhân sự chi nhánh ⚠️",
+                    $"Quyền quản lý (Staff) của bạn tại chi nhánh [{branch.BranchName}] đã được gỡ bỏ bởi Chủ hệ thống.",
+                    "StaffRevocation"
+                );
+            }
+            catch { }
         }
 
         public async Task UpdateBranchStaffAsync(UpdateBranchStaffDto dto, Guid currentUserId)
         {
-            //  CHECK: Phải là chủ chi nhánh mới được cập nhật nhân viên quản lý
             var isOwner = await _branchRepo.CheckBranchOwnershipAsync(dto.BranchId, currentUserId);
             if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền chuyển giao nhân sự tại chi nhánh này.");
 
@@ -228,6 +255,18 @@ namespace Flexfit.Services
                         await _branchRepo.RemoveUserRoleAsync(oldStaffId, staffRoleName.RoleId);
                     }
                 }
+
+                // 🔔 1. GỬI THÔNG BÁO GỠ QUYỀN CHO NHÂN VIÊN CŨ
+                try
+                {
+                    await _notificationService.SendAsync(
+                        oldStaffId,
+                        "Thay đổi nhân sự chi nhánh ⚠️",
+                        $"Bạn đã được gỡ khỏi vị trí phụ trách chi nhánh [{branch.BranchName}] do có sự chuyển giao nhân sự.",
+                        "StaffRevocation"
+                    );
+                }
+                catch { }
             }
 
             var staffRole = await _branchRepo.GetRoleByNameAsync("Staff");
@@ -244,6 +283,18 @@ namespace Flexfit.Services
             await _branchRepo.AddBranchStaffAsync(new BranchStaff { StaffId = dto.NewStaffId, BranchId = dto.BranchId, AssignedAt = DateTimeHelper.GetVietnamTime() });
 
             await _branchRepo.SaveChangesAsync();
+
+            // 🔔 2. GỬI THÔNG BÁO BỔ NHIỆM CHO NHÂN VIÊN MỚI
+            try
+            {
+                await _notificationService.SendAsync(
+                    dto.NewStaffId,
+                    "Bạn có nhiệm vụ mới! 💼",
+                    $"Bạn đã được bổ nhiệm phụ trách quản lý chi nhánh [{branch.BranchName}]. Hãy bắt đầu ca làm việc của mình.",
+                    "StaffAssignment"
+                );
+            }
+            catch { }
         }
     }
 }
