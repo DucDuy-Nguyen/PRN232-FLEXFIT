@@ -34,5 +34,6 @@ namespace Flexfit.Service
         // Thay thế hàm cũ bằng 2 hàm mới này trong IBookingService.cs:
         Task<Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>> GetPartnerGymBookingTabsAsync(Guid ownerId);
         Task<Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>> GetPartnerClassBookingTabsAsync(Guid ownerId);
+    
     }
 }

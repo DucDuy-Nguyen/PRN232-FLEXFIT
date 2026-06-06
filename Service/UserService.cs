@@ -2,16 +2,24 @@ using Flexfit.DTOs;
 using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
+using Flexfit.Service; // Thêm namespace chứa INotificationService
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Flexfit.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepo;
+        private readonly INotificationService _notificationService; // 🔔 Thêm dịch vụ thông báo
 
-        public UserService(IUserRepository userRepo)
+        // Inject INotificationService vào Constructor
+        public UserService(IUserRepository userRepo, INotificationService notificationService)
         {
             _userRepo = userRepo;
+            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
@@ -66,6 +74,9 @@ namespace Flexfit.Services
             await _userRepo.UpdateAsync(user);
         }
 
+        // =========================================================================
+        // 1. GỬI THÔNG BÁO KHI TÀI KHOẢN BỊ KHÓA (BAN) HOẶC KÍCH HOẠT LẠI
+        // =========================================================================
         public async Task ChangeUserStatusAsync(Guid id, bool isActive)
         {
             var user = await _userRepo.GetByIdAsync(id);
@@ -75,6 +86,14 @@ namespace Flexfit.Services
             user.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
             await _userRepo.UpdateAsync(user);
+
+            // 🔔 Gửi thông báo hệ thống (Chạy fire-and-forget để không làm chậm API)
+            string title = isActive ? "Tài khoản đã được kích hoạt" : "Tài khoản của bạn đã bị khóa";
+            string content = isActive
+                ? $"Chào {user.FullName}, tài khoản của bạn đã được quản trị viên kích hoạt lại. Bạn đã có thể sử dụng các dịch vụ của Flexfit."
+                : $"Chào {user.FullName}, tài khoản của bạn đã bị tạm khóa bởi ban quản trị. Vui lòng liên hệ hotline bộ phận CSKH để biết thêm chi tiết.";
+
+            _ = _notificationService.SendAsync(user.UserId, title, content, NotificationTypes.AccountUpdate);
         }
 
         public async Task DeleteUserAsync(Guid id)
@@ -85,6 +104,9 @@ namespace Flexfit.Services
             await _userRepo.DeleteAsync(id);
         }
 
+        // =========================================================================
+        // 2. GỬI THÔNG BÁO KHI ĐƯỢC CẤP QUYỀN (ASSIGN ROLE)
+        // =========================================================================
         public async Task<string> AssignRoleAsync(UserRoleRequestDto request)
         {
             var user = await _userRepo.GetByIdAsync(request.UserId);
@@ -107,9 +129,19 @@ namespace Flexfit.Services
             };
 
             await _userRepo.AddUserRoleAsync(newUserRole);
+
+            // 🔔 Gửi thông báo cấp quyền mới thành công
+            string title = "Cập nhật quyền hạn tài khoản";
+            string content = $"Chúc mừng {user.FullName}, bạn đã được ban quản trị cấp thêm quyền hạn mới: [{request.RoleName}] vào hệ thống.";
+
+            _ = _notificationService.SendAsync(user.UserId, title, content, NotificationTypes.AccountUpdate);
+
             return $"Đã cấp quyền '{request.RoleName}' cho người dùng {user.FullName} thành công!";
         }
 
+        // =========================================================================
+        // 3. GỬI THÔNG BÁO KHI BỊ THU HỒI QUYỀN (REVOKE ROLE)
+        // =========================================================================
         public async Task<string> RevokeRoleAsync(Guid userId, string roleName)
         {
             var user = await _userRepo.GetByIdAsync(userId);
@@ -125,6 +157,13 @@ namespace Flexfit.Services
             }
 
             await _userRepo.RemoveUserRoleAsync(userRole);
+
+            // 🔔 Gửi thông báo thu hồi quyền thành công
+            string title = "Thay đổi quyền hạn tài khoản";
+            string content = $"Thông báo: Quyền hạn [{roleName}] của bạn đã bị ban quản trị thu hồi.";
+
+            _ = _notificationService.SendAsync(user.UserId, title, content, NotificationTypes.AccountUpdate);
+
             return $"Đã thu hồi quyền '{roleName}' của người dùng {user.FullName} thành công!";
         }
     }

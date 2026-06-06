@@ -4,7 +4,7 @@ using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using Flexfit.Repository;
-using Flexfit.Service; // Thêm namespace của INotificationService
+using Flexfit.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +15,15 @@ namespace Flexfit.Service
     public class BookingService : IBookingService
     {
         private readonly IBookingRepository _bookingRepo;
-        private readonly IPromotionRepository _promotionRepo; // THÊM REPOSITORY PROMOTION
+        private readonly IPromotionRepository _promotionRepo;
         private readonly ISystemLogService _systemLogService;
-        private readonly INotificationService _notificationService; // THÊM INOTIFICATIONSERVICE
+        private readonly INotificationService _notificationService;
 
-
-        public BookingService(IBookingRepository bookingRepo, IPromotionRepository promotionRepo, ISystemLogService systemLogService, INotificationService notificationService)
+        public BookingService(
+            IBookingRepository bookingRepo,
+            IPromotionRepository promotionRepo,
+            ISystemLogService systemLogService,
+            INotificationService notificationService)
         {
             _bookingRepo = bookingRepo;
             _promotionRepo = promotionRepo;
@@ -28,46 +31,20 @@ namespace Flexfit.Service
             _notificationService = notificationService;
         }
 
-
         private string GenerateBookingCode()
         {
-            var random = new Random();
-            return "BK" + random.Next(100000, 999999).ToString();
+            return "BK" + new Random().Next(100000, 999999).ToString();
         }
 
         // ========================================================
-        // 3. PARTNER / STAFF METHODS (TÁCH BIỆT GYM & CLASS)
+        // HÀM DÙNG CHUNG PHÂN NHÓM TABS
         // ========================================================
-
-        public async Task<Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>> GetPartnerGymBookingTabsAsync(Guid ownerId)
+        private Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>> GroupBookingsIntoTabs(
+            IEnumerable<CustomerBookingHistoryResponse> bookingsList, DateTime now)
         {
-            var now = DateTimeHelper.GetVietnamTime();
-            var gymBookingsList = new List<CustomerBookingHistoryResponse>();
-
-            var gymBookings = await _bookingRepo.GetGymBookingsByOwnerIdAsync(ownerId);
-            if (gymBookings != null)
-            {
-                gymBookingsList.AddRange(gymBookings.Select(gb => new CustomerBookingHistoryResponse
-                {
-                    BookingId = gb.BookingId,
-                    BookingCode = gb.BookingCode,
-                    BookingType = "GYM",
-                    Name = gb.Session?.SessionName ?? "Tập Gym Tự Do",
-                    BranchName = gb.Session?.Branch?.BranchName ?? "Chi nhánh Flexfit",
-                    StartTime = gb.Session?.StartTime ?? DateTime.MinValue,
-                    EndTime = gb.Session?.EndTime ?? DateTime.MinValue,
-                    CreditUsed = gb.CreditUsed,
-                    Status = gb.Status,
-                    CheckInStatus = gb.CheckInStatus,
-                    CheckInTime = gb.CheckInTime,
-                    CustomerName = gb.User?.FullName ?? "Hội viên Flexfit",
-                    CustomerEmail = gb.User?.Email ?? ""
-                }));
-            }
-
-            var active = gymBookingsList.Where(b => b.Status != "Cancelled" && b.StartTime <= now && b.EndTime >= now).OrderBy(b => b.StartTime);
-            var upcoming = gymBookingsList.Where(b => b.Status != "Cancelled" && b.StartTime > now).OrderBy(b => b.StartTime);
-            var past = gymBookingsList.Where(b => b.Status == "Cancelled" || b.EndTime < now).OrderByDescending(b => b.EndTime);
+            var active = bookingsList.Where(b => b.Status != "Cancelled" && b.StartTime <= now && b.EndTime >= now).OrderBy(b => b.StartTime);
+            var upcoming = bookingsList.Where(b => b.Status != "Cancelled" && b.StartTime > now).OrderBy(b => b.StartTime);
+            var past = bookingsList.Where(b => b.Status == "Cancelled" || b.EndTime < now).OrderByDescending(b => b.EndTime);
 
             return new Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>
             {
@@ -75,59 +52,67 @@ namespace Flexfit.Service
                 { "Upcoming", upcoming },
                 { "Past", past }
             };
+        }
+
+        public async Task<Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>> GetPartnerGymBookingTabsAsync(Guid ownerId)
+        {
+            var now = DateTimeHelper.GetVietnamTime();
+            var gymBookings = await _bookingRepo.GetGymBookingsByOwnerIdAsync(ownerId);
+
+            var mappedList = (gymBookings ?? Enumerable.Empty<GymBooking>()).Select(gb => new CustomerBookingHistoryResponse
+            {
+                BookingId = gb.BookingId,
+                BookingCode = gb.BookingCode,
+                BookingType = "GYM",
+                Name = gb.Session?.SessionName ?? "Tập Gym Tự Do",
+                BranchName = gb.Session?.Branch?.BranchName ?? "Chi nhánh Flexfit",
+                StartTime = gb.Session?.StartTime ?? DateTime.MinValue,
+                EndTime = gb.Session?.EndTime ?? DateTime.MinValue,
+                CreditUsed = gb.CreditUsed,
+                Status = gb.Status,
+                CheckInStatus = gb.CheckInStatus,
+                CheckInTime = gb.CheckInTime,
+                CustomerName = gb.User?.FullName ?? "Hội viên Flexfit",
+                CustomerEmail = gb.User?.Email ?? ""
+            }).ToList();
+
+            return GroupBookingsIntoTabs(mappedList, now);
         }
 
         public async Task<Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>> GetPartnerClassBookingTabsAsync(Guid ownerId)
         {
             var now = DateTimeHelper.GetVietnamTime();
-            var classBookingsList = new List<CustomerBookingHistoryResponse>();
-
             var classBookings = await _bookingRepo.GetClassBookingsByOwnerIdAsync(ownerId);
-            if (classBookings != null)
-            {
-                classBookingsList.AddRange(classBookings.Select(cb => new CustomerBookingHistoryResponse
-                {
-                    BookingId = cb.BookingId,
-                    BookingCode = cb.BookingCode,
-                    BookingType = "CLASS",
-                    Name = cb.Class?.ClassName ?? "Lớp học thể thao",
-                    BranchName = cb.Class?.Branch?.BranchName ?? "Chi nhánh Flexfit",
-                    StartTime = cb.Class?.StartTime ?? DateTime.MinValue,
-                    EndTime = cb.Class?.EndTime ?? DateTime.MinValue,
-                    CreditUsed = cb.CreditUsed,
-                    Status = cb.Status,
-                    CheckInStatus = cb.CheckInStatus,
-                    CheckInTime = cb.CheckInTime,
-                    CustomerName = cb.User?.FullName ?? "Hội viên Flexfit",
-                    CustomerEmail = cb.User?.Email ?? ""
-                }));
-            }
 
-            var active = classBookingsList.Where(b => b.Status != "Cancelled" && b.StartTime <= now && b.EndTime >= now).OrderBy(b => b.StartTime);
-            var upcoming = classBookingsList.Where(b => b.Status != "Cancelled" && b.StartTime > now).OrderBy(b => b.StartTime);
-            var past = classBookingsList.Where(b => b.Status == "Cancelled" || b.EndTime < now).OrderByDescending(b => b.EndTime);
-
-            return new Dictionary<string, IEnumerable<CustomerBookingHistoryResponse>>
+            var mappedList = (classBookings ?? Enumerable.Empty<ClassBooking>()).Select(cb => new CustomerBookingHistoryResponse
             {
-                { "Active", active },
-                { "Upcoming", upcoming },
-                { "Past", past }
-            };
+                BookingId = cb.BookingId,
+                BookingCode = cb.BookingCode,
+                BookingType = "CLASS",
+                Name = cb.Class?.ClassName ?? "Lớp học thể thao",
+                BranchName = cb.Class?.Branch?.BranchName ?? "Chi nhánh Flexfit",
+                StartTime = cb.Class?.StartTime ?? DateTime.MinValue,
+                EndTime = cb.Class?.EndTime ?? DateTime.MinValue,
+                CreditUsed = cb.CreditUsed,
+                Status = cb.Status,
+                CheckInStatus = cb.CheckInStatus,
+                CheckInTime = cb.CheckInTime,
+                CustomerName = cb.User?.FullName ?? "Hội viên Flexfit",
+                CustomerEmail = cb.User?.Email ?? ""
+            }).ToList();
+
+            return GroupBookingsIntoTabs(mappedList, now);
         }
 
         // ========================================================
-        // 1. GYM SESSION BOOKING (TÍCH HỢP PROMOTION & NOTIFICATION)
+        // 1. GYM SESSION BOOKING
         // ========================================================
-
         public async Task<GymBookingResponse> BookGymSessionAsync(Guid userId, CreateGymBookingRequest request)
         {
             var now = DateTimeHelper.GetVietnamTime();
 
-            if (request.StartTime <= now)
-                throw new Exception("Không thể đặt lịch cho thời gian trong quá khứ.");
-
-            if (request.EndTime <= request.StartTime)
-                throw new Exception("Thời gian kết thúc phải sau thời gian bắt đầu.");
+            if (request.StartTime <= now) throw new Exception("Không thể đặt lịch cho thời gian trong quá khứ.");
+            if (request.EndTime <= request.StartTime) throw new Exception("Thời gian kết thúc phải sau thời gian bắt đầu.");
 
             var session = await _bookingRepo.GetGymSessionByDetailsAsync(request.BranchId, request.SessionName, request.StartTime, request.EndTime);
 
@@ -151,8 +136,7 @@ namespace Flexfit.Service
                 await _bookingRepo.AddGymSessionAsync(session);
             }
 
-            var currentBookingsCount = await _bookingRepo.CountGymBookingsBySessionIdAsync(session.SessionId);
-            if (currentBookingsCount >= session.Capacity)
+            if (await _bookingRepo.CountGymBookingsBySessionIdAsync(session.SessionId) >= session.Capacity)
                 throw new Exception("Session này đã hết chỗ.");
 
             int finalCreditCost = session.CreditCost;
@@ -160,15 +144,12 @@ namespace Flexfit.Service
             {
                 var promo = await _promotionRepo.GetByIdAsync(request.PromotionId.Value);
                 if (promo == null || !promo.IsActive || promo.StartDate > now || promo.EndDate < now)
-                {
                     throw new Exception("Chương trình khuyến mãi không khả dụng hoặc đã hết hạn.");
-                }
 
                 if (promo.DiscountPercent.HasValue)
                 {
                     double discountAmount = session.CreditCost * (promo.DiscountPercent.Value / 100.0);
-                    finalCreditCost = session.CreditCost - (int)Math.Round(discountAmount);
-                    if (finalCreditCost < 0) finalCreditCost = 0;
+                    finalCreditCost = Math.Max(0, session.CreditCost - (int)Math.Round(discountAmount));
                 }
             }
 
@@ -195,7 +176,7 @@ namespace Flexfit.Service
 
             await _bookingRepo.AddGymBookingAsync(booking);
 
-            var transaction = new CreditTransaction
+            await _bookingRepo.AddCreditTransactionAsync(new CreditTransaction
             {
                 TransactionId = Guid.NewGuid(),
                 UserId = userId,
@@ -205,29 +186,34 @@ namespace Flexfit.Service
                 Type = "Booking",
                 ReferenceId = booking.BookingId,
                 ReferenceType = "GymBooking",
-                Description = request.PromotionId.HasValue
-                    ? $"Đặt lịch tập Gym (Đã áp dụng giảm giá). Khung giờ: {session.SessionName}"
-                    : $"Đặt lịch tập Gym thành công. Khung giờ: {session.SessionName}",
+                Description = request.PromotionId.HasValue ? $"Đặt lịch tập Gym (Có giảm giá): {session.SessionName}" : $"Đặt lịch tập Gym thành công: {session.SessionName}",
                 CreatedAt = now
-            };
-            await _bookingRepo.AddCreditTransactionAsync(transaction);
+            });
+
             await _bookingRepo.SaveChangesAsync();
-            await _systemLogService.LogActionAsync(userId, "BOOK_GYM", $"Đặt lịch tập Gym thành công. Khung giờ: {session.SessionName}, Mã đặt chỗ: {booking.BookingCode}", null);
+            await _systemLogService.LogActionAsync(userId, "BOOK_GYM", $"Đặt lịch Gym: {session.SessionName}, Mã: {booking.BookingCode}", null);
 
             var detailedBooking = await _bookingRepo.GetGymBookingByIdAsync(booking.BookingId);
 
-            // 🔔 GỬI THÔNG BÁO ĐẶT LỊCH GYM THÀNH CÔNG
+            // 🔔 GỬI THÔNG BÁO CHO CẢ USER VÀ OWNER PHÒNG GYM
             try
             {
                 string branchName = detailedBooking?.Session?.Branch?.BranchName ?? "Chi nhánh hệ thống";
-                await _notificationService.SendAsync(
-                    userId,
-                    title: "Đặt lịch tập Gym thành công! 🎉",
-                    content: $"Bạn đã đặt lịch tập tại [{branchName}] vào lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã đặt chỗ: {booking.BookingCode}. Tài khoản trừ {finalCreditCost} Credits.",
-                    type: "BookingSuccess"
-                );
+                string customerName = detailedBooking?.User?.FullName ?? "Hội viên Flexfit";
+
+                // 1. Gửi cho Hội viên
+                await _notificationService.SendAsync(userId, "Đặt lịch tập Gym thành công! 🎉",
+                    $"Tại [{branchName}] lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "BookingSuccess");
+
+                // 2. Gửi cho Owner phòng kinh doanh (nếu tìm thấy OwnerId từ liên kết Branch -> Gym)
+                var ownerId = detailedBooking?.Session?.Branch?.Gym?.OwnerId;
+                if (ownerId.HasValue && ownerId.Value != Guid.Empty)
+                {
+                    await _notificationService.SendAsync(ownerId.Value, "Có lịch đặt Gym mới! 🆕",
+                        $"Hội viên [{customerName}] đã đặt lịch tại [{branchName}] vào lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "PartnerNotification");
+                }
             }
-            catch { /* Đảm bảo lỗi gửi thông báo không làm crash tính năng đặt lịch chính */ }
+            catch { }
 
             return new GymBookingResponse
             {
@@ -273,20 +259,12 @@ namespace Flexfit.Service
         public async Task<GymBookingResponse> CancelGymBookingAsync(Guid userId, Guid bookingId)
         {
             var booking = await _bookingRepo.GetGymBookingByIdAsync(bookingId);
-            if (booking == null || booking.UserId != userId)
-                throw new Exception("Booking không tồn tại hoặc bạn không có quyền huỷ.");
-
-            if (booking.Status == "Cancelled")
-                throw new Exception("Booking này đã được huỷ trước đó.");
+            if (booking == null || booking.UserId != userId) throw new Exception("Booking không tồn tại hoặc lỗi quyền.");
+            if (booking.Status == "Cancelled") throw new Exception("Booking này đã được huỷ trước đó.");
 
             var now = DateTimeHelper.GetVietnamTime();
-
-            if (booking.Session != null && booking.Session.StartTime <= now)
-                throw new Exception("Không thể huỷ khi session đã bắt đầu.");
-
-            var todayCancelledCount = await _bookingRepo.GetCancellationCountTodayAsync(userId);
-            if (todayCancelledCount >= 2)
-                throw new Exception("Mỗi ngày bạn chỉ được hủy tối đa 2 lịch đặt.");
+            if (booking.Session != null && booking.Session.StartTime <= now) throw new Exception("Không thể huỷ khi session đã bắt đầu.");
+            if (await _bookingRepo.GetCancellationCountTodayAsync(userId) >= 2) throw new Exception("Mỗi ngày hủy tối đa 2 lịch đặt.");
 
             double refundPercentage = 0;
             if (booking.Session != null)
@@ -296,11 +274,9 @@ namespace Flexfit.Service
                 else if (timeRemaining.TotalHours >= 6) refundPercentage = 70;
                 else if (timeRemaining.TotalHours >= 3) refundPercentage = 50;
                 else if (timeRemaining.TotalHours >= 1) refundPercentage = 25;
-                else refundPercentage = 0;
             }
 
             int refundAmount = (int)Math.Round(booking.CreditUsed * (refundPercentage / 100.0));
-
             booking.Status = "Cancelled";
             booking.CancelledAt = now;
             booking.RefundCredit = refundAmount;
@@ -315,7 +291,7 @@ namespace Flexfit.Service
                     userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - refundAmount);
                     userCredit.UpdatedAt = now;
 
-                    var transaction = new CreditTransaction
+                    await _bookingRepo.AddCreditTransactionAsync(new CreditTransaction
                     {
                         TransactionId = Guid.NewGuid(),
                         UserId = userId,
@@ -325,29 +301,36 @@ namespace Flexfit.Service
                         Type = "Refund",
                         ReferenceId = booking.BookingId,
                         ReferenceType = "GymBooking",
-                        Description = $"Hoàn trả credit do hủy lịch tập Gym ({refundPercentage}% hoàn trả). Khung giờ: {booking.Session?.SessionName}",
+                        Description = $"Hoàn credit hủy Gym ({refundPercentage}%). Khung giờ: {booking.Session?.SessionName}",
                         CreatedAt = now
-                    };
-                    await _bookingRepo.AddCreditTransactionAsync(transaction);
+                    });
                 }
             }
 
             await _bookingRepo.UpdateGymBookingAsync(booking);
             await _bookingRepo.SaveChangesAsync();
-            await _systemLogService.LogActionAsync(userId, "CANCEL_GYM", $"Hủy lịch tập Gym thành công. Mã đặt chỗ: {booking.BookingCode}", null);
+            await _systemLogService.LogActionAsync(userId, "CANCEL_GYM", $"Hủy lịch Gym mã: {booking.BookingCode}", null);
 
-            // 🔔 GỬI THÔNG BÁO HỦY LỊCH GYM THÀNH CÔNG
+            // 🔔 GỬI THÔNG BÁO HỦY LỊCH CHO USER VÀ OWNER
             try
             {
                 string sessionName = booking.Session?.SessionName ?? "Lịch tập Gym";
-                await _notificationService.SendAsync(
-                    userId,
-                    title: "Hủy lịch tập Gym thành công ↩️",
-                    content: $"Bạn đã hủy thành công khung giờ [{sessionName}]. Hệ thống đã hoàn trả {refundAmount} Credits vào tài khoản của bạn.",
-                    type: "BookingCancelled"
-                );
+                string branchName = booking.Session?.Branch?.BranchName ?? "Chi nhánh Flexfit";
+                string customerName = booking.User?.FullName ?? "Hội viên Flexfit";
+
+                // 1. Gửi cho Hội viên
+                await _notificationService.SendAsync(userId, "Hủy lịch tập Gym thành công ↩️",
+                    $"Đã hủy khung giờ [{sessionName}]. Hoàn {refundAmount} Credits.", "BookingCancelled");
+
+                // 2. Gửi cho Owner
+                var ownerId = booking.Session?.Branch?.Gym?.OwnerId;
+                if (ownerId.HasValue && ownerId.Value != Guid.Empty)
+                {
+                    await _notificationService.SendAsync(ownerId.Value, "Hội viên đã hủy lịch đặt Gym ⚠️",
+                        $"Hội viên [{customerName}] đã hủy lịch đặt khung giờ [{sessionName}] tại [{branchName}]. Mã đơn: {booking.BookingCode}.", "PartnerNotification");
+                }
             }
-            catch { /* Khử crash */ }
+            catch { }
 
             return new GymBookingResponse
             {
@@ -369,20 +352,16 @@ namespace Flexfit.Service
         }
 
         // ========================================================
-        // 2. CLASS BOOKING (TÍCH HỢP PROMOTION & NOTIFICATION)
+        // 2. CLASS BOOKING
         // ========================================================
-
         public async Task<ClassBookingResponse> BookClassAsync(Guid userId, CreateClassBookingRequest request)
         {
             var now = DateTimeHelper.GetVietnamTime();
             var classObj = await _bookingRepo.GetClassByIdAsync(request.ClassId);
             if (classObj == null) throw new Exception("Class không tồn tại.");
+            if (classObj.StartTime <= now) throw new Exception("Không thể đặt lịch cho lớp đã bắt đầu hoặc kết thúc.");
 
-            if (classObj.StartTime <= now)
-                throw new Exception("Không thể đặt lịch cho lớp đã bắt đầu hoặc kết thúc.");
-
-            var currentBookingsCount = await _bookingRepo.CountClassBookingsByClassIdAsync(classObj.ClassId);
-            if (currentBookingsCount >= classObj.Capacity)
+            if (await _bookingRepo.CountClassBookingsByClassIdAsync(classObj.ClassId) >= classObj.Capacity)
                 throw new Exception("Lớp học này đã hết chỗ.");
 
             int finalCreditCost = classObj.CreditCost;
@@ -390,21 +369,18 @@ namespace Flexfit.Service
             {
                 var promo = await _promotionRepo.GetByIdAsync(request.PromotionId.Value);
                 if (promo == null || !promo.IsActive || promo.StartDate > now || promo.EndDate < now)
-                {
                     throw new Exception("Chương trình khuyến mãi không khả dụng hoặc đã hết hạn.");
-                }
 
                 if (promo.DiscountPercent.HasValue)
                 {
                     double discountAmount = classObj.CreditCost * (promo.DiscountPercent.Value / 100.0);
-                    finalCreditCost = classObj.CreditCost - (int)Math.Round(discountAmount);
-                    if (finalCreditCost < 0) finalCreditCost = 0;
+                    finalCreditCost = Math.Max(0, classObj.CreditCost - (int)Math.Round(discountAmount));
                 }
             }
 
             var userCredit = await _bookingRepo.GetUserCreditAsync(userId);
             if (userCredit == null || userCredit.Balance < finalCreditCost)
-                throw new Exception($"Tài khoản không đủ credit. Cần {finalCreditCost} credit để đặt lịch lớp học.");
+                throw new Exception($"Tài khoản không đủ credit. Cần {finalCreditCost} credit để đặt lịch.");
 
             int balanceBefore = userCredit.Balance;
             userCredit.Balance -= finalCreditCost;
@@ -425,7 +401,7 @@ namespace Flexfit.Service
 
             await _bookingRepo.AddClassBookingAsync(booking);
 
-            var transaction = new CreditTransaction
+            await _bookingRepo.AddCreditTransactionAsync(new CreditTransaction
             {
                 TransactionId = Guid.NewGuid(),
                 UserId = userId,
@@ -435,29 +411,35 @@ namespace Flexfit.Service
                 Type = "Booking",
                 ReferenceId = booking.BookingId,
                 ReferenceType = "ClassBooking",
-                Description = request.PromotionId.HasValue
-                    ? $"Đặt lịch Class (Đã áp dụng giảm giá). Lớp học: {classObj.ClassName}"
-                    : $"Đặt lịch Class thành công. Lớp học: {classObj.ClassName}",
+                Description = request.PromotionId.HasValue ? $"Đặt lịch Class (Có giảm giá): {classObj.ClassName}" : $"Đặt lịch Class thành công: {classObj.ClassName}",
                 CreatedAt = now
-            };
-            await _bookingRepo.AddCreditTransactionAsync(transaction);
+            });
+
             await _bookingRepo.SaveChangesAsync();
-            await _systemLogService.LogActionAsync(userId, "BOOK_CLASS", $"Đặt lịch lớp học {classObj.ClassName} thành công. Mã đặt chỗ: {booking.BookingCode}", null);
+            await _systemLogService.LogActionAsync(userId, "BOOK_CLASS", $"Đặt lịch lớp {classObj.ClassName}. Mã: {booking.BookingCode}", null);
 
             var detailedBooking = await _bookingRepo.GetClassBookingByIdAsync(booking.BookingId);
 
-            // 🔔 GỬI THÔNG BÁO ĐẶT LỊCH CLASS THÀNH CÔNG
+            // 🔔 GỬI THÔNG BÁO CHO CẢ USER VÀ OWNER KHI ĐẶT CLASS
             try
             {
+                string branchName = detailedBooking?.Class?.Branch?.BranchName ?? "Chi nhánh hệ thống";
+                string customerName = detailedBooking?.User?.FullName ?? "Hội viên Flexfit";
                 string coachText = !string.IsNullOrEmpty(classObj.CoachName) ? $" cùng HLV {classObj.CoachName}" : "";
-                await _notificationService.SendAsync(
-                    userId,
-                    title: "Đặt lớp học thành công! 🧘‍♂️",
-                    content: $"Bạn đã đăng ký thành công lớp [{classObj.ClassName}]{coachText}. Thời gian học: {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã vé lớp học: {booking.BookingCode}.",
-                    type: "BookingSuccess"
-                );
+
+                // 1. Gửi cho Hội viên
+                await _notificationService.SendAsync(userId, "Đặt lớp học thành công! 🧘‍♂️",
+                    $"Lớp [{classObj.ClassName}]{coachText}. Học lúc: {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã vé: {booking.BookingCode}.", "BookingSuccess");
+
+                // 2. Gửi cho Owner
+                var ownerId = detailedBooking?.Class?.Branch?.Gym?.OwnerId;
+                if (ownerId.HasValue && ownerId.Value != Guid.Empty)
+                {
+                    await _notificationService.SendAsync(ownerId.Value, "Có lịch đặt lớp học mới! 🆕",
+                        $"Hội viên [{customerName}] đã đăng ký lớp [{classObj.ClassName}] tại [{branchName}] vào lúc {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "PartnerNotification");
+                }
             }
-            catch { /* Khử crash */ }
+            catch { }
 
             return new ClassBookingResponse
             {
@@ -505,20 +487,12 @@ namespace Flexfit.Service
         public async Task<ClassBookingResponse> CancelClassBookingAsync(Guid userId, Guid bookingId)
         {
             var booking = await _bookingRepo.GetClassBookingByIdAsync(bookingId);
-            if (booking == null || booking.UserId != userId)
-                throw new Exception("Booking không tồn tại hoặc bạn không có quyền huỷ.");
-
-            if (booking.Status == "Cancelled")
-                throw new Exception("Booking này đã được huỷ trước đó.");
+            if (booking == null || booking.UserId != userId) throw new Exception("Booking không tồn tại hoặc lỗi quyền.");
+            if (booking.Status == "Cancelled") throw new Exception("Booking này đã được huỷ trước đó.");
 
             var now = DateTimeHelper.GetVietnamTime();
-
-            if (booking.Class != null && booking.Class.StartTime <= now)
-                throw new Exception("Không thể huỷ khi lớp học đã bắt đầu.");
-
-            var todayCancelledCount = await _bookingRepo.GetCancellationCountTodayAsync(userId);
-            if (todayCancelledCount >= 2)
-                throw new Exception("Mỗi ngày bạn chỉ được hủy tối đa 2 lịch đặt.");
+            if (booking.Class != null && booking.Class.StartTime <= now) throw new Exception("Không thể huỷ khi lớp học đã bắt đầu.");
+            if (await _bookingRepo.GetCancellationCountTodayAsync(userId) >= 2) throw new Exception("Mỗi ngày hủy tối đa 2 lịch đặt.");
 
             double refundPercentage = 0;
             if (booking.Class != null)
@@ -528,11 +502,9 @@ namespace Flexfit.Service
                 else if (timeRemaining.TotalHours >= 6) refundPercentage = 70;
                 else if (timeRemaining.TotalHours >= 3) refundPercentage = 50;
                 else if (timeRemaining.TotalHours >= 1) refundPercentage = 25;
-                else refundPercentage = 0;
             }
 
             int refundAmount = (int)Math.Round(booking.CreditUsed * (refundPercentage / 100.0));
-
             booking.Status = "Cancelled";
             booking.CancelledAt = now;
             booking.RefundCredit = refundAmount;
@@ -547,7 +519,7 @@ namespace Flexfit.Service
                     userCredit.TotalSpent = Math.Max(0, userCredit.TotalSpent - refundAmount);
                     userCredit.UpdatedAt = now;
 
-                    var transaction = new CreditTransaction
+                    await _bookingRepo.AddCreditTransactionAsync(new CreditTransaction
                     {
                         TransactionId = Guid.NewGuid(),
                         UserId = userId,
@@ -557,29 +529,36 @@ namespace Flexfit.Service
                         Type = "Refund",
                         ReferenceId = booking.BookingId,
                         ReferenceType = "ClassBooking",
-                        Description = $"Hoàn trả credit do hủy lịch Class ({refundPercentage}% hoàn trả). Lớp học: {booking.Class?.ClassName}",
+                        Description = $"Hoàn credit hủy Class ({refundPercentage}%). Lớp: {booking.Class?.ClassName}",
                         CreatedAt = now
-                    };
-                    await _bookingRepo.AddCreditTransactionAsync(transaction);
+                    });
                 }
             }
 
             await _bookingRepo.UpdateClassBookingAsync(booking);
             await _bookingRepo.SaveChangesAsync();
-            await _systemLogService.LogActionAsync(userId, "CANCEL_CLASS", $"Hủy lịch lớp học {booking.Class?.ClassName} thành công. Mã đặt chỗ: {booking.BookingCode}", null);
+            await _systemLogService.LogActionAsync(userId, "CANCEL_CLASS", $"Hủy lịch Class mã: {booking.BookingCode}", null);
 
-            // 🔔 GỬI THÔNG BÁO HỦY LỊCH CLASS THÀNH CÔNG
+            // 🔔 GỬI THÔNG BÁO HỦY LỚP CHO USER VÀ OWNER
             try
             {
                 string className = booking.Class?.ClassName ?? "Lớp học";
-                await _notificationService.SendAsync(
-                    userId,
-                    title: "Hủy lớp học thành công ↩️",
-                    content: $"Bạn đã hủy thành công lịch học lớp [{className}]. Hệ thống đã hoàn trả {refundAmount} Credits về ví của bạn.",
-                    type: "BookingCancelled"
-                );
+                string branchName = booking.Class?.Branch?.BranchName ?? "Chi nhánh Flexfit";
+                string customerName = booking.User?.FullName ?? "Hội viên Flexfit";
+
+                // 1. Gửi cho Hội viên
+                await _notificationService.SendAsync(userId, "Hủy lớp học thành công ↩️",
+                    $"Đã hủy thành công lịch học lớp [{className}]. Hoàn {refundAmount} Credits.", "BookingCancelled");
+
+                // 2. Gửi cho Owner
+                var ownerId = booking.Class?.Branch?.Gym?.OwnerId;
+                if (ownerId.HasValue && ownerId.Value != Guid.Empty)
+                {
+                    await _notificationService.SendAsync(ownerId.Value, "Hội viên đã hủy lịch học Class ⚠️",
+                        $"Hội viên [{customerName}] đã hủy đăng ký lớp [{className}] tại chi nhánh [{branchName}]. Mã vé: {booking.BookingCode}.", "PartnerNotification");
+                }
             }
-            catch { /* Khử crash */ }
+            catch { }
 
             return new ClassBookingResponse
             {
@@ -602,9 +581,8 @@ namespace Flexfit.Service
         }
 
         // ========================================================
-        // 3. PARTNER METHODS
+        // 3. PARTNER METHODS (GET RAW)
         // ========================================================
-
         public async Task<IEnumerable<GymBookingResponse>> GetPartnerGymBookingsAsync(Guid ownerId)
         {
             var bookings = await _bookingRepo.GetGymBookingsByOwnerIdAsync(ownerId);

@@ -210,5 +210,6 @@ namespace Flexfit.Controllers
             }
             catch (Exception ex) { return BadRequest(new { Message = ex.Message }); }
         }
+
     }
 }
