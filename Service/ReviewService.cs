@@ -141,8 +141,20 @@ namespace Flexfit.Service
             var gym = await _context.Gyms.FindAsync(gymId);
             if (gym == null) return;
 
+            var branchIds = await _context.Branches
+                .Where(b => b.GymId == gymId)
+                .Select(b => b.BranchId)
+                .ToListAsync();
+
+            var classIds = await _context.Classes
+                .Where(c => branchIds.Contains(c.BranchId))
+                .Select(c => c.ClassId)
+                .ToListAsync();
+
             var reviews = await _context.Reviews
-                .Where(r => r.GymId == gymId || r.Class.Branch.GymId == gymId)
+                .Where(r =>
+                    (r.GymId.HasValue && r.GymId.Value == gymId) ||
+                    (r.ClassId.HasValue && classIds.Contains(r.ClassId.Value)))
                 .ToListAsync();
 
             if (reviews.Count > 0)
@@ -165,19 +177,33 @@ namespace Flexfit.Service
             var gymExists = await _context.Gyms.AnyAsync(g => g.GymId == gymId);
             if (!gymExists)
             {
-                throw new KeyNotFoundException("Không tìm thấy phòng tập này.");
+                return Enumerable.Empty<ReviewResponse>();
             }
 
             // Lấy danh sách đánh giá của Gym kèm thông tin User
+            var branchIds = await _context.Branches
+                .Where(b => b.GymId == gymId)
+                .Select(b => b.BranchId)
+                .ToListAsync();
+
+            var classIds = await _context.Classes
+                .Where(c => branchIds.Contains(c.BranchId))
+                .Select(c => c.ClassId)
+                .ToListAsync();
+
             var reviews = await _context.Reviews
                 .Include(r => r.User)
+                .Include(r => r.Gym)
                 .Include(r => r.Class)
                     .ThenInclude(c => c.Branch)
-                .Where(r => r.GymId == gymId || r.Class.Branch.GymId == gymId)
+                        .ThenInclude(b => b.Gym)
+                .Where(r =>
+                    (r.GymId.HasValue && r.GymId.Value == gymId) ||
+                    (r.ClassId.HasValue && classIds.Contains(r.ClassId.Value)))
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
 
-            return reviews.Select(r => MapToResponse(r, r.User?.FullName ?? "N/A"));
+            return reviews.Select(r => MapToResponse(r, r.User?.FullName ?? "Khách hàng"));
         }
 
         // =============================================
@@ -189,9 +215,11 @@ namespace Flexfit.Service
             {
                 ReviewId = review.ReviewId,
                 UserId = review.UserId,
-                UserFullName = fullName,
+                UserFullName = string.IsNullOrWhiteSpace(fullName) ? "Khách hàng" : fullName,
                 GymId = review.GymId ?? review.Class?.Branch?.GymId,
+                GymName = review.Gym?.GymName ?? review.Class?.Branch?.Gym?.GymName,
                 ClassId = review.ClassId,
+                ClassName = review.Class?.ClassName,
                 ClassBookingId = review.ClassBookingId,
                 GymBookingId = review.GymBookingId,
                 Rating = review.Rating,

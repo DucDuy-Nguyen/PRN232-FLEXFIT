@@ -312,5 +312,43 @@ namespace Flexfit.Service
         {
             return await _paymentRepository.GetUserCreditAsync(userId);
         }
+
+        public async Task<IEnumerable<PaymentHistoryDto>> GetUserPaymentHistoryAsync(Guid userId)
+        {
+            var payments = await _paymentRepository.GetPaymentsByUserIdAsync(userId);
+            return payments.Select(p => new PaymentHistoryDto
+            {
+                PaymentId = p.PaymentId,
+                UserId = p.UserId,
+                PackageId = p.PackageId,
+                PackageName = p.Package?.PackageName,
+                Amount = p.Amount,
+                PaymentMethod = p.PaymentMethod,
+                ProviderTransactionCode = p.ProviderTransactionCode,
+                Status = p.Status,
+                PaidAt = p.PaidAt,
+                CreatedAt = p.CreatedAt
+            });
+        }
+
+        public async Task<IEnumerable<PaymentHistoryDto>> GetAllPaymentsAsync()
+        {
+            var payments = await _paymentRepository.GetAllPaymentsAsync();
+            return payments.Select(p => new PaymentHistoryDto
+            {
+                PaymentId = p.PaymentId,
+                UserId = p.UserId,
+                UserFullName = p.User?.FullName,
+                UserEmail = p.User?.Email,
+                PackageId = p.PackageId,
+                PackageName = p.Package?.PackageName,
+                Amount = p.Amount,
+                PaymentMethod = p.PaymentMethod,
+                ProviderTransactionCode = p.ProviderTransactionCode,
+                Status = p.Status,
+                PaidAt = p.PaidAt,
+                CreatedAt = p.CreatedAt
+            });
+        }
     }
 }

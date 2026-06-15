@@ -129,5 +129,36 @@ namespace Flexfit.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+
+        [Authorize]
+        [HttpGet("history")]
+        public async Task<IActionResult> GetMyPaymentHistory()
+        {
+            try
+            {
+                var userId = GetUserId();
+                var history = await _paymentService.GetUserPaymentHistoryAsync(userId);
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin/history")]
+        public async Task<IActionResult> GetAllPayments()
+        {
+            try
+            {
+                var history = await _paymentService.GetAllPaymentsAsync();
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
     }
 }

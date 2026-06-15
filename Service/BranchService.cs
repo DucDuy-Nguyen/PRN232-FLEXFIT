@@ -24,26 +24,13 @@ namespace Flexfit.Services
         public async Task<IEnumerable<BranchDto>> GetAllBranchesAsync()
         {
             var branches = await _branchRepo.GetAllAsync();
-            return branches.Select(b => new BranchDto
-            {
-                BranchId = b.BranchId,
-                GymId = b.GymId,
-                BranchName = b.BranchName,
-                Address = b.Address,
-                City = b.City,
-                District = b.District,
-                OpenTime = b.OpenTime,
-                CloseTime = b.CloseTime,
-                ThumbnailUrl = b.ThumbnailUrl,
-                CreditCost = b.CreditCost,
-                IsActive = b.IsActive,
-                CreatedAt = b.CreatedAt,
-                Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto
-                {
-                    StaffId = bs.StaffId,
-                    FullName = bs.Staff?.FullName ?? "N/A"
-                }).ToList()
-            });
+            return branches.Select(MapToDto);
+        }
+
+        public async Task<IEnumerable<BranchDto>> GetBranchesByPartnerIdAsync(Guid ownerId)
+        {
+            var branches = await _branchRepo.GetByOwnerIdAsync(ownerId);
+            return branches.Select(MapToDto);
         }
 
         public async Task<BranchDto?> GetBranchByIdAsync(Guid id)
@@ -51,26 +38,7 @@ namespace Flexfit.Services
             var b = await _branchRepo.GetByIdAsync(id);
             if (b == null) return null;
 
-            return new BranchDto
-            {
-                BranchId = b.BranchId,
-                GymId = b.GymId,
-                BranchName = b.BranchName,
-                Address = b.Address,
-                City = b.City,
-                District = b.District,
-                OpenTime = b.OpenTime,
-                CloseTime = b.CloseTime,
-                ThumbnailUrl = b.ThumbnailUrl,
-                CreditCost = b.CreditCost,
-                IsActive = b.IsActive,
-                CreatedAt = b.CreatedAt,
-                Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto
-                {
-                    StaffId = bs.StaffId,
-                    FullName = bs.Staff?.FullName ?? "N/A"
-                }).ToList()
-            };
+            return MapToDto(b);
         }
 
         public async Task<Guid> CreateBranchAsync(CreateBranchRequest request, Guid currentUserId)
@@ -295,6 +263,30 @@ namespace Flexfit.Services
                 );
             }
             catch { }
+        }
+
+        private static BranchDto MapToDto(Branch b)
+        {
+            return new BranchDto
+            {
+                BranchId = b.BranchId,
+                GymId = b.GymId,
+                BranchName = b.BranchName,
+                Address = b.Address,
+                City = b.City,
+                District = b.District,
+                OpenTime = b.OpenTime,
+                CloseTime = b.CloseTime,
+                ThumbnailUrl = b.ThumbnailUrl,
+                CreditCost = b.CreditCost,
+                IsActive = b.IsActive,
+                CreatedAt = b.CreatedAt,
+                Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto
+                {
+                    StaffId = bs.StaffId,
+                    FullName = bs.Staff?.FullName ?? "N/A"
+                }).ToList()
+            };
         }
     }
 }

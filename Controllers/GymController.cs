@@ -1,4 +1,4 @@
-﻿using Flexfit.DTOs;
+using Flexfit.DTOs;
 using Flexfit.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +44,15 @@ namespace Flexfit.Controllers
             var dto = await _gymService.GetGymByIdAsync(id);
             if (dto == null) return NotFound(new { message = "Không tìm thấy phòng tập." });
             return Ok(dto);
+        }
+
+        [HttpGet("partner")]
+        [Authorize(Roles = "GymPartner")]
+        public async Task<IActionResult> GetGymsForPartner()
+        {
+            var ownerId = GetCurrentUserId();
+            var dtos = await _gymService.GetGymsByPartnerIdAsync(ownerId);
+            return Ok(dtos);
         }
 
         // ========================================================

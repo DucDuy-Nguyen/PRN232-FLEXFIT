@@ -1,4 +1,4 @@
-﻿using Flexfit.Models;
+using Flexfit.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ namespace Flexfit.Repositories
     public interface IGymRepository
     {
         Task<IEnumerable<Gym>> GetAllAsync();
+        Task<IEnumerable<Gym>> GetByOwnerIdAsync(Guid ownerId);
         Task<Gym?> GetByIdAsync(Guid id);
         Task AddAsync(Gym gym);
         Task UpdateAsync(Gym gym);

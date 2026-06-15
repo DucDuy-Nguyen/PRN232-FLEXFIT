@@ -1,5 +1,25 @@
 [
   {
+    "ContainingType": "Flexfit.Controllers.AdminRevenueController",
+    "Method": "GetSummary",
+    "RelativePath": "api/admin/revenue/summary",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "Flexfit.DTOs.AdminRevenue.AdminRevenueSummaryResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "Flexfit.Controllers.AIController",
     "Method": "Chat",
     "RelativePath": "api/AI/chat",
@@ -385,6 +405,16 @@
   },
   {
     "ContainingType": "Flexfit.Controllers.BranchController",
+    "Method": "GetBranchesForPartner",
+    "RelativePath": "api/branches/partner",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.BranchController",
     "Method": "RemoveStaffFromBranch",
     "RelativePath": "api/branches/remove-staff",
     "HttpMethod": "DELETE",
@@ -675,6 +705,26 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.ClassController",
+    "Method": "GetClassesForPartner",
+    "RelativePath": "api/classes/partner",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.ClassController",
+    "Method": "GetClassesForStaff",
+    "RelativePath": "api/classes/staff-schedule",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -989,6 +1039,16 @@
   },
   {
     "ContainingType": "Flexfit.Controllers.GymController",
+    "Method": "GetGymsForPartner",
+    "RelativePath": "api/gyms/partner",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.GymController",
     "Method": "TransferGymOwnership",
     "RelativePath": "api/gyms/transfer-owner",
     "HttpMethod": "PUT",
@@ -1076,6 +1136,56 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Flexfit.Controllers.PartnerController",
+    "Method": "GetCustomers",
+    "RelativePath": "api/partner/customers",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PartnerController",
+    "Method": "GetDashboard",
+    "RelativePath": "api/partner/dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PartnerController",
+    "Method": "GetRevenue",
+    "RelativePath": "api/partner/revenue",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PartnerController",
+    "Method": "GetReviews",
+    "RelativePath": "api/partner/reviews",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PaymentController",
+    "Method": "GetAllPayments",
+    "RelativePath": "api/payment/admin/history",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Flexfit.Controllers.PaymentController",
     "Method": "PaymentCallback",
     "RelativePath": "api/payment/callback",
@@ -1151,6 +1261,16 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.PaymentController",
+    "Method": "GetMyPaymentHistory",
+    "RelativePath": "api/payment/history",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {

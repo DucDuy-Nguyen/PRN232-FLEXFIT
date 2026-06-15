@@ -88,6 +88,24 @@ namespace Flexfit.Repositories
             await _db.SaveChangesAsync();
         }
 
+        public async Task<IEnumerable<Payment>> GetPaymentsByUserIdAsync(Guid userId)
+        {
+            return await _db.Payments
+                .Include(p => p.Package)
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Payment>> GetAllPaymentsAsync()
+        {
+            return await _db.Payments
+                .Include(p => p.Package)
+                .Include(p => p.User)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+
         public async Task AddCreditTransactionAsync(CreditTransaction transaction)
         {
             await _db.CreditTransactions.AddAsync(transaction);

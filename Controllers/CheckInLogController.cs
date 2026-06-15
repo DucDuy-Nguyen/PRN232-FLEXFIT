@@ -2,6 +2,7 @@
 using Flexfit.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -70,6 +71,10 @@ namespace Flexfit.Controllers
                 var result = await _checkInService.CheckInGymAsync(request, staffId);
                 return Ok(new { Message = "Điểm danh lịch tập Gym thành công!", Data = result });
             }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest(new { Message = ex.InnerException?.Message ?? ex.Message });
+            }
             catch (Exception ex)
             {
                 return BadRequest(new { Message = ex.Message });
@@ -88,6 +93,10 @@ namespace Flexfit.Controllers
                 var staffId = GetCurrentUserId();
                 var result = await _checkInService.CheckInClassAsync(request, staffId);
                 return Ok(new { Message = "Điểm danh lớp học thành công!", Data = result });
+            }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest(new { Message = ex.InnerException?.Message ?? ex.Message });
             }
             catch (Exception ex)
             {

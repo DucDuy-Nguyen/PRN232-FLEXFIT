@@ -34,6 +34,20 @@ namespace Flexfit.Controllers
             return Ok(dtos);
         }
 
+        [HttpGet("partner")]
+        [Authorize(Roles = "GymPartner")]
+        public async Task<IActionResult> GetBranchesForPartner()
+        {
+            var ownerId = GetCurrentUserId();
+            if (ownerId == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Không xác định được danh tính người dùng." });
+            }
+
+            var dtos = await _branchService.GetBranchesByPartnerIdAsync(ownerId);
+            return Ok(dtos);
+        }
+
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetBranchById(Guid id)

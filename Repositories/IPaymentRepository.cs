@@ -19,7 +19,10 @@ namespace Flexfit.Repositories
         Task CreateUserCreditAsync(UserCredit userCredit);
         Task UpdateUserCreditAsync(UserCredit userCredit);
         
+        Task<IEnumerable<Payment>> GetPaymentsByUserIdAsync(Guid userId);
+        Task<IEnumerable<Payment>> GetAllPaymentsAsync();
         Task AddCreditTransactionAsync(CreditTransaction transaction);
+        
         Task SaveChangesAsync();
     }
 }

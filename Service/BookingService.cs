@@ -195,7 +195,7 @@ namespace Flexfit.Service
 
             var detailedBooking = await _bookingRepo.GetGymBookingByIdAsync(booking.BookingId);
 
-            // 🔔 GỬI THÔNG BÁO CHO CẢ USER VÀ OWNER PHÒNG GYM
+            // 🔔 GỬI THÔNG BÁO CHO CẢ USER VÀ OWNER PHÒNG GYM VÀ STAFF
             try
             {
                 string branchName = detailedBooking?.Session?.Branch?.BranchName ?? "Chi nhánh hệ thống";
@@ -203,14 +203,28 @@ namespace Flexfit.Service
 
                 // 1. Gửi cho Hội viên
                 await _notificationService.SendAsync(userId, "Đặt lịch tập Gym thành công! 🎉",
-                    $"Tại [{branchName}] lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "BookingSuccess");
+                    $"Bạn đã đặt thành công Open Gym tại [{branchName}] lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "BookingSuccess");
 
-                // 2. Gửi cho Owner phòng kinh doanh (nếu tìm thấy OwnerId từ liên kết Branch -> Gym)
+                // 2. Gửi cho Owner
                 var ownerId = detailedBooking?.Session?.Branch?.Gym?.OwnerId;
-                if (ownerId.HasValue && ownerId.Value != Guid.Empty)
+                if (ownerId.HasValue && ownerId.Value != Guid.Empty && ownerId.Value != userId)
                 {
                     await _notificationService.SendAsync(ownerId.Value, "Có lịch đặt Gym mới! 🆕",
-                        $"Hội viên [{customerName}] đã đặt lịch tại [{branchName}] vào lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "PartnerNotification");
+                        $"Khách hàng [{customerName}] vừa đặt lịch Open Gym - [{branchName}] vào lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "PartnerNotification");
+                }
+
+                // 3. Gửi cho Staff
+                if (detailedBooking?.Session?.BranchId != null)
+                {
+                    var staffIds = await _bookingRepo.GetStaffIdsByBranchIdAsync(detailedBooking.Session.BranchId);
+                    foreach (var staffId in staffIds)
+                    {
+                        if (staffId != userId && staffId != ownerId)
+                        {
+                            await _notificationService.SendAsync(staffId, "Có booking mới cần theo dõi",
+                                $"Tại [{branchName}], khách [{customerName}] vừa đặt lịch Open Gym lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "StaffNotification");
+                        }
+                    }
                 }
             }
             catch { }
@@ -237,6 +251,7 @@ namespace Flexfit.Service
         public async Task<IEnumerable<GymBookingResponse>> GetMyGymBookingsAsync(Guid userId)
         {
             var bookings = await _bookingRepo.GetGymBookingsByUserIdAsync(userId);
+            var reviewIds = await _bookingRepo.GetGymReviewIdsByBookingIdsAsync(bookings.Select(b => b.BookingId));
             return bookings.Select(b => new GymBookingResponse
             {
                 BookingId = b.BookingId,
@@ -251,6 +266,8 @@ namespace Flexfit.Service
                 Status = b.Status,
                 CreditUsed = b.CreditUsed,
                 BookedAt = b.BookedAt,
+                HasReview = reviewIds.ContainsKey(b.BookingId),
+                ReviewId = reviewIds.TryGetValue(b.BookingId, out var reviewId) ? reviewId : null,
                 UserEmail = b.User?.Email ?? "",
                 UserFullName = b.User?.FullName ?? ""
             });
@@ -311,7 +328,7 @@ namespace Flexfit.Service
             await _bookingRepo.SaveChangesAsync();
             await _systemLogService.LogActionAsync(userId, "CANCEL_GYM", $"Hủy lịch Gym mã: {booking.BookingCode}", null);
 
-            // 🔔 GỬI THÔNG BÁO HỦY LỊCH CHO USER VÀ OWNER
+            // 🔔 GỬI THÔNG BÁO HỦY LỊCH CHO USER, OWNER VÀ STAFF
             try
             {
                 string sessionName = booking.Session?.SessionName ?? "Lịch tập Gym";
@@ -324,10 +341,24 @@ namespace Flexfit.Service
 
                 // 2. Gửi cho Owner
                 var ownerId = booking.Session?.Branch?.Gym?.OwnerId;
-                if (ownerId.HasValue && ownerId.Value != Guid.Empty)
+                if (ownerId.HasValue && ownerId.Value != Guid.Empty && ownerId.Value != userId)
                 {
                     await _notificationService.SendAsync(ownerId.Value, "Hội viên đã hủy lịch đặt Gym ⚠️",
-                        $"Hội viên [{customerName}] đã hủy lịch đặt khung giờ [{sessionName}] tại [{branchName}]. Mã đơn: {booking.BookingCode}.", "PartnerNotification");
+                        $"Khách hàng [{customerName}] đã hủy lịch đặt khung giờ [{sessionName}] tại [{branchName}]. Mã đơn: {booking.BookingCode}.", "PartnerNotification");
+                }
+
+                // 3. Gửi cho Staff
+                if (booking.Session?.BranchId != null)
+                {
+                    var staffIds = await _bookingRepo.GetStaffIdsByBranchIdAsync(booking.Session.BranchId);
+                    foreach (var staffId in staffIds)
+                    {
+                        if (staffId != userId && staffId != ownerId)
+                        {
+                            await _notificationService.SendAsync(staffId, "Booking Gym đã bị hủy",
+                                $"Khách hàng [{customerName}] đã hủy lịch đặt khung giờ [{sessionName}] tại [{branchName}]. Mã: {booking.BookingCode}.", "StaffNotification");
+                        }
+                    }
                 }
             }
             catch { }
@@ -420,7 +451,7 @@ namespace Flexfit.Service
 
             var detailedBooking = await _bookingRepo.GetClassBookingByIdAsync(booking.BookingId);
 
-            // 🔔 GỬI THÔNG BÁO CHO CẢ USER VÀ OWNER KHI ĐẶT CLASS
+            // 🔔 GỬI THÔNG BÁO CHO CẢ USER, OWNER VÀ STAFF KHI ĐẶT CLASS
             try
             {
                 string branchName = detailedBooking?.Class?.Branch?.BranchName ?? "Chi nhánh hệ thống";
@@ -433,10 +464,24 @@ namespace Flexfit.Service
 
                 // 2. Gửi cho Owner
                 var ownerId = detailedBooking?.Class?.Branch?.Gym?.OwnerId;
-                if (ownerId.HasValue && ownerId.Value != Guid.Empty)
+                if (ownerId.HasValue && ownerId.Value != Guid.Empty && ownerId.Value != userId)
                 {
                     await _notificationService.SendAsync(ownerId.Value, "Có lịch đặt lớp học mới! 🆕",
-                        $"Hội viên [{customerName}] đã đăng ký lớp [{classObj.ClassName}] tại [{branchName}] vào lúc {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "PartnerNotification");
+                        $"Khách hàng [{customerName}] đã đăng ký lớp [{classObj.ClassName}] tại [{branchName}] vào lúc {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "PartnerNotification");
+                }
+
+                // 3. Gửi cho Staff
+                if (detailedBooking?.Class?.BranchId != null)
+                {
+                    var staffIds = await _bookingRepo.GetStaffIdsByBranchIdAsync(detailedBooking.Class.BranchId);
+                    foreach (var staffId in staffIds)
+                    {
+                        if (staffId != userId && staffId != ownerId)
+                        {
+                            await _notificationService.SendAsync(staffId, "Có booking lớp học mới",
+                                $"Tại [{branchName}], khách [{customerName}] vừa đặt lớp [{classObj.ClassName}] lúc {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "StaffNotification");
+                        }
+                    }
                 }
             }
             catch { }
@@ -464,6 +509,7 @@ namespace Flexfit.Service
         public async Task<IEnumerable<ClassBookingResponse>> GetMyClassBookingsAsync(Guid userId)
         {
             var bookings = await _bookingRepo.GetClassBookingsByUserIdAsync(userId);
+            var reviewIds = await _bookingRepo.GetClassReviewIdsByBookingIdsAsync(bookings.Select(b => b.BookingId));
             return bookings.Select(b => new ClassBookingResponse
             {
                 BookingId = b.BookingId,
@@ -479,6 +525,8 @@ namespace Flexfit.Service
                 Status = b.Status,
                 CreditUsed = b.CreditUsed,
                 BookedAt = b.BookedAt,
+                HasReview = reviewIds.ContainsKey(b.BookingId),
+                ReviewId = reviewIds.TryGetValue(b.BookingId, out var reviewId) ? reviewId : null,
                 UserEmail = b.User?.Email ?? "",
                 UserFullName = b.User?.FullName ?? ""
             });
@@ -539,7 +587,7 @@ namespace Flexfit.Service
             await _bookingRepo.SaveChangesAsync();
             await _systemLogService.LogActionAsync(userId, "CANCEL_CLASS", $"Hủy lịch Class mã: {booking.BookingCode}", null);
 
-            // 🔔 GỬI THÔNG BÁO HỦY LỚP CHO USER VÀ OWNER
+            // 🔔 GỬI THÔNG BÁO HỦY LỚP CHO USER, OWNER VÀ STAFF
             try
             {
                 string className = booking.Class?.ClassName ?? "Lớp học";
@@ -552,10 +600,24 @@ namespace Flexfit.Service
 
                 // 2. Gửi cho Owner
                 var ownerId = booking.Class?.Branch?.Gym?.OwnerId;
-                if (ownerId.HasValue && ownerId.Value != Guid.Empty)
+                if (ownerId.HasValue && ownerId.Value != Guid.Empty && ownerId.Value != userId)
                 {
                     await _notificationService.SendAsync(ownerId.Value, "Hội viên đã hủy lịch học Class ⚠️",
-                        $"Hội viên [{customerName}] đã hủy đăng ký lớp [{className}] tại chi nhánh [{branchName}]. Mã vé: {booking.BookingCode}.", "PartnerNotification");
+                        $"Khách hàng [{customerName}] đã hủy đăng ký lớp [{className}] tại chi nhánh [{branchName}]. Mã vé: {booking.BookingCode}.", "PartnerNotification");
+                }
+
+                // 3. Gửi cho Staff
+                if (booking.Class?.BranchId != null)
+                {
+                    var staffIds = await _bookingRepo.GetStaffIdsByBranchIdAsync(booking.Class.BranchId);
+                    foreach (var staffId in staffIds)
+                    {
+                        if (staffId != userId && staffId != ownerId)
+                        {
+                            await _notificationService.SendAsync(staffId, "Booking lớp học đã bị hủy",
+                                $"Khách hàng [{customerName}] đã hủy đăng ký lớp [{className}] tại [{branchName}]. Mã: {booking.BookingCode}.", "StaffNotification");
+                        }
+                    }
                 }
             }
             catch { }

@@ -1,4 +1,4 @@
-﻿using Flexfit.DTOs;
+using Flexfit.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ namespace Flexfit.Services
     public interface IGymService
     {
         Task<IEnumerable<GymDto>> GetAllGymsAsync();
+        Task<IEnumerable<GymDto>> GetGymsByPartnerIdAsync(Guid ownerId);
         Task<GymDto?> GetGymByIdAsync(Guid id);
         Task<Guid> CreateGymAsync(CreateGymRequest request, Guid currentUserId); // 👈 Thêm currentUserId
         Task UpdateGymAsync(Guid id, UpdateGymRequest request, Guid currentUserId); // 👈 Thêm currentUserId

@@ -1,4 +1,4 @@
-using Flexfit.Models;
+﻿using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -56,11 +56,11 @@ namespace Flexfit.Repositories
         }
 
         // =========================================================================
-        // KIỂM TRA QUYỀN SCAN CHO GYM BOOKING (Đi qua Session -> Branch)
+        // KIá»‚M TRA QUYá»€N SCAN CHO GYM BOOKING (Äi qua Session -> Branch)
         // =========================================================================
         public async Task<bool> IsStaffOrOwnerForGymBookingAsync(Guid bookingId, Guid scannerId)
         {
-            // ĐƯỜNG ĐI ĐÚNG: GymBookings -> Session -> Branch -> Gym & BranchStaffs
+            // ÄÆ¯á»œNG ÄI ÄĂNG: GymBookings -> Session -> Branch -> Gym & BranchStaffs
             var booking = await _context.GymBookings
                 .Include(gb => gb.Session)
                     .ThenInclude(s => s.Branch)
@@ -70,13 +70,13 @@ namespace Flexfit.Repositories
                         .ThenInclude(b => b.BranchStaffs)
                 .FirstOrDefaultAsync(gb => gb.BookingId == bookingId);
 
-            // Kiểm tra dữ liệu liên kết tuyến tính tránh lỗi NullReferenceException
+            // Kiá»ƒm tra dá»¯ liá»‡u liĂªn káº¿t tuyáº¿n tĂ­nh trĂ¡nh lá»—i NullReferenceException
             if (booking == null || booking.Session == null || booking.Session.Branch == null)
                 return false;
 
             var branch = booking.Session.Branch;
 
-            // Tiến hành so khớp ID người quét mã
+            // Tiáº¿n hĂ nh so khá»›p ID ngÆ°á»i quĂ©t mĂ£
             bool isOwner = branch.Gym?.OwnerId == scannerId;
             bool isBranchStaff = branch.BranchStaffs?.Any(bs => bs.StaffId == scannerId) ?? false;
 
@@ -84,11 +84,11 @@ namespace Flexfit.Repositories
         }
 
         // =========================================================================
-        // KIỂM TRA QUYỀN SCAN CHO CLASS BOOKING (Đi qua Class -> Branch)
+        // KIá»‚M TRA QUYá»€N SCAN CHO CLASS BOOKING (Äi qua Class -> Branch)
         // =========================================================================
         public async Task<bool> IsStaffOrOwnerForClassBookingAsync(Guid bookingId, Guid scannerId)
         {
-            // ĐƯỜNG ĐI ĐÚNG: ClassBookings -> Class -> Branch -> Gym & BranchStaffs
+            // ÄÆ¯á»œNG ÄI ÄĂNG: ClassBookings -> Class -> Branch -> Gym & BranchStaffs
             var booking = await _context.ClassBookings
                 .Include(cb => cb.Class)
                     .ThenInclude(c => c.Branch)
@@ -103,7 +103,7 @@ namespace Flexfit.Repositories
 
             var branch = booking.Class.Branch;
 
-            // Tiến hành so khớp ID người quét mã
+            // Tiáº¿n hĂ nh so khá»›p ID ngÆ°á»i quĂ©t mĂ£
             bool isOwner = branch.Gym?.OwnerId == scannerId;
             bool isBranchStaff = branch.BranchStaffs?.Any(bs => bs.StaffId == scannerId) ?? false;
 
@@ -117,12 +117,12 @@ namespace Flexfit.Repositories
                 .Include(c => c.ScannedByNavigation)
                 .Include(c => c.ClassBooking).ThenInclude(cb => cb!.Class)
                 .Where(c =>
-                    // 1. Nếu lượt check-in thuộc về Gym Booking công ty/chi nhánh đó quản lý
+                    // 1. Náº¿u lÆ°á»£t check-in thuá»™c vá» Gym Booking cĂ´ng ty/chi nhĂ¡nh Ä‘Ă³ quáº£n lĂ½
                     (c.GymBooking != null &&
                         (c.GymBooking.Session.Branch.Gym.OwnerId == managerId ||
                          c.GymBooking.Session.Branch.BranchStaffs.Any(bs => bs.StaffId == managerId)))
                     ||
-                    // 2. Nếu lượt check-in thuộc về Class Booking lớp học đó quản lý
+                    // 2. Náº¿u lÆ°á»£t check-in thuá»™c vá» Class Booking lá»›p há»c Ä‘Ă³ quáº£n lĂ½
                     (c.ClassBooking != null &&
                         (c.ClassBooking.Class.Branch.Gym.OwnerId == managerId ||
                          c.ClassBooking.Class.Branch.BranchStaffs.Any(bs => bs.StaffId == managerId)))
@@ -132,19 +132,38 @@ namespace Flexfit.Repositories
         }
 
         // =========================================================================
-        // CẬP NHẬT: THÊM .INCLUDE() ĐỂ LẤY THÔNG TIN THỜI GIAN KHÔNG BỊ LỖI NULL
+        // Cáº¬P NHáº¬T: THĂM .INCLUDE() Äá»‚ Láº¤Y THĂ”NG TIN THá»œI GIAN KHĂ”NG Bá» Lá»–I NULL
         // =========================================================================
         public async Task<GymBooking?> GetGymBookingByIdAsync(Guid bookingId)
         {
             return await _context.GymBookings
-                .Include(b => b.Session) // <-- Nạp kèm Session để lấy StartTime, EndTime ở tầng Service
+                .Include(b => b.Session) // <-- Náº¡p kĂ¨m Session Ä‘á»ƒ láº¥y StartTime, EndTime á»Ÿ táº§ng Service
                 .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+        }
+
+        public async Task<GymBooking?> FindGymBookingForCheckInAsync(Guid? bookingId, string? bookingCode, string? qrToken)
+        {
+            var normalizedCode = bookingCode?.Trim();
+            var normalizedToken = qrToken?.Trim();
+
+            return await _context.GymBookings
+                .Include(b => b.User)
+                .Include(b => b.Session)
+                    .ThenInclude(s => s.Branch)
+                        .ThenInclude(br => br.Gym)
+                .Include(b => b.Session)
+                    .ThenInclude(s => s.Branch)
+                        .ThenInclude(br => br.BranchStaffs)
+                .FirstOrDefaultAsync(b =>
+                    (bookingId.HasValue && b.BookingId == bookingId.Value) ||
+                    (!string.IsNullOrEmpty(normalizedCode) && b.BookingCode == normalizedCode) ||
+                    (!string.IsNullOrEmpty(normalizedToken) && b.QrToken == normalizedToken));
         }
 
         public async Task<ClassBooking?> GetClassBookingByIdAsync(Guid bookingId)
         {
             return await _context.ClassBookings
-                .Include(b => b.Class) // <-- Nạp kèm Class để lấy StartTime, EndTime ở tầng Service
+                .Include(b => b.Class) // <-- Náº¡p kĂ¨m Class Ä‘á»ƒ láº¥y StartTime, EndTime á»Ÿ táº§ng Service
                 .FirstOrDefaultAsync(b => b.BookingId == bookingId);
         }
 

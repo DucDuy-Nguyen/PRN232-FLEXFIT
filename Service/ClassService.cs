@@ -30,6 +30,18 @@ namespace Flexfit.Services
             return classes.Select(MapToDto);
         }
 
+        public async Task<IEnumerable<ClassDto>> GetClassesByStaffIdAsync(Guid staffId)
+        {
+            var classes = await _classRepo.GetClassesByStaffIdAsync(staffId);
+            return classes.Select(MapToDto);
+        }
+
+        public async Task<IEnumerable<ClassDto>> GetClassesByPartnerIdAsync(Guid partnerId)
+        {
+            var classes = await _classRepo.GetClassesByPartnerIdAsync(partnerId);
+            return classes.Select(MapToDto);
+        }
+
         public async Task<ClassDto?> GetClassByIdAsync(Guid id)
         {
             var c = await _classRepo.GetByIdAsync(id);

@@ -15,6 +15,7 @@ namespace Flexfit.Repositories
         Task<bool> IsStaffOrOwnerForClassBookingAsync(Guid classBookingId, Guid scannerId);
         Task<IEnumerable<CheckInLog>> GetLogsForManagerAsync(Guid managerId);
         Task<GymBooking?> GetGymBookingByIdAsync(Guid bookingId);
+        Task<GymBooking?> FindGymBookingForCheckInAsync(Guid? bookingId, string? bookingCode, string? qrToken);
         Task<ClassBooking?> GetClassBookingByIdAsync(Guid bookingId);
         Task UpdateGymBookingAsync(GymBooking booking);
         Task UpdateClassBookingAsync(ClassBooking booking);

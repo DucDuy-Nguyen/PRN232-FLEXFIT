@@ -9,6 +9,7 @@ namespace Flexfit.Services
     {
         // 🔓 Hàm đọc dữ liệu công khai - Không cần check UserId
         Task<IEnumerable<BranchDto>> GetAllBranchesAsync();
+        Task<IEnumerable<BranchDto>> GetBranchesByPartnerIdAsync(Guid ownerId);
         Task<BranchDto?> GetBranchByIdAsync(Guid id);
 
         // 🔐 Hàm thay đổi dữ liệu - Bắt buộc truyền currentUserId để kiểm tra quyền sở hữu

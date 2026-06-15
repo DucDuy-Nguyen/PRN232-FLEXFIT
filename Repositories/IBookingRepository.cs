@@ -7,6 +7,7 @@ namespace Flexfit.Repositories
         // Gym Bookings
         Task<GymBooking?> GetGymBookingByIdAsync(Guid bookingId);
         Task<IEnumerable<GymBooking>> GetGymBookingsByUserIdAsync(Guid userId);
+        Task<Dictionary<Guid, Guid>> GetGymReviewIdsByBookingIdsAsync(IEnumerable<Guid> bookingIds);
         Task<GymSession?> GetGymSessionByIdAsync(Guid sessionId);
         Task<GymSession?> GetGymSessionByDetailsAsync(Guid branchId, string sessionName, DateTime startTime, DateTime endTime);
         Task AddGymSessionAsync(GymSession session);
@@ -17,6 +18,7 @@ namespace Flexfit.Repositories
         // Class Bookings
         Task<ClassBooking?> GetClassBookingByIdAsync(Guid bookingId);
         Task<IEnumerable<ClassBooking>> GetClassBookingsByUserIdAsync(Guid userId);
+        Task<Dictionary<Guid, Guid>> GetClassReviewIdsByBookingIdsAsync(IEnumerable<Guid> bookingIds);
         Task<Class?> GetClassByIdAsync(Guid classId);
         Task AddClassBookingAsync(ClassBooking booking);
         Task UpdateClassBookingAsync(ClassBooking booking);
@@ -31,6 +33,7 @@ namespace Flexfit.Repositories
         Task AddCreditTransactionAsync(CreditTransaction transaction);
 
         Task<Branch?> GetBranchByIdAsync(Guid branchId);
+        Task<IEnumerable<Guid>> GetStaffIdsByBranchIdAsync(Guid branchId);
 
         Task<int> GetCancellationCountTodayAsync(Guid userId);
 

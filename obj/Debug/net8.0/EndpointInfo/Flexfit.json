@@ -5,6 +5,35 @@
     "version": "1.0"
   },
   "paths": {
+    "/api/admin/revenue/summary": {
+      "get": {
+        "tags": [
+          "AdminRevenue"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRevenueSummaryResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRevenueSummaryResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminRevenueSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/AI/suggest-workout": {
       "get": {
         "tags": [
@@ -498,6 +527,18 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/branches/partner": {
+      "get": {
+        "tags": [
+          "Branch"
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1002,6 +1043,30 @@
               "format": "uuid"
             }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/classes/staff-schedule": {
+      "get": {
+        "tags": [
+          "Class"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/classes/partner": {
+      "get": {
+        "tags": [
+          "Class"
         ],
         "responses": {
           "200": {
@@ -1659,6 +1724,18 @@
         }
       }
     },
+    "/api/gyms/partner": {
+      "get": {
+        "tags": [
+          "Gym"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/gyms/{id}/status": {
       "patch": {
         "tags": [
@@ -1851,6 +1928,54 @@
         }
       }
     },
+    "/api/partner/dashboard": {
+      "get": {
+        "tags": [
+          "Partner"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/partner/customers": {
+      "get": {
+        "tags": [
+          "Partner"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/partner/reviews": {
+      "get": {
+        "tags": [
+          "Partner"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/partner/revenue": {
+      "get": {
+        "tags": [
+          "Partner"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/partner-bookings/gym/tabs": {
       "get": {
         "tags": [
@@ -2034,6 +2159,30 @@
       }
     },
     "/api/payment/my-credit": {
+      "get": {
+        "tags": [
+          "Payment"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/payment/history": {
+      "get": {
+        "tags": [
+          "Payment"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/payment/admin/history": {
       "get": {
         "tags": [
           "Payment"
@@ -2618,6 +2767,42 @@
         },
         "additionalProperties": false
       },
+      "AdminRevenueSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "totalRevenueThisMonth": {
+            "type": "number",
+            "format": "double"
+          },
+          "successfulPaymentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCreditsPaid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "revenueToday": {
+            "type": "number",
+            "format": "double"
+          },
+          "monthlyRevenue": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthlyRevenueItem"
+            },
+            "nullable": true
+          },
+          "packageSales": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PackageSalesItem"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "AssignStaffDto": {
         "type": "object",
         "properties": {
@@ -2682,18 +2867,30 @@
         "additionalProperties": false
       },
       "CheckInGymRequest": {
-        "required": [
-          "status"
-        ],
         "type": "object",
         "properties": {
           "userId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           },
           "gymBookingId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
+          },
+          "bookingId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "bookingCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "qrToken": {
+            "type": "string",
+            "nullable": true
           },
           "status": {
             "type": "string",
@@ -3026,6 +3223,38 @@
           "password": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MonthlyRevenueItem": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "nullable": true
+          },
+          "revenue": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PackageSalesItem": {
+        "type": "object",
+        "properties": {
+          "packageName": {
+            "type": "string",
+            "nullable": true
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "revenue": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false

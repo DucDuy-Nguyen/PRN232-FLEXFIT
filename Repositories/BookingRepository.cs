@@ -1,4 +1,4 @@
-using Flexfit.Helpers;
+﻿using Flexfit.Helpers;
 using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -24,7 +24,7 @@ namespace Flexfit.Repositories
         public async Task<GymBooking?> GetGymBookingByIdAsync(Guid bookingId)
         {
             return await _context.GymBookings
-                .Include(b => b.User) // <-- THÊM: Lấy thông tin User khi lấy chi tiết 1 lịch tập
+                .Include(b => b.User) // <-- THĂM: Láº¥y thĂ´ng tin User khi láº¥y chi tiáº¿t 1 lá»‹ch táº­p
                 .Include(b => b.Session)
                     .ThenInclude(s => s.Branch)
                         .ThenInclude(br => br.Gym)
@@ -34,7 +34,7 @@ namespace Flexfit.Repositories
         public async Task<IEnumerable<GymBooking>> GetGymBookingsByUserIdAsync(Guid userId)
         {
             return await _context.GymBookings
-                .Include(b => b.User) // <-- THÊM: Lấy thông tin User trong danh sách lịch tập của tôi
+                .Include(b => b.User) // <-- THĂM: Láº¥y thĂ´ng tin User trong danh sĂ¡ch lá»‹ch táº­p cá»§a tĂ´i
                 .Include(b => b.Session)
                     .ThenInclude(s => s.Branch)
                         .ThenInclude(br => br.Gym)
@@ -42,7 +42,23 @@ namespace Flexfit.Repositories
                 .OrderByDescending(b => b.BookedAt)
                 .ToListAsync();
         }
+        public async Task<Dictionary<Guid, Guid>> GetGymReviewIdsByBookingIdsAsync(IEnumerable<Guid> bookingIds)
+        {
+            var ids = bookingIds.Distinct().ToList();
+            if (ids.Count == 0)
+            {
+                return new Dictionary<Guid, Guid>();
+            }
 
+            var reviews = await _context.Reviews
+                .Where(r => r.GymBookingId.HasValue && ids.Contains(r.GymBookingId.Value))
+                .Select(r => new { BookingId = r.GymBookingId.GetValueOrDefault(), r.ReviewId })
+                .ToListAsync();
+
+            return reviews
+                .GroupBy(r => r.BookingId)
+                .ToDictionary(g => g.Key, g => g.Select(r => r.ReviewId).First());
+        }
         public async Task<GymSession?> GetGymSessionByIdAsync(Guid sessionId)
         {
             return await _context.GymSessions
@@ -86,7 +102,7 @@ namespace Flexfit.Repositories
         public async Task<ClassBooking?> GetClassBookingByIdAsync(Guid bookingId)
         {
             return await _context.ClassBookings
-                .Include(b => b.User) // <-- THÊM: Lấy thông tin User khi lấy chi tiết 1 lớp học
+                .Include(b => b.User) // <-- THĂM: Láº¥y thĂ´ng tin User khi láº¥y chi tiáº¿t 1 lá»›p há»c
                 .Include(b => b.Class)
                     .ThenInclude(c => c.Branch)
                         .ThenInclude(br => br.Gym)
@@ -96,7 +112,7 @@ namespace Flexfit.Repositories
         public async Task<IEnumerable<ClassBooking>> GetClassBookingsByUserIdAsync(Guid userId)
         {
             return await _context.ClassBookings
-                .Include(b => b.User) // <-- THÊM: Lấy thông tin User trong danh sách lớp học của tôi
+                .Include(b => b.User) // <-- THĂM: Láº¥y thĂ´ng tin User trong danh sĂ¡ch lá»›p há»c cá»§a tĂ´i
                 .Include(b => b.Class)
                     .ThenInclude(c => c.Branch)
                         .ThenInclude(br => br.Gym)
@@ -104,7 +120,23 @@ namespace Flexfit.Repositories
                 .OrderByDescending(b => b.BookedAt)
                 .ToListAsync();
         }
+        public async Task<Dictionary<Guid, Guid>> GetClassReviewIdsByBookingIdsAsync(IEnumerable<Guid> bookingIds)
+        {
+            var ids = bookingIds.Distinct().ToList();
+            if (ids.Count == 0)
+            {
+                return new Dictionary<Guid, Guid>();
+            }
 
+            var reviews = await _context.Reviews
+                .Where(r => r.ClassBookingId.HasValue && ids.Contains(r.ClassBookingId.Value))
+                .Select(r => new { BookingId = r.ClassBookingId.GetValueOrDefault(), r.ReviewId })
+                .ToListAsync();
+
+            return reviews
+                .GroupBy(r => r.BookingId)
+                .ToDictionary(g => g.Key, g => g.Select(r => r.ReviewId).First());
+        }
         public async Task<Class?> GetClassByIdAsync(Guid classId)
         {
             return await _context.Classes
@@ -157,7 +189,7 @@ namespace Flexfit.Repositories
             }
 
             return await _context.GymBookings
-                .Include(b => b.User) // <-- THÊM: Để chủ phòng gym biết ai đã đặt lịch tập ở cơ sở của họ
+                .Include(b => b.User) // <-- THĂM: Äá»ƒ chá»§ phĂ²ng gym biáº¿t ai Ä‘Ă£ Ä‘áº·t lá»‹ch táº­p á»Ÿ cÆ¡ sá»Ÿ cá»§a há»
                 .Include(b => b.Session)
                     .ThenInclude(s => s.Branch)
                         .ThenInclude(br => br.Gym)
@@ -189,7 +221,7 @@ namespace Flexfit.Repositories
             }
 
             return await _context.ClassBookings
-                .Include(b => b.User) // <-- THÊM: Để chủ phòng gym biết ai đã đặt lịch lớp học ở cơ sở của họ
+                .Include(b => b.User) // <-- THĂM: Äá»ƒ chá»§ phĂ²ng gym biáº¿t ai Ä‘Ă£ Ä‘áº·t lá»‹ch lá»›p há»c á»Ÿ cÆ¡ sá»Ÿ cá»§a há»
                 .Include(b => b.Class)
                     .ThenInclude(c => c.Branch)
                         .ThenInclude(br => br.Gym)
@@ -215,17 +247,25 @@ namespace Flexfit.Repositories
             return await _context.Branches.FirstOrDefaultAsync(b => b.BranchId == branchId);
         }
 
+        public async Task<IEnumerable<Guid>> GetStaffIdsByBranchIdAsync(Guid branchId)
+        {
+            return await _context.BranchStaffs
+                .Where(bs => bs.BranchId == branchId)
+                .Select(bs => bs.StaffId)
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
         }
-        // THÊM HÀM QUÉT LỊCH GYM
+        // THĂM HĂ€M QUĂ‰T Lá»CH GYM
         // ==========================================
         public async Task<IEnumerable<GymBooking>> GetGymBookingsToRemindAsync(DateTime now, int hoursLeft)
         {
             var query = _context.GymBookings
-                .Include(b => b.User)     // Include User để lấy Email gửi mail
-                .Include(b => b.Session)  // Include Session để lấy StartTime
+                .Include(b => b.User)     // Include User Ä‘á»ƒ láº¥y Email gá»­i mail
+                .Include(b => b.Session)  // Include Session Ä‘á»ƒ láº¥y StartTime
                 .Where(b => b.Status == "Confirmed");
 
             if (hoursLeft == 3)
@@ -246,13 +286,13 @@ namespace Flexfit.Repositories
         }
 
         // ==========================================
-        // THÊM HÀM QUÉT LỊCH LỚP HỌC (CLASS)
+        // THĂM HĂ€M QUĂ‰T Lá»CH Lá»P Há»ŒC (CLASS)
         // ==========================================
         public async Task<IEnumerable<ClassBooking>> GetClassBookingsToRemindAsync(DateTime now, int hoursLeft)
         {
             var query = _context.ClassBookings
-                .Include(b => b.User)    // Include User để lấy Email gửi mail
-                .Include(b => b.Class)   // Include Class để lấy StartTime
+                .Include(b => b.User)    // Include User Ä‘á»ƒ láº¥y Email gá»­i mail
+                .Include(b => b.Class)   // Include Class Ä‘á»ƒ láº¥y StartTime
                 .Where(b => b.Status == "Confirmed");
 
             if (hoursLeft == 3)
@@ -290,3 +330,4 @@ namespace Flexfit.Repositories
         }
     }
 }
+

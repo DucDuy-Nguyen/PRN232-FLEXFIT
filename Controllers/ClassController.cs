@@ -45,6 +45,32 @@ namespace Flexfit.Controllers
             return Ok(classes);
         }
 
+        [HttpGet("staff-schedule")]
+        [Authorize]
+        public async Task<IActionResult> GetClassesForStaff()
+        {
+            var staffId = GetCurrentUserId();
+            if (staffId == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Không xác định được danh tính người dùng." });
+            }
+            var classes = await _classService.GetClassesByStaffIdAsync(staffId);
+            return Ok(classes);
+        }
+
+        [HttpGet("partner")]
+        [Authorize(Roles = "GymPartner")]
+        public async Task<IActionResult> GetClassesForPartner()
+        {
+            var ownerId = GetCurrentUserId();
+            if (ownerId == Guid.Empty)
+            {
+                return Unauthorized(new { message = "Không xác định được danh tính người dùng." });
+            }
+            var classes = await _classService.GetClassesByPartnerIdAsync(ownerId);
+            return Ok(classes);
+        }
+
         [HttpGet("{id}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetClassById(Guid id)

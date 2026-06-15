@@ -18,10 +18,9 @@ namespace Flexfit.Services
             _gymRepo = gymRepo;
         }
 
-        public async Task<IEnumerable<GymDto>> GetAllGymsAsync()
+        private GymDto MapToDto(Gym g)
         {
-            var gyms = await _gymRepo.GetAllAsync();
-            return gyms.Select(g => new GymDto
+            return new GymDto
             {
                 GymId = g.GymId,
                 OwnerId = g.OwnerId,
@@ -34,7 +33,19 @@ namespace Flexfit.Services
                 RatingAverage = g.RatingAverage,
                 TotalReviews = g.TotalReviews,
                 CreatedAt = g.CreatedAt
-            });
+            };
+        }
+
+        public async Task<IEnumerable<GymDto>> GetAllGymsAsync()
+        {
+            var gyms = await _gymRepo.GetAllAsync();
+            return gyms.Select(MapToDto);
+        }
+
+        public async Task<IEnumerable<GymDto>> GetGymsByPartnerIdAsync(Guid ownerId)
+        {
+            var gyms = await _gymRepo.GetByOwnerIdAsync(ownerId);
+            return gyms.Select(MapToDto);
         }
 
         public async Task<GymDto?> GetGymByIdAsync(Guid id)

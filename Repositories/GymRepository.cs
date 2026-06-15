@@ -1,4 +1,4 @@
-﻿using Flexfit.Models;
+using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,15 @@ namespace Flexfit.Repositories
         private readonly FlexFitDbContext _db;
         public GymRepository(FlexFitDbContext db) => _db = db;
 
-        public async Task<IEnumerable<Gym>> GetAllAsync() => await _db.Gyms.ToListAsync();
+        public async Task<IEnumerable<Gym>> GetAllAsync()
+        {
+            return await _db.Gyms.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Gym>> GetByOwnerIdAsync(Guid ownerId)
+        {
+            return await _db.Gyms.Where(g => g.OwnerId == ownerId).ToListAsync();
+        }
 
         public async Task<Gym?> GetByIdAsync(Guid id) => await _db.Gyms.FindAsync(id);
 

@@ -14,5 +14,7 @@ namespace Flexfit.Service
         Task<bool> ProcessPaymentCallbackAsync(PaymentCallbackRequest callbackData);
         Task<bool> ProcessPayOSWebhookAsync(Webhook webhookBody);
         Task<UserCredit?> GetUserCreditAsync(Guid userId);
+        Task<IEnumerable<PaymentHistoryDto>> GetUserPaymentHistoryAsync(Guid userId);
+        Task<IEnumerable<PaymentHistoryDto>> GetAllPaymentsAsync();
     }
 }

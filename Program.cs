@@ -94,9 +94,9 @@ builder.Services.AddScoped<IGymService, GymService>();
 builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
-//builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ICheckInLogService, CheckInLogService>();
+builder.Services.AddScoped<IPartnerService, PartnerService>();
 builder.Services.AddScoped<IUserService, UserService>();
-//builder.Services.AddScoped<BookingService>();
 //builder.Services.AddScoped<CreditService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();

@@ -9,6 +9,8 @@ namespace Flexfit.Repositories
     {
         Task<IEnumerable<Class>> GetAllAsync();
         Task<IEnumerable<Class>> GetByBranchIdAsync(Guid branchId);
+        Task<IEnumerable<Class>> GetClassesByStaffIdAsync(Guid staffId);
+        Task<IEnumerable<Class>> GetClassesByPartnerIdAsync(Guid partnerId);
         Task<Class?> GetByIdAsync(Guid id);
         Task AddAsync(Class entity);
         Task UpdateAsync(Class entity);

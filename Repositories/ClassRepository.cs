@@ -33,6 +33,25 @@ namespace Flexfit.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Class>> GetClassesByStaffIdAsync(Guid staffId)
+        {
+            return await _db.Classes
+                .Include(c => c.Branch)
+                .Include(c => c.Category)
+                .Where(c => c.Branch.BranchStaffs.Any(bs => bs.StaffId == staffId))
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Class>> GetClassesByPartnerIdAsync(Guid partnerId)
+        {
+            return await _db.Classes
+                .Include(c => c.Branch)
+                .ThenInclude(b => b.Gym)
+                .Include(c => c.Category)
+                .Where(c => c.Branch.Gym.OwnerId == partnerId)
+                .ToListAsync();
+        }
+
         public async Task<Class?> GetByIdAsync(Guid id)
         {
             return await _db.Classes

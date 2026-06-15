@@ -14,6 +14,14 @@ namespace Flexfit.Repositories
                     .ThenInclude(bs => bs.Staff)
                 .ToListAsync();
 
+        public async Task<IEnumerable<Branch>> GetByOwnerIdAsync(Guid ownerId) =>
+            await _db.Branches
+                .Include(b => b.Gym)
+                .Include(b => b.BranchStaffs)
+                    .ThenInclude(bs => bs.Staff)
+                .Where(b => b.Gym.OwnerId == ownerId)
+                .ToListAsync();
+
         public async Task<Branch?> GetByIdAsync(Guid id) =>
             await _db.Branches
                 .Include(b => b.BranchStaffs)

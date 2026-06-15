@@ -5,6 +5,7 @@ namespace Flexfit.Repositories
     public interface IBranchRepository
     {
         Task<IEnumerable<Branch>> GetAllAsync();
+        Task<IEnumerable<Branch>> GetByOwnerIdAsync(Guid ownerId);
         Task<Branch?> GetByIdAsync(Guid id);
         Task AddAsync(Branch branch);
         Task UpdateAsync(Branch branch);

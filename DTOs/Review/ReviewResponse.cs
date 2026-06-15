@@ -8,7 +8,9 @@ namespace Flexfit.DTOs.Review
         public Guid UserId { get; set; }
         public string UserFullName { get; set; } = null!;
         public Guid? GymId { get; set; }
+        public string? GymName { get; set; }
         public Guid? ClassId { get; set; }
+        public string? ClassName { get; set; }
         public Guid? ClassBookingId { get; set; }
         public Guid? GymBookingId { get; set; }
         public int Rating { get; set; }

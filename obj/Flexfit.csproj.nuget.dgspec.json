@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\FlexFit\\FlexFit\\Flexfit.csproj": {}
+    "D:\\FlexFit\\FlexFit-phat\\FlexFit-phat\\Flexfit.csproj": {}
   },
   "projects": {
-    "D:\\FlexFit\\FlexFit\\Flexfit.csproj": {
+    "D:\\FlexFit\\FlexFit-phat\\FlexFit-phat\\Flexfit.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\FlexFit\\FlexFit\\Flexfit.csproj",
+        "projectUniqueName": "D:\\FlexFit\\FlexFit-phat\\FlexFit-phat\\Flexfit.csproj",
         "projectName": "Flexfit",
-        "projectPath": "D:\\FlexFit\\FlexFit\\Flexfit.csproj",
+        "projectPath": "D:\\FlexFit\\FlexFit-phat\\FlexFit-phat\\Flexfit.csproj",
         "packagesPath": "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\",
-        "outputPath": "D:\\FlexFit\\FlexFit\\obj\\",
+        "outputPath": "D:\\FlexFit\\FlexFit-phat\\FlexFit-phat\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -110,6 +110,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.27, 8.0.27]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[8.0.27, 8.0.27]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.27, 8.0.27]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[8.0.27, 8.0.27]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
