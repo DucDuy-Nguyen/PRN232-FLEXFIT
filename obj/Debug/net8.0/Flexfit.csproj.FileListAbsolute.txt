@@ -505,8 +505,8 @@ D:\EXE201\FlexFit\scratch\backend-build\Flexfit.runtimeconfig.json
 D:\EXE201\FlexFit\scratch\backend-build\Flexfit.dll
 D:\EXE201\FlexFit\scratch\backend-build\Flexfit.pdb
 D:\FlexFit\FlexFit-phat\FlexFit-phat\bin\Debug\net8.0\appsettings.Development.json
-D:\FlexFit\FlexFit-phat\FlexFit-phat\bin\Debug\net8.0\Flexfit.staticwebassets.endpoints.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\bin\Debug\net8.0\appsettings.json
+D:\FlexFit\FlexFit-phat\FlexFit-phat\bin\Debug\net8.0\Flexfit.staticwebassets.endpoints.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\bin\Debug\net8.0\Flexfit.exe
 D:\FlexFit\FlexFit-phat\FlexFit-phat\bin\Debug\net8.0\Flexfit.deps.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\bin\Debug\net8.0\Flexfit.runtimeconfig.json
@@ -651,6 +651,7 @@ D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.AssemblyInfo.cs
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.csproj.CoreCompileInputs.cache
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.MvcApplicationPartsAssemblyInfo.cs
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.MvcApplicationPartsAssemblyInfo.cache
+D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.sourcelink.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\rjimswa.dswa.cache.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
@@ -660,10 +661,10 @@ D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\staticwebassets.build.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\staticwebassets.development.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\staticwebassets.build.endpoints.json
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\swae.build.ex.cache
+D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.csproj.Up2Date
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.dll
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\refint\Flexfit.dll
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.pdb
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\Flexfit.genruntimeconfig.cache
 D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\ref\Flexfit.dll
-D:\FlexFit\FlexFit-phat\FlexFit-phat\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
