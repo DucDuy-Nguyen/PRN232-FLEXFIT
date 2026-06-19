@@ -1,4 +1,5 @@
 namespace Flexfit.DTOs
+
 {
     public class UserDto
     {
@@ -17,6 +18,7 @@ namespace Flexfit.DTOs
         public List<string> Roles { get; set; } = new List<string>();
         public string? AssignedGymName { get; set; }
         public string? AssignedBranchName { get; set; }
+
     }
 
     public class UpdateUserRequest

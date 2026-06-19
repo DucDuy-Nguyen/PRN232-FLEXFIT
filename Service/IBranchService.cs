@@ -21,6 +21,7 @@ namespace Flexfit.Services
         // 👥 Hàm quản lý nhân sự chi nhánh - Kiểm tra quyền sở hữu chi nhánh
         Task AssignStaffToBranchAsync(AssignStaffDto dto, Guid currentUserId);
         Task AssignStaffToBranchByEmailAsync(AssignStaffByEmailDto dto, Guid currentUserId);
+
         Task RemoveStaffFromBranchAsync(Guid staffId, Guid branchId, Guid currentUserId);
         Task UpdateBranchStaffAsync(UpdateBranchStaffDto dto, Guid currentUserId);
     }

@@ -173,6 +173,7 @@ namespace Flexfit.Repositories
             var ownsGym = await _context.Gyms.AnyAsync(g => g.OwnerId == ownerId);
 
             if (isStaff && !ownsGym)
+
             {
                 var branchIds = await _context.BranchStaffs
                     .Where(bs => bs.StaffId == ownerId)
@@ -206,6 +207,7 @@ namespace Flexfit.Repositories
             var ownsGym = await _context.Gyms.AnyAsync(g => g.OwnerId == ownerId);
 
             if (isStaff && !ownsGym)
+
             {
                 var branchIds = await _context.BranchStaffs
                     .Where(bs => bs.StaffId == ownerId)
@@ -279,6 +281,7 @@ namespace Flexfit.Repositories
         }
 
 
+
         public async Task<UserCredit?> GetUserCreditAsync(Guid userId)
         {
             return await _context.UserCredits
@@ -302,6 +305,7 @@ namespace Flexfit.Repositories
                 .Select(bs => bs.BranchId)
                 .ToListAsync();
         }
+
 
         public async Task<IEnumerable<Guid>> GetStaffIdsByBranchIdAsync(Guid branchId)
         {

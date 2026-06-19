@@ -55,6 +55,7 @@ namespace Flexfit.Repositories
                 .Include(u => u.BranchStaffs)
                     .ThenInclude(bs => bs.Branch)
                 .ToListAsync();
+
         }
 
         public async Task<User?> GetByIdAsync(Guid id)
@@ -66,6 +67,7 @@ namespace Flexfit.Repositories
                 .Include(u => u.BranchStaffs)
                     .ThenInclude(bs => bs.Branch)
                 .FirstOrDefaultAsync(u => u.UserId == id);
+
         }
 
         public async Task DeleteAsync(Guid id)

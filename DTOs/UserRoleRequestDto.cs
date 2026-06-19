@@ -6,3 +6,4 @@ public class UserRoleRequestDto
     public Guid? GymId { get; set; }
     public Guid? BranchId { get; set; }
 }
+

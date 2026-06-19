@@ -159,6 +159,7 @@ namespace Flexfit.Services
                 if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này.");
             }
 
+
             var gym = await _gymRepo.GetByIdAsync(id);
             if (gym == null) throw new KeyNotFoundException("Không tìm thấy phòng tập.");
 

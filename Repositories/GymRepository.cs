@@ -84,6 +84,7 @@ namespace Flexfit.Repositories
                 .ToListAsync();
         }
 
+
         public async Task RemoveUserRoleAsync(Guid userId, Guid roleId)
         {
             var userRole = await _db.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
@@ -99,3 +100,4 @@ namespace Flexfit.Repositories
         }
     }
 }
+

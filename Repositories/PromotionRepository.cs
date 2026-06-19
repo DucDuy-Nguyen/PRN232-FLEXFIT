@@ -51,6 +51,7 @@ namespace Flexfit.Repository
                 .FirstOrDefaultAsync();
         }
 
+
         // XÓA BỎ HÀM GetByCodeAsync vì hệ thống không dùng PromoCode
 
         public async Task AddAsync(Promotion promotion)
@@ -70,3 +71,4 @@ namespace Flexfit.Repository
         }
     }
 }
+

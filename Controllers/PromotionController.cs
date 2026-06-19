@@ -1,4 +1,5 @@
-using Flexfit.DTOs.Promotion;
+
+﻿using Flexfit.DTOs.Promotion;
 using Flexfit.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +59,7 @@ namespace Flexfit.Controllers
         /// </summary>
         [HttpPost]
         [Authorize(Roles = "Admin,Partner,GymPartner")] // Cho phép Partner và GymPartner tạo
+
         public async Task<IActionResult> Create([FromBody] CreatePromotionRequest request)
         {
             try
@@ -83,6 +85,7 @@ namespace Flexfit.Controllers
         /// </summary>
         [HttpDelete("{id:guid}")]
         [Authorize(Roles = "Admin,Partner,GymPartner")] // Cho phép Partner và GymPartner xóa
+
         public async Task<IActionResult> Delete(Guid id)
         {
             try

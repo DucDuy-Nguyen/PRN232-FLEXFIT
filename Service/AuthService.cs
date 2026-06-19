@@ -158,6 +158,7 @@ namespace Flexfit.Service
                 Token = _jwt.GenerateToken(user.UserId, user.Email, roles),
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60),
                 Roles = roles
+
             };
         }
 
@@ -231,6 +232,7 @@ namespace Flexfit.Service
                     Token = _jwt.GenerateToken(user.UserId, user.Email, roles),
                     ExpiresAt = DateTime.UtcNow.AddMinutes(60),
                     Roles = roles
+
                 };
             }
             catch (Exception ex)
@@ -387,3 +389,4 @@ namespace Flexfit.Service
         }
     }
 }
+

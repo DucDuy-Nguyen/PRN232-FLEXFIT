@@ -21,6 +21,7 @@ namespace Flexfit.Controllers
         {
             _partnerService = partnerService;
             _branchService = branchService;
+
             _logger = logger;
         }
 
@@ -102,5 +103,6 @@ public async Task<IActionResult> GetReviews()
                 return StatusCode(403, new { message = ex.Message });
             }
         }
+
     }
 }

@@ -26,6 +26,9 @@ namespace Flexfit.Services
             _branchRepo = branchRepo;
         }
 
+    
+
+
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
             var users = await _userRepo.GetAllAsync();
@@ -44,6 +47,7 @@ namespace Flexfit.Services
                 Roles = u.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>(),
                 AssignedGymName = u.Gyms?.FirstOrDefault()?.GymName,
                 AssignedBranchName = u.BranchStaffs?.FirstOrDefault()?.Branch?.BranchName
+
             });
         }
 
@@ -67,6 +71,7 @@ namespace Flexfit.Services
                 Roles = u.UserRoles?.Select(ur => ur.Role.RoleName).ToList() ?? new List<string>(),
                 AssignedGymName = u.Gyms?.FirstOrDefault()?.GymName,
                 AssignedBranchName = u.BranchStaffs?.FirstOrDefault()?.Branch?.BranchName
+
             };
         }
 
@@ -231,6 +236,7 @@ namespace Flexfit.Services
                     });
                     await _branchRepo.SaveChangesAsync();
                 }
+
                 return $"Người dùng {user.FullName} hiện đã có quyền {request.RoleName} rồi.";
             }
 
@@ -277,6 +283,7 @@ namespace Flexfit.Services
                 await _branchRepo.SaveChangesAsync();
             }
 
+
             // 🔔 Gửi thông báo cấp quyền mới thành công
             string title = "Cập nhật quyền hạn tài khoản";
             string content = $"Chúc mừng {user.FullName}, bạn đã được ban quản trị cấp thêm quyền hạn mới: [{request.RoleName}] vào hệ thống.";
@@ -315,3 +322,4 @@ namespace Flexfit.Services
         }
     }
 }
+

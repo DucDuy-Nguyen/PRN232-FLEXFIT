@@ -100,12 +100,14 @@ namespace Flexfit.Controllers
 
         [HttpPatch("{id}/status")]
         [Authorize(Roles = "Admin,Partner,GymPartner")]
+
         public async Task<IActionResult> ChangeGymStatus(Guid id, [FromBody] string status)
         {
             try
             {
                 bool isAdmin = User.IsInRole("Admin");
                 await _gymService.ChangeGymStatusAsync(id, status, GetCurrentUserId(), isAdmin);
+
                 return Ok(new { message = $"Đã chuyển trạng thái phòng tập thành: {status}" });
             }
             catch (KeyNotFoundException ex)

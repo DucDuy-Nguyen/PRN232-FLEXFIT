@@ -144,6 +144,7 @@ namespace Flexfit.Service
             {
                 CheckInLogId = Guid.NewGuid(),
                 UserId = booking.UserId,
+
                 GymBookingId = null,
                 ClassBookingId = request.ClassBookingId,
                 ScannedBy = staffId,
@@ -164,6 +165,7 @@ namespace Flexfit.Service
 
                 // Tá»° Äá»˜NG GHI NHáº¬N Lá»CH Sá»¬ Táº¬P LUYá»†N
                 await _workoutHistoryService.CreateHistoryFromCheckInAsync(booking.UserId, booking.BookingId, null);
+
             }
 
 

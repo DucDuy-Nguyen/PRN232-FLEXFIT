@@ -14,6 +14,7 @@ namespace Flexfit.Repositories
         // --- CÁC HÀM BỔ SUNG CHO LOGIC NHÂN SỰ ---
         Task<User?> GetUserByIdAsync(Guid userId);
         Task<User?> GetUserByEmailAsync(string email);
+
         Task<Role?> GetRoleByNameAsync(string roleName);
         Task<bool> UserHasRoleAsync(Guid userId, Guid roleId);
         Task AddUserRoleAsync(UserRole userRole);

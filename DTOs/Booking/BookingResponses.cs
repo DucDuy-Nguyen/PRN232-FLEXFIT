@@ -17,6 +17,7 @@ namespace Flexfit.DTOs.Booking
         public int DiscountPercent { get; set; }
         public int DiscountCredit { get; set; }
         public Guid? PromotionId { get; set; }
+
         public DateTime BookedAt { get; set; }
         public bool HasReview { get; set; }
         public Guid? ReviewId { get; set; }
@@ -44,6 +45,7 @@ namespace Flexfit.DTOs.Booking
         public int DiscountPercent { get; set; }
         public int DiscountCredit { get; set; }
         public Guid? PromotionId { get; set; }
+
         public DateTime BookedAt { get; set; }
         public bool HasReview { get; set; }
         public Guid? ReviewId { get; set; }
@@ -88,4 +90,5 @@ namespace Flexfit.DTOs.Booking
         public string? PromotionTitle { get; set; }
         public bool HasPromotion => PromotionId.HasValue && DiscountPercent > 0 && DiscountCredit > 0;
     }
+
 }

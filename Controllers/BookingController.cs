@@ -52,6 +52,7 @@ namespace Flexfit.Controllers
             }
         }
 
+
         [HttpPost("gym")]
         public async Task<IActionResult> BookGymSession([FromBody] CreateGymBookingRequest request)
         {
@@ -75,6 +76,7 @@ namespace Flexfit.Controllers
                 }
 
                 return Ok(new { Message = $"Đặt lịch Gym Session thành công. Đã dùng {result.CreditUsed} credit.", Data = result });
+
             }
             catch (Exception ex)
             {
@@ -151,6 +153,7 @@ namespace Flexfit.Controllers
                 }
 
                 return Ok(new { Message = $"Đặt lịch Class thành công. Đã dùng {result.CreditUsed} credit.", Data = result });
+
             }
             catch (Exception ex)
             {
@@ -245,3 +248,4 @@ namespace Flexfit.Controllers
 
     }
 }
+

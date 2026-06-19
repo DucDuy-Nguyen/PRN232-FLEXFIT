@@ -16,6 +16,7 @@ namespace Flexfit.Service
         Task<GymBookingResponse> CancelGymBookingAsync(Guid userId, Guid bookingId);
         Task<PromotionPreviewResponse> GetPromotionPreviewAsync(int originalCredit);
 
+
         // ========================================================
         // 2. CLASS BOOKING (MEMBER)
         // ========================================================
@@ -30,6 +31,7 @@ namespace Flexfit.Service
         Task<IEnumerable<ClassBookingResponse>> GetPartnerClassBookingsAsync(Guid ownerId);
         Task<IEnumerable<StaffCheckInBookingResponse>> GetStaffCheckInBookingsAsync(Guid staffId);
 
+
         /// <summary>
         /// [Staff/Partner] Lấy danh sách lịch đặt phòng Gym và Class của khách hàng, phân loại theo 3 Tab (Active, Upcoming, Past)
         /// </summary>
@@ -39,3 +41,4 @@ namespace Flexfit.Service
     
     }
 }
+
