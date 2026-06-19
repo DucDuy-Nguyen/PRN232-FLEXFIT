@@ -1,0 +1,75 @@
+@Flexfit_HostAddress = http://localhost:5023
+
+### 1. Lấy tất cả danh sách lớp học
+GET {{Flexfit_HostAddress}}/api/classes
+Accept: application/json
+
+###
+
+### 2. Lấy danh sách lớp học theo Chi nhánh (Thay BranchId thực tế vào đây)
+@BranchId = 00000000-0000-0000-0000-000000000000
+GET {{Flexfit_HostAddress}}/api/classes/branch/{{BranchId}}
+Accept: application/json
+
+###
+
+### 3. Lấy thông tin chi tiết Lớp học theo ID (Thay ClassId thực tế vào đây)
+@ClassId = 00000000-0000-0000-0000-000000000000
+GET {{Flexfit_HostAddress}}/api/classes/{{ClassId}}
+Accept: application/json
+
+###
+
+### 4. Tạo mới một Lớp học (Hãy đổi BranchId và CategoryId tương ứng trong DB của bạn)
+POST {{Flexfit_HostAddress}}/api/classes
+Content-Type: application/json
+
+{
+  "branchId": "9b2cbeaa-43e8-466d-88b9-8e7c5dfa2123",
+  "categoryId": "c92cbfaa-43e8-466d-88b9-8e7c5dfa2456",
+  "className": "Lớp Yoga Cơ Bản",
+  "description": "Lớp học Yoga thư giãn đầu óc, giảm áp lực cột sống.",
+  "coachName": "Nguyễn Văn A",
+  "startTime": "2026-06-01T08:00:00Z",
+  "endTime": "2026-06-01T09:30:00Z",
+  "capacity": 20,
+  "creditCost": 10,
+  "difficultyLevel": "Beginner",
+  "caloriesBurnEstimate": 350,
+  "thumbnailUrl": "https://example.com/yoga-basic.jpg"
+}
+
+###
+
+### 5. Cập nhật thông tin Lớp học (Thay ClassId và CategoryId thực tế)
+PUT {{Flexfit_HostAddress}}/api/classes/{{ClassId}}
+Content-Type: application/json
+
+{
+  "categoryId": "c92cbfaa-43e8-466d-88b9-8e7c5dfa2456",
+  "className": "Lớp Yoga Trung Cấp",
+  "description": "Lớp học nâng cao sức bền, dẻo dai cơ bắp.",
+  "coachName": "Nguyễn Văn A - Master",
+  "startTime": "2026-06-01T08:00:00Z",
+  "endTime": "2026-06-01T10:00:00Z",
+  "capacity": 15,
+  "creditCost": 15,
+  "difficultyLevel": "Intermediate",
+  "caloriesBurnEstimate": 450,
+  "thumbnailUrl": "https://example.com/yoga-intermediate.jpg",
+  "status": "Open"
+}
+
+###
+
+### 6. Cập nhật trạng thái Lớp học (Ví dụ sang Cancelled hoặc Completed)
+PATCH {{Flexfit_HostAddress}}/api/classes/{{ClassId}}/status
+Content-Type: application/json
+
+"Cancelled"
+
+###
+
+### 7. Xóa Lớp học (Chỉ thành công nếu lớp này chưa có ai đặt chỗ)
+DELETE {{Flexfit_HostAddress}}/api/classes/{{ClassId}}
+Accept: application/json
