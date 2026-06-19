@@ -87,8 +87,8 @@ namespace Flexfit.Service
                         OrderCode = orderCode,
                         Amount = (int)package.Price,
                         Description = descriptionText.Substring(0, Math.Min(25, descriptionText.Length)),
-                        CancelUrl = "https://localhost:7115/payment/cancel",
-                        ReturnUrl = "https://localhost:7115/payment/success"
+                        CancelUrl = "https://www.flexfit.io.vn/payment/cancel",
+                        ReturnUrl = "https://www.flexfit.io.vn/payment/success"
                     };
 
                     try
@@ -224,6 +224,12 @@ namespace Flexfit.Service
             if (verifiedData == null)
             {
                 throw new Exception("Xác thực chữ ký PayOS thất bại hoặc dữ liệu không hợp lệ.");
+            }
+
+            // PayOS gửi webhook test xác nhận với orderCode = 0 khi cấu hình URL
+            if (verifiedData.OrderCode == 0)
+            {
+                return true; // Trả OK để PayOS xác nhận webhook URL hợp lệ
             }
 
             var payment = await _paymentRepository.GetPaymentByTransactionCodeAsync(verifiedData.OrderCode.ToString());

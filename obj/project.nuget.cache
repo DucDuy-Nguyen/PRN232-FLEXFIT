@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "+ndfNud3ZLQ=",
+  "dgSpecHash": "Mj2MCb7iDvw=",
   "success": true,
-  "projectFilePath": "D:\\FlexFit\\long-BE\\FlexFit-main\\Flexfit.csproj",
+  "projectFilePath": "D:\\FlexFit\\Flexfit-V01\\FlexFit\\Flexfit.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",

@@ -87,20 +87,21 @@ namespace Flexfit.Controllers
         }
 
         [HttpPost("payos-webhook")]
+        [AllowAnonymous]
         public async Task<IActionResult> PayOSWebhook([FromBody] Webhook request)
         {
             try
             {
                 var result = await _paymentService.ProcessPayOSWebhookAsync(request);
-                if (result)
-                {
-                    return Ok(new { Message = "Xử lý PayOS Webhook thành công!", Success = true });
-                }
-                return BadRequest(new { Message = "Giao dịch không tồn tại hoặc đã được xử lý.", Success = false });
+                // PayOS yêu cầu luôn trả 200 OK để xác nhận đã nhận webhook
+                return Ok(new { Message = result ? "Xử lý PayOS Webhook thành công!" : "Webhook đã được ghi nhận.", Success = result });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message, Success = false });
+                // QUAN TRỌNG: Luôn trả 200 OK cho PayOS, nếu không PayOS sẽ retry liên tục
+                // Log lỗi nhưng vẫn trả OK
+                Console.WriteLine($"[PayOS Webhook Error] {ex.Message}");
+                return Ok(new { Message = "Webhook đã được ghi nhận.", Success = false, Error = ex.Message });
             }
         }
 

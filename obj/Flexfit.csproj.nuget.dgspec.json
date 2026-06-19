@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\FlexFit\\long-BE\\FlexFit-main\\Flexfit.csproj": {}
+    "D:\\FlexFit\\Flexfit-V01\\FlexFit\\Flexfit.csproj": {}
   },
   "projects": {
-    "D:\\FlexFit\\long-BE\\FlexFit-main\\Flexfit.csproj": {
+    "D:\\FlexFit\\Flexfit-V01\\FlexFit\\Flexfit.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\FlexFit\\long-BE\\FlexFit-main\\Flexfit.csproj",
+        "projectUniqueName": "D:\\FlexFit\\Flexfit-V01\\FlexFit\\Flexfit.csproj",
         "projectName": "Flexfit",
-        "projectPath": "D:\\FlexFit\\long-BE\\FlexFit-main\\Flexfit.csproj",
+        "projectPath": "D:\\FlexFit\\Flexfit-V01\\FlexFit\\Flexfit.csproj",
         "packagesPath": "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\",
-        "outputPath": "D:\\FlexFit\\long-BE\\FlexFit-main\\obj\\",
+        "outputPath": "D:\\FlexFit\\Flexfit-V01\\FlexFit\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
