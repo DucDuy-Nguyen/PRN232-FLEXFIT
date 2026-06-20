@@ -8,14 +8,21 @@ namespace Flexfit.Repositories
         private readonly FlexFitDbContext _db;
         public BranchRepository(FlexFitDbContext db) => _db = db;
 
+        // Thêm hàm này vào trong class BranchRepository
+        public async Task<GymAmenity?> GetAmenityByIdAsync(Guid amenityId) =>
+            await _db.GymAmenities.FindAsync(amenityId);
+
+        // Đồng thời CẬP NHẬT các hàm lấy Branch dưới đây để nạp kèm Amenities lên:
         public async Task<IEnumerable<Branch>> GetAllAsync() =>
             await _db.Branches
+                .Include(b => b.Amenities) // ✨ Bổ sung nạp kèm Amenities
                 .Include(b => b.BranchStaffs)
                     .ThenInclude(bs => bs.Staff)
                 .ToListAsync();
 
         public async Task<IEnumerable<Branch>> GetByOwnerIdAsync(Guid ownerId) =>
             await _db.Branches
+                .Include(b => b.Amenities) // ✨ Bổ sung nạp kèm Amenities
                 .Include(b => b.Gym)
                 .Include(b => b.BranchStaffs)
                     .ThenInclude(bs => bs.Staff)
@@ -24,6 +31,7 @@ namespace Flexfit.Repositories
 
         public async Task<Branch?> GetByIdAsync(Guid id) =>
             await _db.Branches
+                .Include(b => b.Amenities) // ✨ Bổ sung nạp kèm Amenities
                 .Include(b => b.BranchStaffs)
                     .ThenInclude(bs => bs.Staff)
                 .FirstOrDefaultAsync(b => b.BranchId == id);
@@ -117,6 +125,18 @@ namespace Flexfit.Repositories
                 .Include(b => b.Gym)
                 .AnyAsync(b => b.BranchId == branchId && b.Gym.OwnerId == userId);
         }
+        public async Task<IEnumerable<GymAmenity>> GetAllAmenitiesAsync() =>
+    await _db.GymAmenities.ToListAsync();
+
+        public async Task AddAmenityAsync(GymAmenity amenity)
+        {
+            await _db.GymAmenities.AddAsync(amenity);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<bool> AmenityExistsAsync(string amenityName) =>
+            await _db.GymAmenities.AnyAsync(a => a.AmenityName.ToLower() == amenityName.Trim().ToLower());
+
 
         public async Task SaveChangesAsync() => await _db.SaveChangesAsync();
     }

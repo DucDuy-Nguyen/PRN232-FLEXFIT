@@ -194,5 +194,33 @@ namespace Flexfit.Controllers
                 return StatusCode(403, new { message = ex.Message });
             }
         }
+        [HttpPut("{id}/amenities")]
+        [Authorize(Roles = "GymPartner,Staff")] // 🧘‍♂️ Cho phép cả GymPartner và Staff thêm/sửa tiện ích chi nhánh
+        public async Task<IActionResult> UpdateBranchAmenities(Guid id, [FromBody] UpdateBranchAmenitiesRequest request)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId == Guid.Empty)
+                {
+                    return Unauthorized(new { message = "Không xác định được danh tính người dùng." });
+                }
+
+                await _branchService.UpdateBranchAmenitiesAsync(id, request, currentUserId);
+                return Ok(new { message = "Cập nhật danh sách tiện ích của chi nhánh thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message }); // Trả về 403 nếu không phải chủ hoặc không phải staff được phân công ở đây
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống: " + ex.Message });
+            }
+        }
     }
 }

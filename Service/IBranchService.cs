@@ -24,5 +24,9 @@ namespace Flexfit.Services
 
         Task RemoveStaffFromBranchAsync(Guid staffId, Guid branchId, Guid currentUserId);
         Task UpdateBranchStaffAsync(UpdateBranchStaffDto dto, Guid currentUserId);
+        // 🔐 Quản lý danh sách tiện ích của chi nhánh (Yêu cầu Check chủ sở hữu chi nhánh hoặc Staff thuộc chi nhánh đó)
+        Task UpdateBranchAmenitiesAsync(Guid branchId, UpdateBranchAmenitiesRequest request, Guid currentUserId);
+        Task<IEnumerable<GymAmenityDto>> GetAllAmenitiesAsync();
+        Task<Guid> CreateAmenityAsync(string amenityName);
     }
 }

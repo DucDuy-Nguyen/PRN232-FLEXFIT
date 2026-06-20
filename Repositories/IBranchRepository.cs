@@ -30,6 +30,10 @@ namespace Flexfit.Repositories
         Task<int> CountBranchesForStaffAsync(Guid staffId, Guid excludeBranchId);
         Task<bool> CheckGymOwnershipAsync(Guid gymId, Guid userId);
         Task<bool> CheckBranchOwnershipAsync(Guid branchId, Guid userId);
+        Task<GymAmenity?> GetAmenityByIdAsync(Guid amenityId);
+        Task<IEnumerable<GymAmenity>> GetAllAmenitiesAsync();
+        Task AddAmenityAsync(GymAmenity amenity);
+        Task<bool> AmenityExistsAsync(string amenityName);
 
         Task SaveChangesAsync();
     }

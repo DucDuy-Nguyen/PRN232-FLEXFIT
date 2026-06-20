@@ -13,12 +13,24 @@ namespace Flexfit.Services
     public class BranchService : IBranchService
     {
         private readonly IBranchRepository _branchRepo;
-        private readonly INotificationService _notificationService; // 🔔 THÊM INOTIFICATIONSERVICE
+        private readonly INotificationService _notificationService;
 
         public BranchService(IBranchRepository branchRepo, INotificationService notificationService)
         {
             _branchRepo = branchRepo;
-            _notificationService = notificationService; // 🔔 Khởi tạo notification service
+            _notificationService = notificationService;
+        }
+
+        // Hàm helper kiểm tra quyền: Phải là Chủ chi nhánh HOẶC Staff của chi nhánh đó
+        private async Task<bool> CheckBranchManagementPermissionAsync(Guid branchId, Guid userId)
+        {
+            var isOwner = await _branchRepo.CheckBranchOwnershipAsync(branchId, userId);
+            if (isOwner) return true;
+
+            var isStaffHere = await _branchRepo.IsStaffInBranchAsync(userId, branchId);
+            if (isStaffHere) return true;
+
+            return false;
         }
 
         public async Task<IEnumerable<BranchDto>> GetAllBranchesAsync()
@@ -68,8 +80,9 @@ namespace Flexfit.Services
 
         public async Task UpdateBranchAsync(Guid id, UpdateBranchRequest request, Guid currentUserId)
         {
-            var isOwner = await _branchRepo.CheckBranchOwnershipAsync(id, currentUserId);
-            if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa chi nhánh này.");
+            // Cho phép cả Staff phụ trách chi nhánh cập nhật thông tin chung của chi nhánh nếu cần
+            var hasPermission = await CheckBranchManagementPermissionAsync(id, currentUserId);
+            if (!hasPermission) throw new UnauthorizedAccessException("Bạn không có quyền chỉnh sửa chi nhánh này.");
 
             var branch = await _branchRepo.GetByIdAsync(id);
             if (branch == null) throw new KeyNotFoundException("Không tìm thấy chi nhánh.");
@@ -113,9 +126,48 @@ namespace Flexfit.Services
         }
 
         // ==========================================================
-        // KHU VỰC THAY ĐỔI NHÂN SỰ - CÓ GỬI NOTIFICATION CHO STAFF
+        // KHU VỰC QUẢN LÝ TIỆN ÍCH (AMENITIES) CHI NHÁNH
         // ==========================================================
+        public async Task UpdateBranchAmenitiesAsync(Guid branchId, UpdateBranchAmenitiesRequest request, Guid currentUserId)
+        {
+            // 🛑 CHECK QUYỀN: GymPartner (Owner) HOẶC Staff được assign vào chi nhánh mới có quyền add/bớt tiện ích
+            var hasPermission = await CheckBranchManagementPermissionAsync(branchId, currentUserId);
+            if (!hasPermission) throw new UnauthorizedAccessException("Bạn không có quyền quản lý tiện ích tại chi nhánh này.");
 
+            var branch = await _branchRepo.GetByIdAsync(branchId);
+            if (branch == null) throw new KeyNotFoundException("Chi nhánh không tồn tại.");
+
+            // Clear các tiện ích cũ đang liên kết và nạp lại danh sách mới
+            if (branch.Amenities == null)
+            {
+                branch.Amenities = new List<GymAmenity>();
+            }
+            else
+            {
+                branch.Amenities.Clear();
+            }
+
+            if (request.AmenityIds != null && request.AmenityIds.Any())
+            {
+                foreach (var amenityId in request.AmenityIds)
+                {
+                    // Giả sử repository của bạn có hàm lấy thực thể Amenity gốc từ Database hoặc viết trực tiếp qua DbContext
+                    var amenity = await _branchRepo.GetAmenityByIdAsync(amenityId);
+                    if (amenity != null)
+                    {
+                        branch.Amenities.Add(amenity);
+                    }
+                }
+            }
+
+            branch.UpdatedAt = DateTimeHelper.GetVietnamTime();
+            await _branchRepo.UpdateAsync(branch);
+            await _branchRepo.SaveChangesAsync();
+        }
+
+        // ==========================================================
+        // KHU VỰC THAY ĐỔI NHÂN SỰ
+        // ==========================================================
         public async Task AssignStaffToBranchAsync(AssignStaffDto dto, Guid currentUserId)
         {
             var isOwner = await _branchRepo.CheckBranchOwnershipAsync(dto.BranchId, currentUserId);
@@ -145,7 +197,6 @@ namespace Flexfit.Services
 
             await _branchRepo.SaveChangesAsync();
 
-            // 🔔 GỬI THÔNG BÁO BỔ NHIỆM CHO NHÂN VIÊN
             try
             {
                 await _notificationService.SendAsync(
@@ -160,10 +211,7 @@ namespace Flexfit.Services
 
         public async Task AssignStaffToBranchByEmailAsync(AssignStaffByEmailDto dto, Guid currentUserId)
         {
-            if (string.IsNullOrWhiteSpace(dto.Email))
-            {
-                throw new ArgumentException("Vui lòng nhập email nhân viên.");
-            }
+            if (string.IsNullOrWhiteSpace(dto.Email)) throw new ArgumentException("Vui lòng nhập email nhân viên.");
 
             var partnerRole = await _branchRepo.GetRoleByNameAsync("GymPartner");
             if (partnerRole == null || !await _branchRepo.UserHasRoleAsync(currentUserId, partnerRole.RoleId))
@@ -172,22 +220,13 @@ namespace Flexfit.Services
             }
 
             var isOwner = await _branchRepo.CheckBranchOwnershipAsync(dto.BranchId, currentUserId);
-            if (!isOwner)
-            {
-                throw new UnauthorizedAccessException("Bạn không có quyền quản lý nhân sự tại chi nhánh này.");
-            }
+            if (!isOwner) throw new UnauthorizedAccessException("Bạn không có quyền quản lý nhân sự tại chi nhánh này.");
 
             var branch = await _branchRepo.GetByIdAsync(dto.BranchId);
-            if (branch == null)
-            {
-                throw new KeyNotFoundException("Chi nhánh không tồn tại trên hệ thống.");
-            }
+            if (branch == null) throw new KeyNotFoundException("Chi nhánh không tồn tại trên hệ thống.");
 
             var employee = await _branchRepo.GetUserByEmailAsync(dto.Email);
-            if (employee == null)
-            {
-                throw new KeyNotFoundException("Không tìm thấy tài khoản với email này.");
-            }
+            if (employee == null) throw new KeyNotFoundException("Không tìm thấy tài khoản với email này.");
 
             var roleNames = employee.UserRoles
                 .Select(ur => ur.Role?.RoleName)
@@ -195,26 +234,18 @@ namespace Flexfit.Services
                 .Select(roleName => roleName!)
                 .ToList();
 
-            if (roleNames.Contains("Admin", StringComparer.OrdinalIgnoreCase) ||
-                roleNames.Contains("GymPartner", StringComparer.OrdinalIgnoreCase))
+            if (roleNames.Contains("Admin", StringComparer.OrdinalIgnoreCase) || roleNames.Contains("GymPartner", StringComparer.OrdinalIgnoreCase))
             {
                 throw new ArgumentException("Không thể thêm tài khoản Admin hoặc GymPartner làm nhân viên.");
             }
 
             var hasOtherBranchAssignment = employee.BranchStaffs.Any(bs => bs.BranchId != dto.BranchId);
-            if (hasOtherBranchAssignment)
-            {
-                throw new ArgumentException("Tài khoản này đã là nhân viên của phòng gym khác.");
-            }
+            if (hasOtherBranchAssignment) throw new ArgumentException("Tài khoản này đã là nhân viên của phòng gym khác.");
 
             var staffRole = await _branchRepo.GetRoleByNameAsync("Staff");
-            if (staffRole == null)
-            {
-                throw new ArgumentException("Hệ thống chưa cấu hình vai trò 'Staff' trong DB!");
-            }
+            if (staffRole == null) throw new ArgumentException("Hệ thống chưa cấu hình vai trò 'Staff' trong DB!");
 
-            var hasStaffRole = roleNames.Contains("Staff", StringComparer.OrdinalIgnoreCase) ||
-                await _branchRepo.UserHasRoleAsync(employee.UserId, staffRole.RoleId);
+            var hasStaffRole = roleNames.Contains("Staff", StringComparer.OrdinalIgnoreCase) || await _branchRepo.UserHasRoleAsync(employee.UserId, staffRole.RoleId);
             if (!hasStaffRole)
             {
                 await _branchRepo.AddUserRoleAsync(new UserRole
@@ -273,7 +304,6 @@ namespace Flexfit.Services
             }
             await _branchRepo.SaveChangesAsync();
 
-            // 🔔 GỬI THÔNG BÁO THU HỒI QUYỀN CHO NHÂN VIÊN
             try
             {
                 await _notificationService.SendAsync(
@@ -315,7 +345,6 @@ namespace Flexfit.Services
                     }
                 }
 
-                // 🔔 1. GỬI THÔNG BÁO GỠ QUYỀN CHO NHÂN VIÊN CŨ
                 try
                 {
                     await _notificationService.SendAsync(
@@ -343,7 +372,6 @@ namespace Flexfit.Services
 
             await _branchRepo.SaveChangesAsync();
 
-            // 🔔 2. GỬI THÔNG BÁO BỔ NHIỆM CHO NHÂN VIÊN MỚI
             try
             {
                 await _notificationService.SendAsync(
@@ -355,7 +383,38 @@ namespace Flexfit.Services
             }
             catch { }
         }
+        public async Task<IEnumerable<GymAmenityDto>> GetAllAmenitiesAsync()
+        {
+            var amenities = await _branchRepo.GetAllAmenitiesAsync();
+            return amenities.Select(a => new GymAmenityDto
+            {
+                AmenityId = a.AmenityId,
+                AmenityName = a.AmenityName
+            });
+        }
 
+        public async Task<Guid> CreateAmenityAsync(string amenityName)
+        {
+            if (string.IsNullOrWhiteSpace(amenityName))
+                throw new ArgumentException("Tên tiện ích không được để trống.");
+
+            var exists = await _branchRepo.AmenityExistsAsync(amenityName);
+            if (exists)
+                throw new ArgumentException("Tên tiện ích này đã tồn tại trên hệ thống.");
+
+            var newAmenity = new GymAmenity
+            {
+                AmenityId = Guid.NewGuid(),
+                AmenityName = amenityName.Trim()
+            };
+
+            await _branchRepo.AddAmenityAsync(newAmenity);
+            return newAmenity.AmenityId;
+        }
+
+        // ==========================================================
+        // MAPPER DỮ LIỆU ĐẦU RA (ĐÃ BAO GỒM TIỆN ÍCH AMENITIES)
+        // ==========================================================
         private static BranchDto MapToDto(Branch b)
         {
             return new BranchDto
@@ -372,11 +431,18 @@ namespace Flexfit.Services
                 CreditCost = b.CreditCost,
                 IsActive = b.IsActive,
                 CreatedAt = b.CreatedAt,
-                Staffs = b.BranchStaffs.Select(bs => new StaffInfoDto
+                Staffs = b.BranchStaffs?.Select(bs => new StaffInfoDto
                 {
                     StaffId = bs.StaffId,
                     FullName = bs.Staff?.FullName ?? "N/A"
-                }).ToList()
+                }).ToList() ?? new List<StaffInfoDto>(),
+
+                // 🧘‍♂️ Ánh xạ danh sách tiện ích từ Object Entity sang Dto kết quả trả về
+                Amenities = b.Amenities?.Select(a => new GymAmenityDto
+                {
+                    AmenityId = a.AmenityId,
+                    AmenityName = a.AmenityName
+                }).ToList() ?? new List<GymAmenityDto>()
             };
         }
     }

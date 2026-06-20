@@ -16,6 +16,7 @@
         public DateTime CreatedAt { get; set; }
 
         public List<StaffInfoDto> Staffs { get; set; } = new List<StaffInfoDto>();
+        public List<GymAmenityDto> Amenities { get; set; } = new List<GymAmenityDto>();
     }
 
     // Class phụ để hứng thông tin gọn gàng của Staff
