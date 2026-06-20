@@ -222,5 +222,37 @@ namespace Flexfit.Controllers
                 return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống: " + ex.Message });
             }
         }
+        // ==========================================================
+        // KHU VỰC QUẢN LÝ HÌNH ẢNH (IMAGES) CHI NHÁNH
+        // ==========================================================
+
+        [HttpPut("{id}/images")]
+        [Authorize(Roles = "GymPartner,Staff")] // Cho phép cả chủ phòng gym và nhân viên chi nhánh cập nhật ảnh
+        public async Task<IActionResult> UpdateBranchImages(Guid id, [FromBody] UpdateBranchImagesRequest request)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId == Guid.Empty)
+                {
+                    return Unauthorized(new { message = "Không xác định được danh tính người dùng." });
+                }
+
+                await _branchService.UpdateBranchImagesAsync(id, request, currentUserId);
+                return Ok(new { message = "Cập nhật danh sách hình ảnh chi nhánh thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { message = ex.Message }); // Chặn nếu không đúng owner hoặc staff của branch này
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
     }
 }

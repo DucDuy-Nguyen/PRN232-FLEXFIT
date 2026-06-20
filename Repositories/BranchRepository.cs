@@ -13,28 +13,31 @@ namespace Flexfit.Repositories
             await _db.GymAmenities.FindAsync(amenityId);
 
         // Đồng thời CẬP NHẬT các hàm lấy Branch dưới đây để nạp kèm Amenities lên:
-        public async Task<IEnumerable<Branch>> GetAllAsync() =>
-            await _db.Branches
-                .Include(b => b.Amenities) // ✨ Bổ sung nạp kèm Amenities
-                .Include(b => b.BranchStaffs)
-                    .ThenInclude(bs => bs.Staff)
-                .ToListAsync();
+        public async Task<Branch?> GetByIdAsync(Guid id) =>
+    await _db.Branches
+        .Include(b => b.Amenities)      // Nạp tiện ích từ bảng BranchAmenityMappings
+        .Include(b => b.BranchImages)   // Nạp hình ảnh từ bảng BranchImages
+        .Include(b => b.BranchStaffs)
+            .ThenInclude(bs => bs.Staff)
+        .FirstOrDefaultAsync(b => b.BranchId == id);
 
         public async Task<IEnumerable<Branch>> GetByOwnerIdAsync(Guid ownerId) =>
             await _db.Branches
-                .Include(b => b.Amenities) // ✨ Bổ sung nạp kèm Amenities
+                .Include(b => b.Amenities)
+                .Include(b => b.BranchImages)
                 .Include(b => b.Gym)
                 .Include(b => b.BranchStaffs)
                     .ThenInclude(bs => bs.Staff)
                 .Where(b => b.Gym.OwnerId == ownerId)
                 .ToListAsync();
 
-        public async Task<Branch?> GetByIdAsync(Guid id) =>
+        public async Task<IEnumerable<Branch>> GetAllAsync() =>
             await _db.Branches
-                .Include(b => b.Amenities) // ✨ Bổ sung nạp kèm Amenities
+                .Include(b => b.Amenities)
+                .Include(b => b.BranchImages)
                 .Include(b => b.BranchStaffs)
                     .ThenInclude(bs => bs.Staff)
-                .FirstOrDefaultAsync(b => b.BranchId == id);
+                .ToListAsync();
 
         public async Task AddAsync(Branch branch)
         {

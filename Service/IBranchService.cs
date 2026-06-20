@@ -28,5 +28,7 @@ namespace Flexfit.Services
         Task UpdateBranchAmenitiesAsync(Guid branchId, UpdateBranchAmenitiesRequest request, Guid currentUserId);
         Task<IEnumerable<GymAmenityDto>> GetAllAmenitiesAsync();
         Task<Guid> CreateAmenityAsync(string amenityName);
+        // 🔐 Quản lý hình ảnh của chi nhánh (Cho phép GymPartner hoặc Staff phụ trách chi nhánh thực hiện)
+        Task UpdateBranchImagesAsync(Guid branchId, UpdateBranchImagesRequest request, Guid currentUserId);
     }
 }

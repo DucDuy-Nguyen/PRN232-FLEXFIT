@@ -411,6 +411,52 @@ namespace Flexfit.Services
             await _branchRepo.AddAmenityAsync(newAmenity);
             return newAmenity.AmenityId;
         }
+        // ==========================================================
+        // KHU VỰC QUẢN LÝ HÌNH ẢNH (IMAGES) CHI NHÁNH
+        // ==========================================================
+        public async Task UpdateBranchImagesAsync(Guid branchId, UpdateBranchImagesRequest request, Guid currentUserId)
+        {
+            // 🛑 CHECK QUYỀN: Phải là GymPartner (Owner) hoặc Staff thuộc chi nhánh này mới được thêm ảnh
+            var hasPermission = await CheckBranchManagementPermissionAsync(branchId, currentUserId);
+            if (!hasPermission) throw new UnauthorizedAccessException("Bạn không có quyền quản lý hình ảnh tại chi nhánh này.");
+
+            var branch = await _branchRepo.GetByIdAsync(branchId);
+            if (branch == null) throw new KeyNotFoundException("Chi nhánh không tồn tại.");
+
+            // Khởi tạo nếu tập hợp bị null
+            if (branch.BranchImages == null)
+            {
+                branch.BranchImages = new List<BranchImage>();
+            }
+            else
+            {
+                // Xóa các liên kết hình ảnh cũ để làm sạch dữ liệu trước khi nạp bộ ảnh mới
+                branch.BranchImages.Clear();
+            }
+
+            // Duyệt qua danh sách ảnh mới gửi từ client lên và thêm vào chi nhánh
+            if (request.Images != null && request.Images.Any())
+            {
+                foreach (var imgReq in request.Images)
+                {
+                    if (string.IsNullOrWhiteSpace(imgReq.ImageUrl)) continue;
+
+                    branch.BranchImages.Add(new BranchImage
+                    {
+                        BranchImageId = Guid.NewGuid(),
+                        BranchId = branchId,
+                        ImageUrl = imgReq.ImageUrl.Trim(),
+                        DisplayOrder = imgReq.DisplayOrder
+                    });
+                }
+            }
+
+            branch.UpdatedAt = DateTimeHelper.GetVietnamTime();
+
+            // Lưu xuống DB thông qua Repository
+            await _branchRepo.UpdateAsync(branch);
+            await _branchRepo.SaveChangesAsync();
+        }
 
         // ==========================================================
         // MAPPER DỮ LIỆU ĐẦU RA (ĐÃ BAO GỒM TIỆN ÍCH AMENITIES)
@@ -437,12 +483,19 @@ namespace Flexfit.Services
                     FullName = bs.Staff?.FullName ?? "N/A"
                 }).ToList() ?? new List<StaffInfoDto>(),
 
-                // 🧘‍♂️ Ánh xạ danh sách tiện ích từ Object Entity sang Dto kết quả trả về
                 Amenities = b.Amenities?.Select(a => new GymAmenityDto
                 {
                     AmenityId = a.AmenityId,
                     AmenityName = a.AmenityName
-                }).ToList() ?? new List<GymAmenityDto>()
+                }).ToList() ?? new List<GymAmenityDto>(),
+
+                // 📸 Ánh xạ danh sách hình ảnh trả về cho Client hiển thị
+                Images = b.BranchImages?.Select(i => new BranchImageDto
+                {
+                    BranchImageId = i.BranchImageId,
+                    ImageUrl = i.ImageUrl,
+                    DisplayOrder = i.DisplayOrder
+                }).OrderBy(i => i.DisplayOrder).ToList() ?? new List<BranchImageDto>()
             };
         }
     }
