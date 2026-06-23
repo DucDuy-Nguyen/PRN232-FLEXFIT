@@ -1,5 +1,9 @@
 ﻿using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Flexfit.Repositories
 {
@@ -21,7 +25,7 @@ namespace Flexfit.Repositories
                     .ThenInclude(bs => bs.Staff)
                 .FirstOrDefaultAsync(b => b.BranchId == id);
 
-        // ĐÃ SỬA LỖI TYPO: Đổi từ .Include(b => g => g.Gym) thành .Include(b => b.Gym)
+        // Lấy danh sách chi nhánh theo OwnerId
         public async Task<IEnumerable<Branch>> GetByOwnerIdAsync(Guid ownerId) =>
             await _db.Branches
                 .Include(b => b.Amenities)
@@ -52,17 +56,62 @@ namespace Flexfit.Repositories
             await _db.SaveChangesAsync();
         }
 
+        // 🛠️ ĐÃ SỬA LỖI: Dọn dẹp dữ liệu liên quan trước khi xóa nhánh gốc để tránh lỗi khóa ngoại (FK Constraint)
         public async Task DeleteAsync(Guid id)
         {
-            var branch = await _db.Branches.FindAsync(id);
-            if (branch != null)
+            // 1. Lấy chi nhánh lên và Include bảng trung gian Amenities
+            var branch = await _db.Branches
+                .Include(b => b.Amenities)
+                .FirstOrDefaultAsync(b => b.BranchId == id);
+
+            if (branch == null) return;
+
+            // 2. Gỡ bỏ liên kết với Amenities
+            if (branch.Amenities != null)
             {
-                _db.Branches.Remove(branch);
-                await _db.SaveChangesAsync();
+                branch.Amenities.Clear();
             }
+
+            // 3. Xóa toàn bộ Hình ảnh (Images)
+            var branchImages = await _db.BranchImages.Where(i => i.BranchId == id).ToListAsync();
+            if (branchImages.Any())
+            {
+                _db.BranchImages.RemoveRange(branchImages);
+            }
+
+            // 4. Xóa toàn bộ Nhân viên (Staffs)
+            var branchStaffs = await _db.BranchStaffs.Where(s => s.BranchId == id).ToListAsync();
+            if (branchStaffs.Any())
+            {
+                _db.BranchStaffs.RemoveRange(branchStaffs);
+            }
+
+            // 5. Lấy danh sách các Phiên tập (Sessions) thuộc chi nhánh
+            var gymSessions = await _db.GymSessions.Where(gs => gs.BranchId == id).ToListAsync();
+            if (gymSessions.Any())
+            {
+                // Lấy danh sách ID của các Session này
+                var sessionIds = gymSessions.Select(gs => gs.SessionId).ToList();
+
+                // 🚀 FIX LỖI MỚI NHẤT: Xóa toàn bộ Lịch đặt (Bookings) đang tham chiếu đến các Session này
+                var gymBookings = await _db.GymBookings.Where(gb => sessionIds.Contains(gb.SessionId)).ToListAsync();
+                if (gymBookings.Any())
+                {
+                    _db.GymBookings.RemoveRange(gymBookings);
+                }
+
+                // 6. Xóa các GymSessions sau khi đã dọn dẹp xong Bookings
+                _db.GymSessions.RemoveRange(gymSessions);
+            }
+
+            // 7. Cuối cùng, xóa chi nhánh gốc
+            _db.Branches.Remove(branch);
+
+            // 8. Lưu toàn bộ thay đổi xuống Database
+            await _db.SaveChangesAsync();
         }
 
-        // 🛠️ HÀM KHẮC PHỤC LỖI RUNTIME 500: Xóa ảnh cũ trực tiếp từ DbContext để tránh xung đột Tracking
+        // Xóa ảnh cũ trực tiếp từ DbContext để tránh xung đột Tracking
         public async Task RemoveImagesByBranchIdAsync(Guid branchId)
         {
             var existingImages = _db.BranchImages.Where(img => img.BranchId == branchId);
@@ -149,6 +198,7 @@ namespace Flexfit.Repositories
 
         public async Task<bool> AmenityExistsAsync(string amenityName) =>
             await _db.GymAmenities.AnyAsync(a => a.AmenityName.ToLower() == amenityName.Trim().ToLower());
+
         public async Task UpdateBranchImagesDbAsync(Guid branchId, List<BranchImage> newImages)
         {
             // 1. Tìm tất cả ảnh cũ của chi nhánh này và XÓA CHÍNH XÁC khỏi Database
