@@ -7,7 +7,7 @@ using Flexfit.DTOs.Review;
 using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Flexfit.Services
+namespace Flexfit.Service
 {
     public class PartnerService : IPartnerService
     {

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Flexfit.DTOs;
 using Flexfit.DTOs.Review;
 
-namespace Flexfit.Services
+namespace Flexfit.Service
 {
     public interface IPartnerService
     {

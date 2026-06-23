@@ -1,5 +1,5 @@
 ﻿using Flexfit.DTOs;
-using Flexfit.Services;
+using Flexfit.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -253,6 +253,6 @@ namespace Flexfit.Controllers
             {
                 return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
             }
-        }
+        }   
     }
 }

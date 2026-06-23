@@ -125,7 +125,7 @@ public partial class FlexFitDbContext : DbContext
 
             entity.HasOne(d => d.Branch).WithMany(p => p.BranchImages)
                 .HasForeignKey(d => d.BranchId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__BranchIma__Branc__66603565");
         });
 
@@ -315,7 +315,7 @@ public partial class FlexFitDbContext : DbContext
             entity.HasOne(d => d.User)
                 .WithMany(p => p.FavoriteClasses) // Đảm bảo trong Model User.cs cũng có ICollection<FavoriteClass>
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade);  
         });
 
         modelBuilder.Entity<Gym>(entity =>

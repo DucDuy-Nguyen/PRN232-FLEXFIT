@@ -1,5 +1,5 @@
 ﻿using Flexfit.DTOs;
-using Flexfit.Services;
+using Flexfit.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

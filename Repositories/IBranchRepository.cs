@@ -11,7 +11,10 @@ namespace Flexfit.Repositories
         Task UpdateAsync(Branch branch);
         Task DeleteAsync(Guid id);
 
-        // --- CÁC HÀM BỔ SUNG CHO LOGIC NHÂN SỰ ---
+        // --- HÀM CHO LOGIC HÌNH ẢNH (MỚI THÊM VÀO) ---
+        Task RemoveImagesByBranchIdAsync(Guid branchId);
+
+        // --- CÁC HÀM BỔ SUNG CHO LOGIC NHÂN SỰ & TIỆN ÍCH ---
         Task<User?> GetUserByIdAsync(Guid userId);
         Task<User?> GetUserByEmailAsync(string email);
 
@@ -34,6 +37,7 @@ namespace Flexfit.Repositories
         Task<IEnumerable<GymAmenity>> GetAllAmenitiesAsync();
         Task AddAmenityAsync(GymAmenity amenity);
         Task<bool> AmenityExistsAsync(string amenityName);
+        Task UpdateBranchImagesDbAsync(Guid branchId, List<BranchImage> newImages);
 
         Task SaveChangesAsync();
     }

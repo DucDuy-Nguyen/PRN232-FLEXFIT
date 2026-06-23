@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Flexfit.Services
+namespace Flexfit.Service
 {
     public class BranchService : IBranchService
     {
@@ -161,7 +161,7 @@ namespace Flexfit.Services
             }
 
             branch.UpdatedAt = DateTimeHelper.GetVietnamTime();
-            await _branchRepo.UpdateAsync(branch);
+            // Lưu thay đổi
             await _branchRepo.SaveChangesAsync();
         }
 
@@ -416,32 +416,22 @@ namespace Flexfit.Services
         // ==========================================================
         public async Task UpdateBranchImagesAsync(Guid branchId, UpdateBranchImagesRequest request, Guid currentUserId)
         {
-            // 🛑 CHECK QUYỀN: Phải là GymPartner (Owner) hoặc Staff thuộc chi nhánh này mới được thêm ảnh
+            // 1. Kiểm tra quyền và sự tồn tại
             var hasPermission = await CheckBranchManagementPermissionAsync(branchId, currentUserId);
             if (!hasPermission) throw new UnauthorizedAccessException("Bạn không có quyền quản lý hình ảnh tại chi nhánh này.");
 
             var branch = await _branchRepo.GetByIdAsync(branchId);
             if (branch == null) throw new KeyNotFoundException("Chi nhánh không tồn tại.");
 
-            // Khởi tạo nếu tập hợp bị null
-            if (branch.BranchImages == null)
-            {
-                branch.BranchImages = new List<BranchImage>();
-            }
-            else
-            {
-                // Xóa các liên kết hình ảnh cũ để làm sạch dữ liệu trước khi nạp bộ ảnh mới
-                branch.BranchImages.Clear();
-            }
-
-            // Duyệt qua danh sách ảnh mới gửi từ client lên và thêm vào chi nhánh
+            // 2. Tạo danh sách ảnh mới (Chỉ tạo List ở ngoài, KHÔNG gán đè vào branch.BranchImages)
+            var newImages = new List<BranchImage>();
             if (request.Images != null && request.Images.Any())
             {
                 foreach (var imgReq in request.Images)
                 {
                     if (string.IsNullOrWhiteSpace(imgReq.ImageUrl)) continue;
 
-                    branch.BranchImages.Add(new BranchImage
+                    newImages.Add(new BranchImage
                     {
                         BranchImageId = Guid.NewGuid(),
                         BranchId = branchId,
@@ -451,11 +441,11 @@ namespace Flexfit.Services
                 }
             }
 
+            // 3. Cập nhật thời gian cho nhánh
             branch.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
-            // Lưu xuống DB thông qua Repository
-            await _branchRepo.UpdateAsync(branch);
-            await _branchRepo.SaveChangesAsync();
+            // 4. 🚀 GỌI XUỐNG REPO ĐỂ THỰC THI (Fix triệt để lỗi 500)
+            await _branchRepo.UpdateBranchImagesDbAsync(branchId, newImages);
         }
 
         // ==========================================================

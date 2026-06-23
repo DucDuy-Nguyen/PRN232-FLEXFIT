@@ -8,19 +8,20 @@ namespace Flexfit.Repositories
         private readonly FlexFitDbContext _db;
         public BranchRepository(FlexFitDbContext db) => _db = db;
 
-        // Thêm hàm này vào trong class BranchRepository
+        // Lấy tiện ích theo Id
         public async Task<GymAmenity?> GetAmenityByIdAsync(Guid amenityId) =>
             await _db.GymAmenities.FindAsync(amenityId);
 
-        // Đồng thời CẬP NHẬT các hàm lấy Branch dưới đây để nạp kèm Amenities lên:
+        // Lấy chi nhánh theo Id kèm các mối quan hệ liên quan
         public async Task<Branch?> GetByIdAsync(Guid id) =>
-    await _db.Branches
-        .Include(b => b.Amenities)      // Nạp tiện ích từ bảng BranchAmenityMappings
-        .Include(b => b.BranchImages)   // Nạp hình ảnh từ bảng BranchImages
-        .Include(b => b.BranchStaffs)
-            .ThenInclude(bs => bs.Staff)
-        .FirstOrDefaultAsync(b => b.BranchId == id);
+            await _db.Branches
+                .Include(b => b.Amenities)
+                .Include(b => b.BranchImages)
+                .Include(b => b.BranchStaffs)
+                    .ThenInclude(bs => bs.Staff)
+                .FirstOrDefaultAsync(b => b.BranchId == id);
 
+        // ĐÃ SỬA LỖI TYPO: Đổi từ .Include(b => g => g.Gym) thành .Include(b => b.Gym)
         public async Task<IEnumerable<Branch>> GetByOwnerIdAsync(Guid ownerId) =>
             await _db.Branches
                 .Include(b => b.Amenities)
@@ -61,7 +62,17 @@ namespace Flexfit.Repositories
             }
         }
 
-        // --- TRIỂN KHAI CÁC HÀM BỔ SUNG ---
+        // 🛠️ HÀM KHẮC PHỤC LỖI RUNTIME 500: Xóa ảnh cũ trực tiếp từ DbContext để tránh xung đột Tracking
+        public async Task RemoveImagesByBranchIdAsync(Guid branchId)
+        {
+            var existingImages = _db.BranchImages.Where(img => img.BranchId == branchId);
+            if (await existingImages.AnyAsync())
+            {
+                _db.BranchImages.RemoveRange(existingImages);
+            }
+        }
+
+        // --- CÁC HÀM BỔ SUNG CHO LOGIC NHÂN SỰ ---
         public async Task<User?> GetUserByIdAsync(Guid userId) => await _db.Users.FindAsync(userId);
 
         public async Task<User?> GetUserByEmailAsync(string email)
@@ -115,21 +126,20 @@ namespace Flexfit.Repositories
         }
 
         public async Task<int> CountBranchesForStaffAsync(Guid staffId, Guid excludeBranchId) => await _db.BranchStaffs.CountAsync(bs => bs.StaffId == staffId && bs.BranchId != excludeBranchId);
+
         public async Task<bool> CheckGymOwnershipAsync(Guid gymId, Guid userId)
         {
-            // 💡 LƯU Ý: Thay 'OwnerId' bằng đúng tên trường lưu ID của chủ phòng trong bảng Gym của bạn (ví dụ: UserId, OwnerId,...)
             return await _db.Gyms.AnyAsync(g => g.GymId == gymId && g.OwnerId == userId);
         }
 
         public async Task<bool> CheckBranchOwnershipAsync(Guid branchId, Guid userId)
         {
-            // Kiểm tra xem chi nhánh này có thuộc về phòng gym mà user này làm chủ không
             return await _db.Branches
                 .Include(b => b.Gym)
                 .AnyAsync(b => b.BranchId == branchId && b.Gym.OwnerId == userId);
         }
-        public async Task<IEnumerable<GymAmenity>> GetAllAmenitiesAsync() =>
-    await _db.GymAmenities.ToListAsync();
+
+        public async Task<IEnumerable<GymAmenity>> GetAllAmenitiesAsync() => await _db.GymAmenities.ToListAsync();
 
         public async Task AddAmenityAsync(GymAmenity amenity)
         {
@@ -139,7 +149,24 @@ namespace Flexfit.Repositories
 
         public async Task<bool> AmenityExistsAsync(string amenityName) =>
             await _db.GymAmenities.AnyAsync(a => a.AmenityName.ToLower() == amenityName.Trim().ToLower());
+        public async Task UpdateBranchImagesDbAsync(Guid branchId, List<BranchImage> newImages)
+        {
+            // 1. Tìm tất cả ảnh cũ của chi nhánh này và XÓA CHÍNH XÁC khỏi Database
+            var oldImages = await _db.BranchImages.Where(img => img.BranchId == branchId).ToListAsync();
+            if (oldImages.Any())
+            {
+                _db.BranchImages.RemoveRange(oldImages);
+            }
 
+            // 2. Thêm toàn bộ ảnh mới vào
+            if (newImages != null && newImages.Any())
+            {
+                await _db.BranchImages.AddRangeAsync(newImages);
+            }
+
+            // 3. Lưu xuống Database một lần duy nhất. EF Core sẽ không bị lỗi Tracking nữa!
+            await _db.SaveChangesAsync();
+        }
 
         public async Task SaveChangesAsync() => await _db.SaveChangesAsync();
     }
