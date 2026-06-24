@@ -198,6 +198,20 @@ namespace Flexfit.Repositories
 
         public async Task<bool> AmenityExistsAsync(string amenityName) =>
             await _db.GymAmenities.AnyAsync(a => a.AmenityName.ToLower() == amenityName.Trim().ToLower());
+        public async Task UpdateAmenityAsync(GymAmenity amenity)
+        {
+            _db.GymAmenities.Update(amenity);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task DeleteAmenityAsync(GymAmenity amenity)
+        {
+            // Lưu ý: Nếu tiện ích này đang được liên kết với nhiều Chi nhánh (Branch),
+            // Entity Framework sẽ tự động xóa các dòng liên kết trong bảng trung gian 
+            // nếu bạn đã cấu hình Cascade Delete trong DbContext.
+            _db.GymAmenities.Remove(amenity);
+            await _db.SaveChangesAsync();
+        }
 
         public async Task UpdateBranchImagesDbAsync(Guid branchId, List<BranchImage> newImages)
         {
