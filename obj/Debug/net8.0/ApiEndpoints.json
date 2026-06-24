@@ -82,6 +82,43 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Flexfit.Controllers.AmenityController",
+    "Method": "UpdateAmenity",
+    "RelativePath": "api/amenities/{amenityId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "amenityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "newAmenityName",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Flexfit.Controllers.AmenityController",
+    "Method": "DeleteAmenity",
+    "RelativePath": "api/amenities/{amenityId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "amenityId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Flexfit.Controllers.AuthController",
     "Method": "ChangePassword",
     "RelativePath": "api/Auth/change-password",

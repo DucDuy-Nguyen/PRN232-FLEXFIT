@@ -38,6 +38,8 @@ namespace Flexfit.Repositories
         Task AddAmenityAsync(GymAmenity amenity);
         Task<bool> AmenityExistsAsync(string amenityName);
         Task UpdateBranchImagesDbAsync(Guid branchId, List<BranchImage> newImages);
+        Task UpdateAmenityAsync(GymAmenity amenity);
+        Task DeleteAmenityAsync(GymAmenity amenity);
 
         Task SaveChangesAsync();
     }

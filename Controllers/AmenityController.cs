@@ -2,6 +2,9 @@
 using Flexfit.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Flexfit.Controllers
 {
@@ -43,6 +46,54 @@ namespace Flexfit.Controllers
             catch (ArgumentException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 🔐 API dành riêng cho Admin cập nhật tên tiện ích
+        /// </summary>
+        [HttpPut("{amenityId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateAmenity(Guid amenityId, [FromBody] string newAmenityName)
+        {
+            try
+            {
+                await _branchService.UpdateAmenityAsync(amenityId, newAmenityName);
+                return Ok(new { message = "Cập nhật tiện ích thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 🔐 API dành riêng cho Admin xóa tiện ích khỏi hệ thống
+        /// </summary>
+        [HttpDelete("{amenityId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteAmenity(Guid amenityId)
+        {
+            try
+            {
+                await _branchService.DeleteAmenityAsync(amenityId);
+                return Ok(new { message = "Xóa tiện ích thành công!" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {

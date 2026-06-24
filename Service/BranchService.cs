@@ -412,6 +412,50 @@ namespace Flexfit.Service
             return newAmenity.AmenityId;
         }
         // ==========================================================
+        // CẬP NHẬT TÊN TIỆN ÍCH (SỬA TIỆN ÍCH)
+        // ==========================================================
+        public async Task UpdateAmenityAsync(Guid amenityId, string newAmenityName)
+        {
+            if (string.IsNullOrWhiteSpace(newAmenityName))
+                throw new ArgumentException("Tên tiện ích không được để trống.");
+
+            // 1. Kiểm tra tiện ích có tồn tại không
+            var amenity = await _branchRepo.GetAmenityByIdAsync(amenityId);
+            if (amenity == null)
+                throw new KeyNotFoundException("Không tìm thấy tiện ích này trên hệ thống.");
+
+            var formattedName = newAmenityName.Trim();
+
+            // 2. Kiểm tra xem tên mới có bị trùng với tiện ích khác đã có không
+            if (!string.Equals(amenity.AmenityName, formattedName, StringComparison.OrdinalIgnoreCase))
+            {
+                var exists = await _branchRepo.AmenityExistsAsync(formattedName);
+                if (exists)
+                    throw new ArgumentException("Tên tiện ích này đã tồn tại trên hệ thống.");
+            }
+
+            // 3. Cập nhật tên và lưu lại
+            amenity.AmenityName = formattedName;
+
+            // Tùy thuộc vào Repo của bạn, có thể cần gọi Update explicitly hoặc chỉ cần SaveChanges
+            await _branchRepo.UpdateAmenityAsync(amenity);
+        }
+
+        // ==========================================================
+        // XÓA TIỆN ÍCH KHỎI HỆ THỐNG
+        // ==========================================================
+        public async Task DeleteAmenityAsync(Guid amenityId)
+        {
+            // 1. Kiểm tra tiện ích có tồn tại không
+            var amenity = await _branchRepo.GetAmenityByIdAsync(amenityId);
+            if (amenity == null)
+                throw new KeyNotFoundException("Không tìm thấy tiện ích này trên hệ thống.");
+
+            // 2. Xóa tiện ích
+            await _branchRepo.DeleteAmenityAsync(amenity);
+        }
+
+        // ==========================================================
         // KHU VỰC QUẢN LÝ HÌNH ẢNH (IMAGES) CHI NHÁNH
         // ==========================================================
         public async Task UpdateBranchImagesAsync(Guid branchId, UpdateBranchImagesRequest request, Guid currentUserId)
