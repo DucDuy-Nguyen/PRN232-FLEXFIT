@@ -80,12 +80,20 @@ namespace Flexfit.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "GymPartner")]
+        [Authorize(Roles = "GymPartner,Admin")]
         public async Task<IActionResult> UpdateGym(Guid id, [FromBody] UpdateGymRequest request)
         {
             try
             {
-                await _gymService.UpdateGymAsync(id, request, GetCurrentUserId());
+                bool isAdmin = User.IsInRole("Admin");
+
+                await _gymService.UpdateGymAsync(
+                    id,
+                    request,
+                    GetCurrentUserId(),
+                    isAdmin
+                );
+
                 return Ok(new { message = "Cập nhật thông tin phòng tập thành công!" });
             }
             catch (KeyNotFoundException ex)
@@ -121,12 +129,19 @@ namespace Flexfit.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "GymPartner")]
+        [Authorize(Roles = "GymPartner,Admin")]
         public async Task<IActionResult> DeleteGym(Guid id)
         {
             try
             {
-                await _gymService.DeleteGymAsync(id, GetCurrentUserId());
+                bool isAdmin = User.IsInRole("Admin");
+
+                await _gymService.DeleteGymAsync(
+                    id,
+                    GetCurrentUserId(),
+                    isAdmin
+                );
+
                 return Ok(new { message = "Xóa phòng tập thành công!" });
             }
             catch (KeyNotFoundException ex)

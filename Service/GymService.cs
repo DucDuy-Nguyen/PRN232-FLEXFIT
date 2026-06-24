@@ -131,11 +131,14 @@ namespace Flexfit.Services
             return newGym.GymId;
         }
 
-        public async Task UpdateGymAsync(Guid id, UpdateGymRequest request, Guid currentUserId)
+        public async Task UpdateGymAsync(Guid id, UpdateGymRequest request, Guid currentUserId, bool isAdmin = false)
         {
-            // 🛑 CHECK quyền sở hữu
-            var isOwner = await _gymRepo.CheckGymOwnershipAsync(id, currentUserId);
-            if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này.");
+            if (!isAdmin)
+            {
+                var isOwner = await _gymRepo.CheckGymOwnershipAsync(id, currentUserId);
+                if (!isOwner)
+                    throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này.");
+            }
 
             var gym = await _gymRepo.GetByIdAsync(id);
             if (gym == null) throw new KeyNotFoundException("Không tìm thấy phòng tập.");
@@ -169,14 +172,18 @@ namespace Flexfit.Services
             await _gymRepo.UpdateAsync(gym);
         }
 
-        public async Task DeleteGymAsync(Guid id, Guid currentUserId)
+        public async Task DeleteGymAsync(Guid id, Guid currentUserId, bool isAdmin = false)
         {
-            // 🛑 CHECK quyền sở hữu
-            var isOwner = await _gymRepo.CheckGymOwnershipAsync(id, currentUserId);
-            if (!isOwner) throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này.");
+            if (!isAdmin)
+            {
+                var isOwner = await _gymRepo.CheckGymOwnershipAsync(id, currentUserId);
+                if (!isOwner)
+                    throw new UnauthorizedAccessException("Bạn không phải chủ sở hữu của phòng tập này.");
+            }
 
             var gym = await _gymRepo.GetByIdAsync(id);
-            if (gym == null) throw new KeyNotFoundException("Không tìm thấy phòng tập.");
+            if (gym == null)
+                throw new KeyNotFoundException("Không tìm thấy phòng tập.");
 
             await _gymRepo.DeleteAsync(id);
         }
