@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.SignalR;
+using Flexfit.Hubs;
 
 namespace Flexfit.Service
 {
@@ -13,12 +15,14 @@ namespace Flexfit.Service
     {
         private readonly INotificationRepository _notificationRepo;
         private readonly IUserRepository _userRepo; // <-- THÊM REPO ĐỂ LẤY DANH SÁCH USER
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        // Inject thêm IUserRepository vào Constructor
-        public NotificationService(INotificationRepository notificationRepo, IUserRepository userRepo)
+        // Inject thêm IUserRepository và IHubContext vào Constructor
+        public NotificationService(INotificationRepository notificationRepo, IUserRepository userRepo, IHubContext<NotificationHub> hubContext)
         {
             _notificationRepo = notificationRepo;
             _userRepo = userRepo;
+            _hubContext = hubContext;
         }
 
         public async Task SendAsync(Guid userId, string title, string content, string type)
@@ -36,6 +40,22 @@ namespace Flexfit.Service
 
             await _notificationRepo.AddAsync(notification);
             await _notificationRepo.SaveChangesAsync();
+
+            // Push real-time notification to connected user group
+            try
+            {
+                var payload = new
+                {
+                    notification.NotificationId,
+                    notification.Title,
+                    notification.Content,
+                    notification.Type,
+                    notification.IsRead,
+                    notification.CreatedAt
+                };
+                await _hubContext.Clients.Group($"user-{userId}").SendAsync("ReceiveNotification", payload);
+            }
+            catch { }
         }
 
         public async Task<IEnumerable<Notification>> GetMyNotificationsAsync(Guid userId)
@@ -111,7 +131,88 @@ namespace Flexfit.Service
 
             // Lưu tất cả các thay đổi vào Cơ sở dữ liệu 1 lần duy nhất để tối ưu hiệu năng
             await _notificationRepo.SaveChangesAsync();
+
+            // Push real-time notifications
+            try
+            {
+                if (request.UserId.HasValue)
+                {
+                    var payload = new
+                    {
+                        Title = request.Title,
+                        Content = request.Content,
+                        Type = request.Type,
+                        CreatedAt = DateTimeHelper.GetVietnamTime()
+                    };
+                    await _hubContext.Clients.Group($"user-{request.UserId.Value}").SendAsync("ReceiveNotification", payload);
+                }
+                else
+                {
+                    var payload = new
+                    {
+                        Title = request.Title,
+                        Content = request.Content,
+                        Type = request.Type,
+                        CreatedAt = DateTimeHelper.GetVietnamTime()
+                    };
+                    await _hubContext.Clients.All.SendAsync("ReceiveNotification", payload);
+                }
+            }
+            catch { }
+
             return true;
+        }
+
+        public async Task BroadcastToBranchAsync(Guid branchId, string title, string content, string type)
+        {
+            try
+            {
+                var payload = new
+                {
+                    Title = title,
+                    Content = content,
+                    Type = type,
+                    BranchId = branchId,
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
+                };
+
+                await _hubContext.Clients.Group($"branch-{branchId}").SendAsync("ReceiveNotification", payload);
+            }
+            catch { }
+        }
+
+        public async Task BroadcastClassCapacityAsync(Guid classId, int remainingSeats)
+        {
+            try
+            {
+                var payload = new
+                {
+                    ClassId = classId,
+                    RemainingSeats = remainingSeats,
+                    Type = "ClassCapacityUpdate",
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
+                };
+
+                await _hubContext.Clients.Group($"class-{classId}").SendAsync("ClassCapacityUpdated", payload);
+            }
+            catch { }
+        }
+
+        public async Task BroadcastCreditUpdateAsync(Guid userId, int newBalance)
+        {
+            try
+            {
+                var payload = new
+                {
+                    UserId = userId,
+                    NewBalance = newBalance,
+                    Type = "CreditUpdate",
+                    CreatedAt = DateTimeHelper.GetVietnamTime()
+                };
+
+                await _hubContext.Clients.Group($"user-{userId}").SendAsync("CreditUpdated", payload);
+            }
+            catch { }
         }
     }
 }

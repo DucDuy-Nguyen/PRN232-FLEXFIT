@@ -247,6 +247,37 @@ namespace Flexfit.Service
                                 $"Tại [{branchName}], khách [{customerName}] vừa đặt lịch Open Gym lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "StaffNotification");
                         }
                     }
+                        // Broadcast to branch group for connected staff dashboards
+                        try
+                        {
+                            await _notificationService.BroadcastToBranchAsync(detailedBooking.Session.BranchId, "Có booking mới cần theo dõi",
+                                $"Tại [{branchName}], khách [{customerName}] vừa đặt lịch Open Gym lúc {session.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "StaffNotification");
+                        }
+                        catch { }
+
+            // Push credit balance update to the user if refund applied
+            try
+            {
+                var userCreditCurrent = await _bookingRepo.GetUserCreditAsync(userId);
+                if (userCreditCurrent != null)
+                {
+                    await _notificationService.BroadcastCreditUpdateAsync(userId, userCreditCurrent.Balance);
+                }
+            }
+            catch { }
+
+            // Push credit balance update to the user if refund applied
+            try
+            {
+                var userCreditCurrent = await _bookingRepo.GetUserCreditAsync(userId);
+                if (userCreditCurrent != null)
+                {
+                    await _notificationService.BroadcastCreditUpdateAsync(userId, userCreditCurrent.Balance);
+                }
+            }
+            catch { }
+
+
                 }
             }
             catch { }
@@ -389,6 +420,17 @@ namespace Flexfit.Service
             }
             catch { }
 
+            // Push credit balance update to the user (real-time)
+            try
+            {
+                var userCreditCurrent = await _bookingRepo.GetUserCreditAsync(userId);
+                if (userCreditCurrent != null)
+                {
+                    await _notificationService.BroadcastCreditUpdateAsync(userId, userCreditCurrent.Balance);
+                }
+            }
+            catch { }
+
             return new GymBookingResponse
             {
                 BookingId = booking.BookingId,
@@ -497,9 +539,38 @@ namespace Flexfit.Service
                                 $"Tại [{branchName}], khách [{customerName}] vừa đặt lớp [{classObj.ClassName}] lúc {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "StaffNotification");
                         }
                     }
+                    // Broadcast to branch group for connected staff dashboards
+                    try
+                    {
+                        await _notificationService.BroadcastToBranchAsync(detailedBooking.Class.BranchId, "Có booking lớp học mới",
+                            $"Tại [{branchName}], khách [{customerName}] vừa đặt lớp [{classObj.ClassName}] lúc {classObj.StartTime:HH:mm dd/MM/yyyy}. Mã: {booking.BookingCode}.", "StaffNotification");
+                    }
+                    catch { }
                 }
             }
             catch { }
+
+            // Broadcast updated class capacity to connected clients viewing this class
+            try
+            {
+                var bookedCount = await _bookingRepo.CountClassBookingsByClassIdAsync(classObj.ClassId);
+                var remaining = Math.Max(0, classObj.Capacity - bookedCount);
+                await _notificationService.BroadcastClassCapacityAsync(classObj.ClassId, remaining);
+            }
+            catch { }
+
+            // Push credit balance update to the user (real-time)
+            try
+            {
+                var userCreditCurrent = await _bookingRepo.GetUserCreditAsync(userId);
+                if (userCreditCurrent != null)
+                {
+                    await _notificationService.BroadcastCreditUpdateAsync(userId, userCreditCurrent.Balance);
+                }
+            }
+            catch { }
+
+
 
             return new ClassBookingResponse
             {
@@ -637,6 +708,12 @@ namespace Flexfit.Service
                                 $"Khách hàng [{customerName}] đã hủy đăng ký lớp [{className}] tại [{branchName}]. Mã: {booking.BookingCode}.", "StaffNotification");
                         }
                     }
+                    try
+                    {
+                        await _notificationService.BroadcastToBranchAsync(booking.Class.BranchId, "Booking lớp học đã bị hủy",
+                            $"Khách hàng [{customerName}] đã hủy đăng ký lớp [{className}] tại [{branchName}]. Mã: {booking.BookingCode}.", "StaffNotification");
+                    }
+                    catch { }
                 }
             }
             catch { }

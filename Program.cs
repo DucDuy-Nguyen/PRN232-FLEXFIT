@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PayOS;
 using System.Text;
+using System.Threading.Tasks;
+using Flexfit.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,6 +71,20 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+    // Allow JWT access token to be passed in query string for SignalR
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"].ToString();
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/notifications"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -141,6 +157,9 @@ builder.Services.AddScoped<IWorkoutHistoryService, WorkoutHistoryService>();
 builder.Services.AddScoped<IAIContextBuilder, AIContextBuilder>();
 builder.Services.AddHttpClient<IAIService, AIService>();
 
+// SignalR
+builder.Services.AddSignalR();
+
 // Booking Reminder Worker
 builder.Services.AddHostedService<BookingReminderWorker>();
 // Promotion repository and service
@@ -189,6 +208,9 @@ app.UseAuthorization();
 
 // Map controllers
 app.MapControllers();
+
+// Map SignalR hubs
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 // Seed Credit Packages if empty
 using (var scope = app.Services.CreateScope())

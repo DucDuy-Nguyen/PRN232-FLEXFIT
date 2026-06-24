@@ -31,5 +31,11 @@ namespace Flexfit.Service
         /// </summary>
         Task MarkAllAsReadAsync(Guid userId);
         Task<bool> SendAdminNotificationAsync(AdminCreateNotificationRequest request);  
+        // Broadcast a lightweight notification to all connected clients in a branch group (no DB writes)
+        Task BroadcastToBranchAsync(Guid branchId, string title, string content, string type);
+        // Broadcast class capacity update to clients viewing a specific class
+        Task BroadcastClassCapacityAsync(Guid classId, int remainingSeats);
+        // Push credit balance updates to a specific user (real-time)
+        Task BroadcastCreditUpdateAsync(Guid userId, int newBalance);
     }
 }

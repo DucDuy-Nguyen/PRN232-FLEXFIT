@@ -13,11 +13,13 @@ namespace Flexfit.Service
     {
         private readonly ICheckInLogRepository _checkInRepo;
         private readonly IWorkoutHistoryService _workoutHistoryService;
+        private readonly INotificationService _notificationService;
 
-        public CheckInLogService(ICheckInLogRepository checkInRepo, IWorkoutHistoryService workoutHistoryService)
+        public CheckInLogService(ICheckInLogRepository checkInRepo, IWorkoutHistoryService workoutHistoryService, INotificationService notificationService)
         {
             _checkInRepo = checkInRepo;
             _workoutHistoryService = workoutHistoryService;
+            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<CheckInLogResponse>> GetAllLogsAsync()
@@ -98,6 +100,19 @@ namespace Flexfit.Service
             await _checkInRepo.SaveChangesAsync();
 
             var createdLog = await _checkInRepo.GetByIdAsync(log.CheckInLogId);
+            // Push real-time check-in confirmation to member
+            try
+            {
+                await _notificationService.SendAsync(booking.UserId, "Check-in thành công ✅", $"Bạn đã check-in thành công cho lịch Gym: {booking.BookingCode}.", "CheckInSuccess");
+
+                // Notify branch staff/owner via branch group
+                var branchId = booking.Session?.BranchId;
+                if (branchId != null)
+                {
+                    await _notificationService.BroadcastToBranchAsync(branchId.Value, "Thành viên đã check-in", $"Khách hàng {createdLog?.User?.FullName ?? "Hội viên"} đã check-in tại chi nhánh.", "StaffNotification");
+                }
+            }
+            catch { }
             return MapToResponse(createdLog ?? log);
         }
 
@@ -172,6 +187,18 @@ namespace Flexfit.Service
             await _checkInRepo.SaveChangesAsync();
 
             var createdLog = await _checkInRepo.GetByIdAsync(log.CheckInLogId);
+            // Push real-time check-in confirmation to member and staff
+            try
+            {
+                await _notificationService.SendAsync(booking.UserId, "Check-in lớp học thành công ✅", $"Bạn đã check-in cho lớp: {booking.BookingCode}.", "CheckInSuccess");
+
+                var branchId = booking.Class?.BranchId;
+                if (branchId != null)
+                {
+                    await _notificationService.BroadcastToBranchAsync(branchId.Value, "Thành viên đã check-in", $"Khách hàng {createdLog?.User?.FullName ?? "Hội viên"} đã check-in lớp {booking.Class?.ClassName}.", "StaffNotification");
+                }
+            }
+            catch { }
             return MapToResponse(createdLog ?? log);
         }
 

@@ -203,6 +203,12 @@ namespace Flexfit.Service
                         $"Tài khoản của bạn đã được cộng +{totalCreditToAdd} tín dụng từ gói {package.PackageName}.",
                         NotificationTypes.PaymentSuccess // Hãy đổi thành Notification.PaymentSuccess nếu dùng theo cách 2
                     );
+                    // Broadcast credit balance update
+                    var updatedCredit = await _paymentRepository.GetUserCreditAsync(payment.UserId);
+                    if (updatedCredit != null)
+                    {
+                        await _notificationService.BroadcastCreditUpdateAsync(payment.UserId, updatedCredit.Balance);
+                    }
                 }
                 catch (Exception)
                 {
