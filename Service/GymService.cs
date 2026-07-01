@@ -2,6 +2,8 @@ using Flexfit.DTOs;
 using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,10 +14,14 @@ namespace Flexfit.Services
     public class GymService : IGymService
     {
         private readonly IGymRepository _gymRepo;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public GymService(IGymRepository gymRepo)
+        public GymService(IGymRepository gymRepo, IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor)
         {
             _gymRepo = gymRepo;
+            _webHostEnvironment = webHostEnvironment;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         private GymDto MapToDto(Gym g)
@@ -26,7 +32,7 @@ namespace Flexfit.Services
                 OwnerId = g.OwnerId,
                 GymName = g.GymName,
                 Description = g.Description,
-                ThumbnailUrl = g.ThumbnailUrl,
+                ThumbnailUrl = ImageHelper.GetAbsoluteUrl(g.ThumbnailUrl, _httpContextAccessor),
                 PhoneNumber = g.PhoneNumber,
                 Email = g.Email,
                 Status = g.Status,
@@ -59,7 +65,7 @@ namespace Flexfit.Services
                 OwnerId = g.OwnerId,
                 GymName = g.GymName,
                 Description = g.Description,
-                ThumbnailUrl = g.ThumbnailUrl,
+                ThumbnailUrl = ImageHelper.GetAbsoluteUrl(g.ThumbnailUrl, _httpContextAccessor),
                 PhoneNumber = g.PhoneNumber,
                 Email = g.Email,
                 Status = g.Status,
@@ -85,7 +91,7 @@ namespace Flexfit.Services
                 OwnerId = request.OwnerId,
                 GymName = request.GymName,
                 Description = request.Description,
-                ThumbnailUrl = request.ThumbnailUrl,
+                ThumbnailUrl = ImageHelper.SaveBase64Image(request.ThumbnailUrl, "gyms", "gym", _webHostEnvironment),
                 PhoneNumber = request.PhoneNumber,
                 Email = request.Email,
                 Status = "Pending",
@@ -145,7 +151,7 @@ namespace Flexfit.Services
 
             gym.GymName = request.GymName;
             gym.Description = request.Description;
-            gym.ThumbnailUrl = request.ThumbnailUrl;
+            gym.ThumbnailUrl = ImageHelper.SaveBase64Image(request.ThumbnailUrl, "gyms", "gym", _webHostEnvironment);
             gym.PhoneNumber = request.PhoneNumber;
             gym.Email = request.Email;
             gym.UpdatedAt = DateTimeHelper.GetVietnamTime();

@@ -39,84 +39,6 @@ namespace Flexfit.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        private string? SaveBase64Image(string? base64Str, string subFolder, string fileNamePrefix)
-        {
-            if (string.IsNullOrEmpty(base64Str)) return null;
-
-            string base64Data = base64Str;
-            string extension = "jpg"; // Mặc định
-
-            if (base64Str.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
-            {
-                var commaIndex = base64Str.IndexOf(',');
-                if (commaIndex >= 0)
-                {
-                    var header = base64Str.Substring(0, commaIndex);
-                    base64Data = base64Str.Substring(commaIndex + 1);
-
-                    // Trích xuất phần mở rộng của ảnh
-                    if (header.Contains("png")) extension = "png";
-                    else if (header.Contains("gif")) extension = "gif";
-                    else if (header.Contains("webp")) extension = "webp";
-                    else if (header.Contains("jpeg") || header.Contains("jpg")) extension = "jpg";
-                }
-            }
-            else
-            {
-                // Kiểm tra xem chuỗi có phải là base64 hợp lệ không
-                Span<byte> buffer = new Span<byte>(new byte[base64Str.Length]);
-                if (!Convert.TryFromBase64String(base64Str, buffer, out _))
-                {
-                    // Không phải base64, có thể là URL hoặc đường dẫn đã lưu. Trả về nguyên bản.
-                    return base64Str;
-                }
-            }
-
-            try
-            {
-                byte[] imageBytes = Convert.FromBase64String(base64Data);
-                string webRootPath = _webHostEnvironment.WebRootPath;
-                if (string.IsNullOrEmpty(webRootPath))
-                {
-                    webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                }
-
-                string uploadsFolder = Path.Combine(webRootPath, "uploads", subFolder);
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
-                string fileName = $"{fileNamePrefix}_{Guid.NewGuid()}.{extension}";
-                string filePath = Path.Combine(uploadsFolder, fileName);
-
-                File.WriteAllBytes(filePath, imageBytes);
-
-                return $"/uploads/{subFolder}/{fileName}";
-            }
-            catch
-            {
-                // Gặp lỗi thì trả về chuỗi gốc để tránh mất dữ liệu
-                return base64Str;
-            }
-        }
-
-        private string? GetAbsoluteUrl(string? relativeOrAbsoluteUrl)
-        {
-            if (string.IsNullOrEmpty(relativeOrAbsoluteUrl)) return relativeOrAbsoluteUrl;
-            if (relativeOrAbsoluteUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
-                relativeOrAbsoluteUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-                relativeOrAbsoluteUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-            {
-                return relativeOrAbsoluteUrl;
-            }
-
-            var request = _httpContextAccessor.HttpContext?.Request;
-            if (request == null) return relativeOrAbsoluteUrl;
-
-            return $"{request.Scheme}://{request.Host}{relativeOrAbsoluteUrl}";
-        }
-
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
             var users = await _userRepo.GetAllAsync();
@@ -126,7 +48,7 @@ namespace Flexfit.Services
                 FullName = u.FullName,
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
-                AvatarUrl = GetAbsoluteUrl(u.AvatarUrl),
+                AvatarUrl = ImageHelper.GetAbsoluteUrl(u.AvatarUrl, _httpContextAccessor),
                 DateOfBirth = u.DateOfBirth,
                 IsEmailVerified = u.IsEmailVerified,
                 IsActive = u.IsActive,
@@ -150,7 +72,7 @@ namespace Flexfit.Services
                 FullName = u.FullName,
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
-                AvatarUrl = GetAbsoluteUrl(u.AvatarUrl),
+                AvatarUrl = ImageHelper.GetAbsoluteUrl(u.AvatarUrl, _httpContextAccessor),
                 DateOfBirth = u.DateOfBirth,
                 IsEmailVerified = u.IsEmailVerified,
                 IsActive = u.IsActive,
@@ -173,7 +95,7 @@ namespace Flexfit.Services
             
             if (request.AvatarUrl != null)
             {
-                user.AvatarUrl = SaveBase64Image(request.AvatarUrl, "avatars", user.UserId.ToString());
+                user.AvatarUrl = ImageHelper.SaveBase64Image(request.AvatarUrl, "avatars", user.UserId.ToString(), _webHostEnvironment);
             }
             
             user.DateOfBirth = request.DateOfBirth ?? user.DateOfBirth;

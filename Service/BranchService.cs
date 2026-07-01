@@ -3,6 +3,8 @@ using Flexfit.Helpers;
 using Flexfit.Models;
 using Flexfit.Repositories;
 using Flexfit.Service;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +16,19 @@ namespace Flexfit.Service
     {
         private readonly IBranchRepository _branchRepo;
         private readonly INotificationService _notificationService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public BranchService(IBranchRepository branchRepo, INotificationService notificationService)
+        public BranchService(
+            IBranchRepository branchRepo,
+            INotificationService notificationService,
+            IWebHostEnvironment webHostEnvironment,
+            IHttpContextAccessor httpContextAccessor)
         {
             _branchRepo = branchRepo;
             _notificationService = notificationService;
+            _webHostEnvironment = webHostEnvironment;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         // Hàm helper kiểm tra quyền: Phải là Chủ chi nhánh HOẶC Staff của chi nhánh đó
@@ -68,7 +78,7 @@ namespace Flexfit.Service
                 District = request.District,
                 OpenTime = request.OpenTime,
                 CloseTime = request.CloseTime,
-                ThumbnailUrl = request.ThumbnailUrl,
+                ThumbnailUrl = ImageHelper.SaveBase64Image(request.ThumbnailUrl, "branches", "branch", _webHostEnvironment),
                 CreditCost = request.CreditCost,
                 IsActive = true,
                 CreatedAt = DateTimeHelper.GetVietnamTime()
@@ -93,7 +103,7 @@ namespace Flexfit.Service
             branch.District = request.District;
             branch.OpenTime = request.OpenTime;
             branch.CloseTime = request.CloseTime;
-            branch.ThumbnailUrl = request.ThumbnailUrl;
+            branch.ThumbnailUrl = ImageHelper.SaveBase64Image(request.ThumbnailUrl, "branches", "branch", _webHostEnvironment);
             branch.CreditCost = request.CreditCost;
             branch.UpdatedAt = DateTimeHelper.GetVietnamTime();
 
@@ -475,11 +485,14 @@ namespace Flexfit.Service
                 {
                     if (string.IsNullOrWhiteSpace(imgReq.ImageUrl)) continue;
 
+                    string? savedUrl = ImageHelper.SaveBase64Image(imgReq.ImageUrl.Trim(), "branches", "branch_detail", _webHostEnvironment);
+                    if (string.IsNullOrWhiteSpace(savedUrl)) continue;
+
                     newImages.Add(new BranchImage
                     {
                         BranchImageId = Guid.NewGuid(),
                         BranchId = branchId,
-                        ImageUrl = imgReq.ImageUrl.Trim(),
+                        ImageUrl = savedUrl,
                         DisplayOrder = imgReq.DisplayOrder
                     });
                 }
@@ -495,7 +508,7 @@ namespace Flexfit.Service
         // ==========================================================
         // MAPPER DỮ LIỆU ĐẦU RA (ĐÃ BAO GỒM TIỆN ÍCH AMENITIES)
         // ==========================================================
-        private static BranchDto MapToDto(Branch b)
+        private BranchDto MapToDto(Branch b)
         {
             return new BranchDto
             {
@@ -507,7 +520,7 @@ namespace Flexfit.Service
                 District = b.District,
                 OpenTime = b.OpenTime,
                 CloseTime = b.CloseTime,
-                ThumbnailUrl = b.ThumbnailUrl,
+                ThumbnailUrl = ImageHelper.GetAbsoluteUrl(b.ThumbnailUrl, _httpContextAccessor),
                 CreditCost = b.CreditCost,
                 IsActive = b.IsActive,
                 CreatedAt = b.CreatedAt,
@@ -523,11 +536,11 @@ namespace Flexfit.Service
                     AmenityName = a.AmenityName
                 }).ToList() ?? new List<GymAmenityDto>(),
 
-                // 📸 Ánh xạ danh sách hình ảnh trả về cho Client hiển thị
+                // 📸 Ánh xạ danh sách hình ảnh trả về cho Client hiển thị (dựng URL tuyệt đối)
                 Images = b.BranchImages?.Select(i => new BranchImageDto
                 {
                     BranchImageId = i.BranchImageId,
-                    ImageUrl = i.ImageUrl,
+                    ImageUrl = ImageHelper.GetAbsoluteUrl(i.ImageUrl, _httpContextAccessor),
                     DisplayOrder = i.DisplayOrder
                 }).OrderBy(i => i.DisplayOrder).ToList() ?? new List<BranchImageDto>()
             };
