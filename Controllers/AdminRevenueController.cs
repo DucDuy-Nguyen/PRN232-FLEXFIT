@@ -30,44 +30,56 @@ public class AdminRevenueController : ControllerBase
         var nextMonthStart = monthStart.AddMonths(1);
         var chartStart = monthStart.AddMonths(-5);
 
-        var successfulPayments = _context.Payments
+        // 1. Định nghĩa Query IQueryable các payments thành công
+        var successfulPaymentsQuery = _context.Payments
             .AsNoTracking()
-            .Include(payment => payment.Package)
             .Where(payment => SuccessfulStatuses.Contains(payment.Status));
 
-        var payments = await successfulPayments
-            .Select(payment => new
+        // 2. Chạy tính toán tổng số tiền và số lượng direct trên Database (chạy song song qua DB)
+        var totalRevenueThisMonth = await successfulPaymentsQuery
+            .Where(payment => (payment.PaidAt ?? payment.CreatedAt) >= monthStart && (payment.PaidAt ?? payment.CreatedAt) < nextMonthStart)
+            .SumAsync(payment => payment.Amount);
+
+        var successfulPaymentCount = await successfulPaymentsQuery.CountAsync();
+
+        var totalCreditsPaid = await successfulPaymentsQuery
+            .Where(payment => (payment.PaidAt ?? payment.CreatedAt) >= monthStart && (payment.PaidAt ?? payment.CreatedAt) < nextMonthStart)
+            .SumAsync(payment => payment.Package.CreditAmount + payment.Package.BonusCredit);
+
+        var revenueToday = await successfulPaymentsQuery
+            .Where(payment => (payment.PaidAt ?? payment.CreatedAt) >= todayStart && (payment.PaidAt ?? payment.CreatedAt) < tomorrowStart)
+            .SumAsync(payment => payment.Amount);
+
+        // 3. Nhóm doanh thu 6 tháng (MonthlyRevenue) bằng GroupBy ở Database
+        var rawMonthlyRevenue = await successfulPaymentsQuery
+            .Where(payment => (payment.PaidAt ?? payment.CreatedAt) >= chartStart)
+            .GroupBy(payment => new { Year = (payment.PaidAt ?? payment.CreatedAt).Year, Month = (payment.PaidAt ?? payment.CreatedAt).Month })
+            .Select(group => new
             {
-                payment.Amount,
-                PaidDate = payment.PaidAt ?? payment.CreatedAt,
-                payment.Package.PackageName,
-                payment.Package.CreditAmount,
-                payment.Package.BonusCredit,
+                group.Key.Year,
+                group.Key.Month,
+                Revenue = group.Sum(payment => payment.Amount)
             })
             .ToListAsync();
-
-        var thisMonthPayments = payments
-            .Where(payment => payment.PaidDate >= monthStart && payment.PaidDate < nextMonthStart)
-            .ToList();
 
         var monthlyRevenue = Enumerable.Range(0, 6)
             .Select(index =>
             {
-                var month = chartStart.AddMonths(index);
-                var nextMonth = month.AddMonths(1);
+                var monthDate = chartStart.AddMonths(index);
+                var match = rawMonthlyRevenue.FirstOrDefault(r => r.Year == monthDate.Year && r.Month == monthDate.Month);
 
                 return new MonthlyRevenueItem
                 {
-                    Month = month.ToString("yyyy-MM"),
-                    Revenue = payments
-                        .Where(payment => payment.PaidDate >= month && payment.PaidDate < nextMonth)
-                        .Sum(payment => payment.Amount),
+                    Month = monthDate.ToString("yyyy-MM"),
+                    Revenue = match?.Revenue ?? 0,
                 };
             })
             .ToList();
 
-        var packageSales = thisMonthPayments
-            .GroupBy(payment => payment.PackageName)
+        // 4. Nhóm doanh thu theo gói tập tháng này bằng GroupBy ở Database
+        var packageSales = await successfulPaymentsQuery
+            .Where(payment => (payment.PaidAt ?? payment.CreatedAt) >= monthStart && (payment.PaidAt ?? payment.CreatedAt) < nextMonthStart)
+            .GroupBy(payment => payment.Package.PackageName)
             .Select(group => new PackageSalesItem
             {
                 PackageName = group.Key,
@@ -76,16 +88,14 @@ public class AdminRevenueController : ControllerBase
             })
             .OrderByDescending(item => item.Revenue)
             .ThenBy(item => item.PackageName)
-            .ToList();
+            .ToListAsync();
 
         return Ok(new AdminRevenueSummaryResponse
         {
-            TotalRevenueThisMonth = thisMonthPayments.Sum(payment => payment.Amount),
-            SuccessfulPaymentCount = payments.Count,
-            TotalCreditsPaid = thisMonthPayments.Sum(payment => payment.CreditAmount + payment.BonusCredit),
-            RevenueToday = payments
-                .Where(payment => payment.PaidDate >= todayStart && payment.PaidDate < tomorrowStart)
-                .Sum(payment => payment.Amount),
+            TotalRevenueThisMonth = totalRevenueThisMonth,
+            SuccessfulPaymentCount = successfulPaymentCount,
+            TotalCreditsPaid = totalCreditsPaid,
+            RevenueToday = revenueToday,
             MonthlyRevenue = monthlyRevenue,
             PackageSales = packageSales,
         });

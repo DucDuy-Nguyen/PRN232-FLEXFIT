@@ -187,6 +187,8 @@ builder.Services.AddSingleton(new PayOSClient(
 
 var app = builder.Build();
 
+app.UseStaticFiles(); // Kích hoạt phục vụ file tĩnh từ wwwroot
+
 // ==============================
 // 3️⃣ Configure Middleware
 // ==============================

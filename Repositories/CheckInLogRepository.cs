@@ -1,4 +1,4 @@
-﻿using Flexfit.Models;
+using Flexfit.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -112,20 +112,32 @@ namespace Flexfit.Repositories
 
         public async Task<IEnumerable<CheckInLog>> GetLogsForManagerAsync(Guid managerId)
         {
+            // Bước 1: Lấy danh sách branchId mà manager này có quyền quản lý (bảng nhỏ, rất nhanh)
+            var ownedBranchIds = await _context.Branches
+                .Where(b => b.Gym.OwnerId == managerId)
+                .Select(b => b.BranchId)
+                .ToListAsync();
+
+            var staffBranchIds = await _context.BranchStaffs
+                .Where(bs => bs.StaffId == managerId)
+                .Select(bs => bs.BranchId)
+                .ToListAsync();
+
+            var managedBranchIds = ownedBranchIds.Union(staffBranchIds).Distinct().ToList();
+
+            if (managedBranchIds.Count == 0)
+                return Enumerable.Empty<CheckInLog>();
+
+            // Bước 2: Lọc CheckInLogs theo branchId — SQL sinh ra IN clause đơn giản, rất hiệu quả
             return await _context.CheckInLogs
+                .AsNoTracking()
                 .Include(c => c.User)
                 .Include(c => c.ScannedByNavigation)
                 .Include(c => c.ClassBooking).ThenInclude(cb => cb!.Class)
                 .Where(c =>
-                    // 1. Náº¿u lÆ°á»£t check-in thuá»™c vá» Gym Booking cĂ´ng ty/chi nhĂ¡nh Ä‘Ă³ quáº£n lĂ½
-                    (c.GymBooking != null &&
-                        (c.GymBooking.Session.Branch.Gym.OwnerId == managerId ||
-                         c.GymBooking.Session.Branch.BranchStaffs.Any(bs => bs.StaffId == managerId)))
+                    (c.GymBooking != null && managedBranchIds.Contains(c.GymBooking.Session.BranchId))
                     ||
-                    // 2. Náº¿u lÆ°á»£t check-in thuá»™c vá» Class Booking lá»›p há»c Ä‘Ă³ quáº£n lĂ½
-                    (c.ClassBooking != null &&
-                        (c.ClassBooking.Class.Branch.Gym.OwnerId == managerId ||
-                         c.ClassBooking.Class.Branch.BranchStaffs.Any(bs => bs.StaffId == managerId)))
+                    (c.ClassBooking != null && managedBranchIds.Contains(c.ClassBooking.Class.BranchId))
                 )
                 .OrderByDescending(c => c.ScannedAt)
                 .ToListAsync();

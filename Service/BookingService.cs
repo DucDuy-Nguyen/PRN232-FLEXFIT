@@ -788,7 +788,7 @@ namespace Flexfit.Service
 
         public async Task<IEnumerable<StaffCheckInBookingResponse>> GetStaffCheckInBookingsAsync(Guid staffId)
         {
-            var staffBranchIds = (await _bookingRepo.GetStaffBranchIdsAsync(staffId)).ToList();
+            // Lưu ý: EF Core DbContext KHÔNG thread-safe → phải await tuần tự
             var gymBookings = await _bookingRepo.GetStaffGymBookingsForCheckInAsync(staffId);
             var classBookings = await _bookingRepo.GetStaffClassBookingsForCheckInAsync(staffId);
 
@@ -841,10 +841,6 @@ namespace Flexfit.Service
                 .Concat(classResponses)
                 .OrderByDescending(b => b.BookedAt)
                 .ToList();
-
-            Console.WriteLine($"Current staffId={staffId}");
-            Console.WriteLine($"Staff branches={string.Join(",", staffBranchIds)}");
-            Console.WriteLine($"Bookings returned={result.Count}");
 
             return result;
         }
