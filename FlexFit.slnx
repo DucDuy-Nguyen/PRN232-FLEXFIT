@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="FlexFit.CatalogService/FlexFit.CatalogService.csproj" />
+  <Project Path="Flexfit.csproj" />
+</Solution>
