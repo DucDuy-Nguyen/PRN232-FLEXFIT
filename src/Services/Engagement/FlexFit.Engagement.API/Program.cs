@@ -2,10 +2,14 @@ using FlexFit.Engagement.Application.Interfaces;
 using FlexFit.Engagement.Infrastructure.Persistence;
 using FlexFit.Engagement.Infrastructure.Repositories;
 using FlexFit.Engagement.Infrastructure.Services;
+using FlexFit.Engagement.Infrastructure.Services.AI;
+using FlexFit.Engagement.Infrastructure.Redis;
 using FlexFit.Engagement.API.Hubs;
+using FlexFit.Engagement.API.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -86,13 +90,66 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// ==============================
+// Redis
+// ==============================
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+{
+    var connectionString = builder.Configuration["Redis:ConnectionString"]
+        ?? throw new InvalidOperationException("Redis connection string is missing.");
+
+    return ConnectionMultiplexer.Connect(connectionString);
+});
+builder.Services.AddSingleton<RedisPublisher>();
+builder.Services.AddSingleton<RedisSubscriber>();
+
+// ==============================
 // DI Repositories & Services
+// ==============================
+
+// Notification
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IEngagementUserRepository, EngagementUserRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
+// Review
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, FlexFit.Engagement.Infrastructure.Services.ReviewService>();
+
+// Promotion
+builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+builder.Services.AddScoped<IPromotionService, FlexFit.Engagement.Infrastructure.Services.PromotionService>();
+
+// WorkoutHistory
+builder.Services.AddScoped<IWorkoutHistoryRepository, WorkoutHistoryRepository>();
+builder.Services.AddScoped<IWorkoutHistoryService, FlexFit.Engagement.Infrastructure.Services.WorkoutHistoryService>();
+
+// AI
+builder.Services.AddScoped<IAIContextBuilder, AIContextBuilder>();
+builder.Services.AddHttpClient<IAIService, AIService>();
+
+// gRPC Clients
+builder.Services.AddGrpcClient<FlexFit.Recommendation.Grpc.RecommendationService.RecommendationServiceClient>(o =>
+{
+    o.Address = new Uri(builder.Configuration["GrpcSettings:RecommendationUrl"] ?? "http://localhost:5001");
+});
+
 // SignalR
 builder.Services.AddSignalR();
+
+// Background Services
+builder.Services.AddHostedService<RedisSubscriberBackgroundService>();
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -102,6 +159,8 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

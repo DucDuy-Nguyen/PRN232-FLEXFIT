@@ -1,0 +1,2 @@
+obj\Release\net8.0/Recommendation.cs \
+obj\Release\net8.0/RecommendationGrpc.cs: ../../Recommendation/FlexFit.Recommendation.Grpc/Protos/recommendation.proto

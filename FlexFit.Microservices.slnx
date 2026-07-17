@@ -7,5 +7,14 @@
     <Project Path="src/Services/Engagement/FlexFit.Engagement.Domain/FlexFit.Engagement.Domain.csproj" />
     <Project Path="src/Services/Engagement/FlexFit.Engagement.Infrastructure/FlexFit.Engagement.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/FlexFit.Contracts/FlexFit.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Recommendation/">
+    <Project Path="src/Services/Recommendation/FlexFit.Recommendation.Grpc/FlexFit.Recommendation.Grpc.csproj" />
+  </Folder>
+  <Folder Name="/src/Gateways/">
+    <Project Path="src/Gateways/FlexFit.ApiGateway/FlexFit.ApiGateway.csproj" />
+  </Folder>
   <Project Path="Flexfit.csproj" />
 </Solution>

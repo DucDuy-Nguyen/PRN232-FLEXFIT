@@ -18,3 +18,5 @@ C:\Users\ASUS\Downloads\PRN232-FLEXFIT\src\Services\Engagement\FlexFit.Engagemen
 C:\Users\ASUS\Downloads\PRN232-FLEXFIT\src\Services\Engagement\FlexFit.Engagement.Infrastructure\obj\Debug\net8.0\ref\FlexFit.Engagement.Infrastructure.dll
 C:\Users\ASUS\Downloads\PRN232-FLEXFIT\src\Services\Engagement\FlexFit.Engagement.Infrastructure\bin\Debug\net8.0\FlexFit.Engagement.Infrastructure.runtimeconfig.json
 C:\Users\ASUS\Downloads\PRN232-FLEXFIT\src\Services\Engagement\FlexFit.Engagement.Infrastructure\obj\Debug\net8.0\FlexFit.Engagement.Infrastructure.genruntimeconfig.cache
+C:\Users\ASUS\Downloads\PRN232-FLEXFIT\src\Services\Engagement\FlexFit.Engagement.Infrastructure\bin\Debug\net8.0\FlexFit.Contracts.dll
+C:\Users\ASUS\Downloads\PRN232-FLEXFIT\src\Services\Engagement\FlexFit.Engagement.Infrastructure\bin\Debug\net8.0\FlexFit.Contracts.pdb
