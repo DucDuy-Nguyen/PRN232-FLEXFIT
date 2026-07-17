@@ -5978,23 +5978,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\": {},
+    "C:\\Users\\ASUS\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\FlexFit\\Flexfit-V01\\FlexFit\\Flexfit.csproj",
+      "projectUniqueName": "C:\\Users\\ASUS\\Downloads\\PRN232-FLEXFIT\\Flexfit.csproj",
       "projectName": "Flexfit",
-      "projectPath": "D:\\FlexFit\\Flexfit-V01\\FlexFit\\Flexfit.csproj",
-      "packagesPath": "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\",
-      "outputPath": "D:\\FlexFit\\Flexfit-V01\\FlexFit\\obj\\",
+      "projectPath": "C:\\Users\\ASUS\\Downloads\\PRN232-FLEXFIT\\Flexfit.csproj",
+      "packagesPath": "C:\\Users\\ASUS\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\ASUS\\Downloads\\PRN232-FLEXFIT\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\NGUYENDUCDUY\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\ASUS\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -6003,8 +6003,6 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
-        "C:\\Users\\NGUYENDUCDUY\\Downloads": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -6087,24 +6085,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.27, 8.0.27]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[8.0.27, 8.0.27]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.27, 8.0.27]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.27, 8.0.27]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
