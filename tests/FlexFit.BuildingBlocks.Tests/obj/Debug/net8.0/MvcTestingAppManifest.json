@@ -1,0 +1,9 @@
+{
+  "FlexFit.Caching, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.Caching",
+  "FlexFit.Contracts, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.Contracts",
+  "FlexFit.Identity.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.API",
+  "FlexFit.Identity.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Application",
+  "FlexFit.Identity.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Domain",
+  "FlexFit.Identity.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Infrastructure",
+  "FlexFit.RedisEventBus, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.RedisEventBus"
+}

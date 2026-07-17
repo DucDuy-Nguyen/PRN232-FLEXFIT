@@ -1,0 +1,12 @@
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\bin\Debug\net8.0\FlexFit.Contracts.deps.json
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\bin\Debug\net8.0\FlexFit.Contracts.dll
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\bin\Debug\net8.0\FlexFit.Contracts.pdb
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\FlexFit.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\FlexFit.Contracts.AssemblyInfoInputs.cache
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\FlexFit.Contracts.AssemblyInfo.cs
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\FlexFit.Contracts.csproj.CoreCompileInputs.cache
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\FlexFit.Contracts.sourcelink.json
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\FlexFit.Contracts.dll
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\refint\FlexFit.Contracts.dll
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\FlexFit.Contracts.pdb
+d:\PRN232-SP26\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\obj\Debug\net8.0\ref\FlexFit.Contracts.dll

@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "JfSlQDCI3aA=",
+  "success": true,
+  "projectFilePath": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.Contracts\\FlexFit.Contracts.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.27\\microsoft.windowsdesktop.app.ref.8.0.27.nupkg.sha512",
+    "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.27\\microsoft.netcore.app.ref.8.0.27.nupkg.sha512",
+    "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.27\\microsoft.aspnetcore.app.ref.8.0.27.nupkg.sha512"
+  ],
+  "logs": []
+}
