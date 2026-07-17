@@ -15,6 +15,7 @@ public class EngagementDbContext : DbContext
     public DbSet<Review> Reviews { get; set; } = null!;
     public DbSet<Promotion> Promotions { get; set; } = null!;
     public DbSet<UserWorkoutHistory> UserWorkoutHistories { get; set; } = null!;
+    public DbSet<SystemLog> SystemLogs { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,6 +58,17 @@ public class EngagementDbContext : DbContext
         {
             entity.HasKey(e => e.WorkoutHistoryId);
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+        });
+
+        modelBuilder.Entity<SystemLog>(entity =>
+        {
+            entity.ToTable("SystemLogs");
+            entity.HasKey(e => e.LogId);
+            entity.Property(e => e.Action).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.HasOne(d => d.User).WithMany().HasForeignKey(d => d.UserId);
         });
     }
 }

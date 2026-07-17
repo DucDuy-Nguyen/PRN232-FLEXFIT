@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FlexFit.Engagement.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5562428fde9629e329291ef7568a6930589b09fc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1f6694ec78eb5ec4b5cc3e02de904a9c3f10f88e")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlexFit.Engagement.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlexFit.Engagement.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

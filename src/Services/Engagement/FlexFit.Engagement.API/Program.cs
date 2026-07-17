@@ -26,6 +26,9 @@ builder.Services.AddDbContext<EngagementDbContext>(options =>
 // Add Controllers
 builder.Services.AddControllers();
 
+// Add HttpContextAccessor for SystemLog ip and user resolution
+builder.Services.AddHttpContextAccessor();
+
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -123,6 +126,10 @@ builder.Services.AddScoped<IPromotionService, FlexFit.Engagement.Infrastructure.
 // WorkoutHistory
 builder.Services.AddScoped<IWorkoutHistoryRepository, WorkoutHistoryRepository>();
 builder.Services.AddScoped<IWorkoutHistoryService, FlexFit.Engagement.Infrastructure.Services.WorkoutHistoryService>();
+
+// SystemLog
+builder.Services.AddScoped<ISystemLogRepository, SystemLogRepository>();
+builder.Services.AddScoped<ISystemLogService, FlexFit.Engagement.Infrastructure.Services.SystemLogService>();
 
 // AI
 builder.Services.AddScoped<IAIContextBuilder, AIContextBuilder>();
