@@ -6,6 +6,7 @@ using FlexFit.BookingService.Repositories.Interfaces;
 using FlexFit.BookingService.Service;
 using FlexFit.BookingService.Service.Interfaces;
 using FlexFit.BookingService.BackgroundJobs;
+using FlexFit.Caching;
 using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +59,9 @@ builder.Services.AddHttpClient<ICatalogServiceClient, CatalogServiceClient>(clie
 {
     client.BaseAddress = new Uri(catalogBaseUrl);
 });
+
+// 4.5 Register Redis Caching Shared Library Services
+builder.Services.AddFlexFitRedisCaching(builder.Configuration);
 
 // 5. MassTransit with RabbitMQ Setup
 builder.Services.AddMassTransit(x =>

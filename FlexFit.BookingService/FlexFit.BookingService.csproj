@@ -22,4 +22,8 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\BuildingBlocks\FlexFit.Caching\FlexFit.Caching.csproj" />
+  </ItemGroup>
+
 </Project>

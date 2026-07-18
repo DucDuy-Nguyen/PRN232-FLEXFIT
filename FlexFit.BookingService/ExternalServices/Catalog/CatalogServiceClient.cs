@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using FlexFit.Caching;
 
 namespace FlexFit.BookingService.ExternalServices.Catalog
 {
@@ -12,21 +13,39 @@ namespace FlexFit.BookingService.ExternalServices.Catalog
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<CatalogServiceClient> _logger;
+        private readonly ICacheService _cacheService;
         private readonly bool _useMock;
 
-        public CatalogServiceClient(HttpClient httpClient, IConfiguration configuration, ILogger<CatalogServiceClient> logger)
+        public CatalogServiceClient(HttpClient httpClient, IConfiguration configuration, ILogger<CatalogServiceClient> logger, ICacheService cacheService)
         {
             _httpClient = httpClient;
             _logger = logger;
+            _cacheService = cacheService;
             _useMock = configuration.GetValue<bool>("CatalogConfig:UseMock", true);
         }
 
         public async Task<CatalogSessionDetails?> GetGymSessionDetailsAsync(Guid sessionId)
         {
+            var cacheKey = RedisKeys.CatalogSession(sessionId);
+            try
+            {
+                var cached = await _cacheService.GetAsync<CatalogSessionDetails>(cacheKey);
+                if (cached != null)
+                {
+                    _logger.LogInformation("Cache hit for Gym Session {SessionId}", sessionId);
+                    return cached;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to read Gym Session {SessionId} from cache", sessionId);
+            }
+
+            CatalogSessionDetails? details = null;
             if (_useMock)
             {
                 _logger.LogInformation("Using mock data for GetGymSessionDetailsAsync({SessionId})", sessionId);
-                return new CatalogSessionDetails
+                details = new CatalogSessionDetails
                 {
                     SessionId = sessionId,
                     GymId = Guid.Parse("99999999-9999-9999-9999-999999999999"),
@@ -42,30 +61,64 @@ namespace FlexFit.BookingService.ExternalServices.Catalog
                     Status = "Open"
                 };
             }
-
-            try
+            else
             {
-                var response = await _httpClient.GetAsync($"/api/catalog/sessions/{sessionId}");
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    return await response.Content.ReadFromJsonAsync<CatalogSessionDetails>();
+                    var response = await _httpClient.GetAsync($"/api/catalog/sessions/{sessionId}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        details = await response.Content.ReadFromJsonAsync<CatalogSessionDetails>();
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Catalog Service returned status {Status} for session {SessionId}", response.StatusCode, sessionId);
+                    }
                 }
-                _logger.LogWarning("Catalog Service returned status {Status} for session {SessionId}", response.StatusCode, sessionId);
-                return null;
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to call Catalog Service for session {SessionId}", sessionId);
+                }
             }
-            catch (Exception ex)
+
+            if (details != null)
             {
-                _logger.LogError(ex, "Failed to call Catalog Service for session {SessionId}", sessionId);
-                return null;
+                try
+                {
+                    await _cacheService.SetAsync(cacheKey, details, TimeSpan.FromMinutes(5));
+                    _logger.LogInformation("Cached Gym Session {SessionId} for 5 minutes", sessionId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to write Gym Session {SessionId} to cache", sessionId);
+                }
             }
+
+            return details;
         }
 
         public async Task<CatalogClassDetails?> GetClassDetailsAsync(Guid classId)
         {
+            var cacheKey = RedisKeys.CatalogClass(classId);
+            try
+            {
+                var cached = await _cacheService.GetAsync<CatalogClassDetails>(cacheKey);
+                if (cached != null)
+                {
+                    _logger.LogInformation("Cache hit for Class {ClassId}", classId);
+                    return cached;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to read Class {ClassId} from cache", classId);
+            }
+
+            CatalogClassDetails? details = null;
             if (_useMock)
             {
                 _logger.LogInformation("Using mock data for GetClassDetailsAsync({ClassId})", classId);
-                return new CatalogClassDetails
+                details = new CatalogClassDetails
                 {
                     ClassId = classId,
                     ScheduleId = Guid.Parse("88888888-8888-8888-8888-888888888888"),
@@ -83,22 +136,40 @@ namespace FlexFit.BookingService.ExternalServices.Catalog
                     Status = "Open"
                 };
             }
-
-            try
+            else
             {
-                var response = await _httpClient.GetAsync($"/api/catalog/classes/{classId}");
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    return await response.Content.ReadFromJsonAsync<CatalogClassDetails>();
+                    var response = await _httpClient.GetAsync($"/api/catalog/classes/{classId}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        details = await response.Content.ReadFromJsonAsync<CatalogClassDetails>();
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Catalog Service returned status {Status} for class {ClassId}", response.StatusCode, classId);
+                    }
                 }
-                _logger.LogWarning("Catalog Service returned status {Status} for class {ClassId}", response.StatusCode, classId);
-                return null;
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to call Catalog Service for class {ClassId}", classId);
+                }
             }
-            catch (Exception ex)
+
+            if (details != null)
             {
-                _logger.LogError(ex, "Failed to call Catalog Service for class {ClassId}", classId);
-                return null;
+                try
+                {
+                    await _cacheService.SetAsync(cacheKey, details, TimeSpan.FromMinutes(5));
+                    _logger.LogInformation("Cached Class {ClassId} for 5 minutes", classId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to write Class {ClassId} to cache", classId);
+                }
             }
+
+            return details;
         }
 
         public async Task<bool> VerifyStaffPermissionAsync(Guid staffId, Guid branchId)

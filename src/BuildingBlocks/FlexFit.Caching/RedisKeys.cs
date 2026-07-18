@@ -37,6 +37,12 @@ public static class RedisKeys
     public static string RateLimit(string keyPrefix, string ipOrEmail)
         => $"flexfit:rate-limit:{keyPrefix}:{ipOrEmail}";
 
+    public static string CatalogSession(Guid sessionId)
+        => $"flexfit:catalog:sessions:{sessionId}";
+
+    public static string CatalogClass(Guid classId)
+        => $"flexfit:catalog:classes:{classId}";
+
     public static string NormalizeEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
