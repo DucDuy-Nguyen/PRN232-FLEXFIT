@@ -1,4 +1,4 @@
-using FlexFit.Engagement.Application.Interfaces;
+using FlexFit.Engagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

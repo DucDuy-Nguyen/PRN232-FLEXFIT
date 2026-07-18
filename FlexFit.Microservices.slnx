@@ -3,9 +3,6 @@
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Engagement/">
     <Project Path="src/Services/Engagement/FlexFit.Engagement.API/FlexFit.Engagement.API.csproj" />
-    <Project Path="src/Services/Engagement/FlexFit.Engagement.Application/FlexFit.Engagement.Application.csproj" />
-    <Project Path="src/Services/Engagement/FlexFit.Engagement.Domain/FlexFit.Engagement.Domain.csproj" />
-    <Project Path="src/Services/Engagement/FlexFit.Engagement.Infrastructure/FlexFit.Engagement.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/FlexFit.Contracts/FlexFit.Contracts.csproj" />

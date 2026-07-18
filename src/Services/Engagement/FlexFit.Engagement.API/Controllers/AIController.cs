@@ -1,5 +1,5 @@
-using FlexFit.Engagement.Application.DTOs.AI;
-using FlexFit.Engagement.Application.Interfaces;
+using FlexFit.Engagement.API.Models.DTOs.AI;
+using FlexFit.Engagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,7 +13,10 @@ public class AIController : ControllerBase
 {
     private readonly IAIService _aiService;
 
-    public AIController(IAIService aiService) { _aiService = aiService; }
+    public AIController(IAIService aiService)
+    {
+        _aiService = aiService;
+    }
 
     private Guid GetUserId()
     {

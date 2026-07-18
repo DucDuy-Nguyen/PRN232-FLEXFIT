@@ -1,5 +1,5 @@
-using FlexFit.Engagement.Application.DTOs.Reviews;
-using FlexFit.Engagement.Application.Interfaces;
+using FlexFit.Engagement.API.Models.DTOs.Reviews;
+using FlexFit.Engagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,11 +13,16 @@ public class ReviewController : ControllerBase
 {
     private readonly IReviewService _reviewService;
 
-    public ReviewController(IReviewService reviewService) { _reviewService = reviewService; }
+    public ReviewController(IReviewService reviewService)
+    {
+        _reviewService = reviewService;
+    }
 
     private Guid GetCurrentUserId()
     {
-        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userIdValue = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst("sub")?.Value
+                          ?? User.FindFirst("UserId")?.Value;
         if (string.IsNullOrEmpty(userIdValue)) throw new UnauthorizedAccessException("Unauthorized.");
         return Guid.Parse(userIdValue);
     }

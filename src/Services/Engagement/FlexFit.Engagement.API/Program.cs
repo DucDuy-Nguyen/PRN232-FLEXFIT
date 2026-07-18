@@ -1,9 +1,10 @@
-using FlexFit.Engagement.Application.Interfaces;
-using FlexFit.Engagement.Infrastructure.Persistence;
-using FlexFit.Engagement.Infrastructure.Repositories;
-using FlexFit.Engagement.Infrastructure.Services;
-using FlexFit.Engagement.Infrastructure.Services.AI;
-using FlexFit.Engagement.Infrastructure.Redis;
+using FlexFit.Engagement.API.Data;
+using FlexFit.Engagement.API.Data.Repositories.Interfaces;
+using FlexFit.Engagement.API.Data.Repositories.Implementations;
+using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.API.Services.Implementations;
+using FlexFit.Engagement.API.Services.AI;
+using FlexFit.Engagement.API.Redis;
 using FlexFit.Engagement.API.Hubs;
 using FlexFit.Engagement.API.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -117,19 +118,19 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Review
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<IReviewService, FlexFit.Engagement.Infrastructure.Services.ReviewService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // Promotion
 builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
-builder.Services.AddScoped<IPromotionService, FlexFit.Engagement.Infrastructure.Services.PromotionService>();
+builder.Services.AddScoped<IPromotionService, PromotionService>();
 
 // WorkoutHistory
 builder.Services.AddScoped<IWorkoutHistoryRepository, WorkoutHistoryRepository>();
-builder.Services.AddScoped<IWorkoutHistoryService, FlexFit.Engagement.Infrastructure.Services.WorkoutHistoryService>();
+builder.Services.AddScoped<IWorkoutHistoryService, WorkoutHistoryService>();
 
 // SystemLog
 builder.Services.AddScoped<ISystemLogRepository, SystemLogRepository>();
-builder.Services.AddScoped<ISystemLogService, FlexFit.Engagement.Infrastructure.Services.SystemLogService>();
+builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 
 // AI
 builder.Services.AddScoped<IAIContextBuilder, AIContextBuilder>();

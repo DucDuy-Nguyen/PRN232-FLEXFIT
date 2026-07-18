@@ -1,5 +1,5 @@
-using FlexFit.Engagement.Application.DTOs.Promotions;
-using FlexFit.Engagement.Application.Interfaces;
+using FlexFit.Engagement.API.Models.DTOs.Promotions;
+using FlexFit.Engagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +11,10 @@ public class PromotionController : ControllerBase
 {
     private readonly IPromotionService _promotionService;
 
-    public PromotionController(IPromotionService promotionService) { _promotionService = promotionService; }
+    public PromotionController(IPromotionService promotionService)
+    {
+        _promotionService = promotionService;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] bool? isActiveOnly)

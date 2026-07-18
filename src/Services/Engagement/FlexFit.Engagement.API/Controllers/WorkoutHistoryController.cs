@@ -1,5 +1,5 @@
-using FlexFit.Engagement.Application.DTOs.WorkoutHistory;
-using FlexFit.Engagement.Application.Interfaces;
+using FlexFit.Engagement.API.Models.DTOs.WorkoutHistory;
+using FlexFit.Engagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,11 +13,16 @@ public class WorkoutHistoryController : ControllerBase
 {
     private readonly IWorkoutHistoryService _historyService;
 
-    public WorkoutHistoryController(IWorkoutHistoryService historyService) { _historyService = historyService; }
+    public WorkoutHistoryController(IWorkoutHistoryService historyService)
+    {
+        _historyService = historyService;
+    }
 
     private Guid GetUserId()
     {
-        var val = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var val = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                  ?? User.FindFirst("sub")?.Value
+                  ?? User.FindFirst("UserId")?.Value;
         if (string.IsNullOrEmpty(val)) throw new UnauthorizedAccessException("Unauthorized.");
         return Guid.Parse(val);
     }

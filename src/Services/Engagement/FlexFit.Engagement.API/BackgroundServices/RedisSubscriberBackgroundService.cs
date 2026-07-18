@@ -1,12 +1,14 @@
 using FlexFit.Contracts.Events;
-using FlexFit.Engagement.Application.Interfaces;
-using FlexFit.Engagement.Infrastructure.Redis;
+using FlexFit.Engagement.API.Data.Repositories.Interfaces;
+using FlexFit.Engagement.API.Models.Entities;
+using FlexFit.Engagement.API.Redis;
+using FlexFit.Engagement.API.Services.Interfaces;
 using StackExchange.Redis;
 using System.Text.Json;
 
 namespace FlexFit.Engagement.API.BackgroundServices;
 
-public class RedisSubscriberBackgroundService : BackgroundService
+public sealed class RedisSubscriberBackgroundService : BackgroundService
 {
     private readonly IConnectionMultiplexer _redis;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -26,135 +28,158 @@ public class RedisSubscriberBackgroundService : BackgroundService
     {
         _logger.LogInformation("Redis Subscriber Background Service is starting...");
 
-        try
+        var subscriber = _redis.GetSubscriber();
+
+        // 1. Subscribe to GymBookingCreatedEvent
+        await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.BookingCreated), async (channel, message) =>
         {
-            var subscriber = _redis.GetSubscriber();
-
-            // 1. GymBookingCreated
-            await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.GymBookingCreated), async (channel, message) =>
+            try
             {
-                _logger.LogInformation("Received Redis message from {Channel}: {Message}", channel.ToString(), message.ToString());
-                try
-                {
-                    var evt = JsonSerializer.Deserialize<GymBookingCreatedEvent>(message!);
-                    if (evt == null) return;
+                var evt = JsonSerializer.Deserialize<GymBookingCreatedEvent>(message!);
+                if (evt == null) return;
 
-                    using var scope = _scopeFactory.CreateScope();
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    await notificationService.SendAsync(
-                        evt.UserId,
-                        "Đặt lịch thành công!",
-                        $"Bạn đã đặt lịch tại {evt.GymName ?? "phòng tập"} - {evt.BranchName ?? "chi nhánh"} vào ngày {evt.BookingDate:dd/MM/yyyy}.",
-                        "BookingSuccess");
+                _logger.LogInformation("Received BookingCreated event for user {UserId}", evt.UserId);
 
-                    _logger.LogInformation("Processed BookingCreated event for user {UserId}", evt.UserId);
-                }
-                catch (Exception ex) { _logger.LogError(ex, "Error processing BookingCreated event"); }
-            });
-            _logger.LogInformation("Subscribed successfully to Redis channel: {Channel}", RedisChannelNames.GymBookingCreated);
-
-            // 2. BookingCancelled
-            await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.BookingCancelled), async (channel, message) =>
+                using var scope = _scopeFactory.CreateScope();
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                await notificationService.SendAsync(
+                    evt.UserId,
+                    "Đặt lịch thành công!",
+                    $"Bạn đã đặt lịch tại {evt.GymName ?? "phòng tập"} - {evt.BranchName ?? "chi nhánh"} vào ngày {evt.BookingDate:dd/MM/yyyy}.",
+                    "BookingSuccess");
+            }
+            catch (Exception ex)
             {
-                _logger.LogInformation("Received Redis message from {Channel}: {Message}", channel.ToString(), message.ToString());
-                try
-                {
-                    var evt = JsonSerializer.Deserialize<BookingCancelledEvent>(message!);
-                    if (evt == null) return;
+                _logger.LogError(ex, "Error processing BookingCreated event");
+            }
+        });
 
-                    using var scope = _scopeFactory.CreateScope();
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    await notificationService.SendAsync(
-                        evt.UserId,
-                        "Lịch đặt đã được hủy",
-                        $"Lịch đặt {evt.BookingType} của bạn đã bị hủy.{(string.IsNullOrEmpty(evt.Reason) ? "" : $" Lý do: {evt.Reason}")}",
-                        "BookingCancelled");
-
-                    _logger.LogInformation("Processed BookingCancelled event for user {UserId}", evt.UserId);
-                }
-                catch (Exception ex) { _logger.LogError(ex, "Error processing BookingCancelled event"); }
-            });
-            _logger.LogInformation("Subscribed successfully to Redis channel: {Channel}", RedisChannelNames.BookingCancelled);
-
-            // 3. PaymentCompleted
-            await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.PaymentCompleted), async (channel, message) =>
+        // 2. Subscribe to BookingCancelledEvent
+        await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.BookingCancelled), async (channel, message) =>
+        {
+            try
             {
-                _logger.LogInformation("Received Redis message from {Channel}: {Message}", channel.ToString(), message.ToString());
-                try
-                {
-                    var evt = JsonSerializer.Deserialize<PaymentCompletedEvent>(message!);
-                    if (evt == null) return;
+                var evt = JsonSerializer.Deserialize<BookingCancelledEvent>(message!);
+                if (evt == null) return;
 
-                    using var scope = _scopeFactory.CreateScope();
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    await notificationService.SendAsync(
-                        evt.UserId,
-                        "Thanh toán thành công!",
-                        $"Bạn đã thanh toán {evt.Amount:N0}đ qua {evt.PaymentMethod}.{(string.IsNullOrEmpty(evt.Description) ? "" : $" {evt.Description}")}",
-                        "PaymentSuccess");
+                _logger.LogInformation("Received BookingCancelled event for user {UserId}", evt.UserId);
 
-                    _logger.LogInformation("Processed PaymentCompleted event for user {UserId}", evt.UserId);
-                }
-                catch (Exception ex) { _logger.LogError(ex, "Error processing PaymentCompleted event"); }
-            });
-            _logger.LogInformation("Subscribed successfully to Redis channel: {Channel}", RedisChannelNames.PaymentCompleted);
-
-            // 4. UserRegistered
-            await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.UserRegistered), async (channel, message) =>
+                using var scope = _scopeFactory.CreateScope();
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                await notificationService.SendAsync(
+                    evt.UserId,
+                    "Lịch đặt đã được hủy",
+                    $"Lịch đặt {evt.BookingType} của bạn đã bị hủy.{(string.IsNullOrEmpty(evt.Reason) ? "" : $" Lý do: {evt.Reason}")}",
+                    "BookingCancelled");
+            }
+            catch (Exception ex)
             {
-                _logger.LogInformation("Received Redis message from {Channel}: {Message}", channel.ToString(), message.ToString());
-                try
-                {
-                    var evt = JsonSerializer.Deserialize<UserRegisteredEvent>(message!);
-                    if (evt == null) return;
+                _logger.LogError(ex, "Error processing BookingCancelled event");
+            }
+        });
 
-                    using var scope = _scopeFactory.CreateScope();
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    await notificationService.SendAsync(
-                        evt.UserId,
-                        "Chào mừng bạn đến với FlexFit!",
-                        $"Xin chào {evt.FullName}, tài khoản của bạn đã được tạo thành công. Hãy bắt đầu hành trình sức khỏe ngay!",
-                        "AccountUpdate");
-
-                    _logger.LogInformation("Processed UserRegistered event for user {UserId}", evt.UserId);
-                }
-                catch (Exception ex) { _logger.LogError(ex, "Error processing UserRegistered event"); }
-            });
-            _logger.LogInformation("Subscribed successfully to Redis channel: {Channel}", RedisChannelNames.UserRegistered);
-
-            // 5. CheckInCompleted
-            await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.CheckInCompleted), async (channel, message) =>
+        // 3. Subscribe to PaymentCompletedEvent
+        await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.PaymentCompleted), async (channel, message) =>
+        {
+            try
             {
-                _logger.LogInformation("Received Redis message from {Channel}: {Message}", channel.ToString(), message.ToString());
-                try
+                var evt = JsonSerializer.Deserialize<PaymentCompletedEvent>(message!);
+                if (evt == null) return;
+
+                _logger.LogInformation("Received PaymentCompleted event for user {UserId}", evt.UserId);
+
+                using var scope = _scopeFactory.CreateScope();
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                await notificationService.SendAsync(
+                    evt.UserId,
+                    "Thanh toán thành công!",
+                    $"Bạn đã thanh toán {evt.Amount:N0}đ qua {evt.PaymentMethod}.{(string.IsNullOrEmpty(evt.Description) ? "" : $" {evt.Description}")}",
+                    "PaymentSuccess");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing PaymentCompleted event");
+            }
+        });
+
+        // 4. Subscribe to UserRegisteredEvent
+        await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.UserRegistered), async (channel, message) =>
+        {
+            try
+            {
+                var evt = JsonSerializer.Deserialize<UserRegisteredEvent>(message!);
+                if (evt == null) return;
+
+                _logger.LogInformation("Received UserRegistered event for user {UserId} ({FullName})", evt.UserId, evt.FullName);
+
+                using var scope = _scopeFactory.CreateScope();
+                
+                // Sync User to local Engagement DB to support showing reviewer names, log details etc.
+                var userRepo = scope.ServiceProvider.GetRequiredService<IEngagementUserRepository>();
+                var existingUser = await userRepo.GetByIdAsync(evt.UserId);
+                if (existingUser == null)
                 {
-                    var evt = JsonSerializer.Deserialize<CheckInCompletedEvent>(message!);
-                    if (evt == null) return;
-
-                    using var scope = _scopeFactory.CreateScope();
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    await notificationService.SendAsync(
-                        evt.UserId,
-                        "Check-in thành công!",
-                        $"Bạn đã check-in tại {evt.BranchName ?? "chi nhánh"}. Chúc bạn buổi tập hiệu quả!",
-                        "SystemAlert");
-
-                    _logger.LogInformation("Processed CheckInCompleted event for user {UserId}", evt.UserId);
+                    await userRepo.AddAsync(new User
+                    {
+                        UserId = evt.UserId,
+                        FullName = evt.FullName,
+                        Email = evt.Email
+                    });
+                    await userRepo.SaveChangesAsync();
                 }
-                catch (Exception ex) { _logger.LogError(ex, "Error processing CheckInCompleted event"); }
-            });
-            _logger.LogInformation("Subscribed successfully to Redis channel: {Channel}", RedisChannelNames.CheckInCompleted);
 
-            // Keep the background service alive indefinitely
+                // Send Welcome Notification
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                await notificationService.SendAsync(
+                    evt.UserId,
+                    "Chào mừng bạn đến với FlexFit!",
+                    $"Xin chào {evt.FullName}, tài khoản của bạn đã được tạo thành công. Hãy bắt đầu hành trình sức khỏe ngay!",
+                    "AccountUpdate");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing UserRegistered event");
+            }
+        });
+
+        // 5. Subscribe to CheckInCompletedEvent
+        await subscriber.SubscribeAsync(RedisChannel.Literal(RedisChannelNames.CheckInCompleted), async (channel, message) =>
+        {
+            try
+            {
+                var evt = JsonSerializer.Deserialize<CheckInCompletedEvent>(message!);
+                if (evt == null) return;
+
+                _logger.LogInformation("Received CheckInCompleted event for user {UserId}", evt.UserId);
+
+                using var scope = _scopeFactory.CreateScope();
+
+                // Create local workout history
+                var workoutService = scope.ServiceProvider.GetRequiredService<IWorkoutHistoryService>();
+                Guid? classBookingId = evt.BookingType == "Class" ? evt.BookingId : null;
+                Guid? gymBookingId = evt.BookingType == "Gym" ? evt.BookingId : null;
+
+                // Estimate calories & duration based on class/session (default to 400 calories, 60 minutes)
+                await workoutService.CreateHistoryFromCheckInAsync(evt.UserId, classBookingId, gymBookingId, 400, 60);
+
+                // Send Notification
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+                await notificationService.SendAsync(
+                    evt.UserId,
+                    "Check-in thành công!",
+                    $"Bạn đã check-in thành công tại {evt.BranchName ?? "chi nhánh phòng tập"}. Chúc bạn buổi tập hiệu quả!",
+                    "SystemAlert");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing CheckInCompleted event");
+            }
+        });
+
+        // Maintain the background loop
+        while (!stoppingToken.IsCancellationRequested)
+        {
             await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogInformation("Redis subscriber is stopping.");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Redis subscriber failed.");
         }
     }
 }
