@@ -2,14 +2,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Asp.Versioning;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using FlexFit.Identity.API.Authorization;
 using FlexFit.Identity.API.Contracts.Profiles;
-using FlexFit.Identity.Application.Abstractions;
-using FlexFit.Identity.Application.Profiles;
+using FlexFit.Identity.API.Services.Interfaces;
+using FlexFit.Identity.API.Services.Interfaces;
+using FlexFit.Identity.API.Models.DTOs;
 
 namespace FlexFit.Identity.API.Controllers;
 
@@ -19,12 +19,12 @@ namespace FlexFit.Identity.API.Controllers;
 [Authorize]
 public sealed class MemberProfilesController : ControllerBase
 {
-    private readonly ISender _sender;
+    private readonly IProfileService _profileService;
     private readonly ICurrentUserService _currentUserService;
 
-    public MemberProfilesController(ISender sender, ICurrentUserService currentUserService)
+    public MemberProfilesController(IProfileService profileService, ICurrentUserService currentUserService)
     {
-        _sender = sender ?? throw new ArgumentNullException(nameof(sender));
+        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
@@ -39,9 +39,7 @@ public sealed class MemberProfilesController : ControllerBase
             return Unauthorized();
         }
 
-        var query = new GetMemberProfileQuery(userId.Value);
-        var result = await _sender.Send(query, cancellationToken);
-        
+        var result = await _profileService.GetByUserIdAsync(userId.Value, cancellationToken);
         return Ok(result);
     }
 
@@ -59,7 +57,7 @@ public sealed class MemberProfilesController : ControllerBase
             return Unauthorized();
         }
 
-        var command = new UpdateMemberProfileCommand(
+        var result = await _profileService.UpdateAsync(
             userId.Value,
             request.FullName,
             request.PhoneNumber,
@@ -71,9 +69,8 @@ public sealed class MemberProfilesController : ControllerBase
             request.FitnessGoal,
             request.ActivityLevel,
             request.PreferredWorkoutTime,
-            request.Bio);
-
-        var result = await _sender.Send(command, cancellationToken);
+            request.Bio,
+            cancellationToken);
         
         return Ok(result);
     }
@@ -88,9 +85,7 @@ public sealed class MemberProfilesController : ControllerBase
         Guid userId, 
         CancellationToken cancellationToken)
     {
-        var query = new GetMemberProfileQuery(userId);
-        var result = await _sender.Send(query, cancellationToken);
-        
+        var result = await _profileService.GetByUserIdAsync(userId, cancellationToken);
         return Ok(result);
     }
 }

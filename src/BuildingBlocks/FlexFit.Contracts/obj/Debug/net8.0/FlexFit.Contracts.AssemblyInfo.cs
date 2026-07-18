@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FlexFit.Contracts")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+44f0638c20b5ea361ff6112bdc54e2ae7a051624")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+40dccf090dc17bd9d3ad24579b9122022e1eb98e")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlexFit.Contracts")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlexFit.Contracts")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

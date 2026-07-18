@@ -4,7 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using FlexFit.Identity.Application.Abstractions;
+using FlexFit.Identity.API.Services.Interfaces;
 
 namespace FlexFit.Identity.API.Authentication;
 

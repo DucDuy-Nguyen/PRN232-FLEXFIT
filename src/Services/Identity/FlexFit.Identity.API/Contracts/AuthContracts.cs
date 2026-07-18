@@ -1,13 +1,14 @@
 using System;
-using FlexFit.Identity.Domain.Enums;
+using FlexFit.Identity.API.Models.Enums;
 
 namespace FlexFit.Identity.API.Contracts.Authentication;
 
 public sealed record RegisterRequest(
+    string FullName,
     string Email,
     string Password,
     string ConfirmPassword,
-    string FullName);
+    string? PhoneNumber = null);
 
 public sealed record LoginRequest(
     string Email,

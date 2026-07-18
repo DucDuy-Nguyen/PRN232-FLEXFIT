@@ -2,17 +2,14 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Asp.Versioning;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using FlexFit.Identity.API.Authorization;
-using FlexFit.Identity.Application.Abstractions;
-using FlexFit.Identity.Application.Users.Queries;
-using FlexFit.Identity.Application.Users.AssignRole;
-using FlexFit.Identity.Application.Users.RevokeRole;
-using FlexFit.Identity.Application.Users.ChangeUserStatus;
 using FlexFit.Identity.API.Contracts.Users;
+using FlexFit.Identity.API.Services.Interfaces;
+using FlexFit.Identity.API.Services.Interfaces;
+using FlexFit.Identity.API.Models.DTOs;
 
 namespace FlexFit.Identity.API.Controllers;
 
@@ -22,12 +19,12 @@ namespace FlexFit.Identity.API.Controllers;
 [Authorize(Policy = IdentityPolicies.UserManagement)]
 public sealed class UsersController : ControllerBase
 {
-    private readonly ISender _sender;
+    private readonly IUserService _userService;
     private readonly ICurrentUserService _currentUserService;
 
-    public UsersController(ISender sender, ICurrentUserService currentUserService)
+    public UsersController(IUserService userService, ICurrentUserService currentUserService)
     {
-        _sender = sender ?? throw new ArgumentNullException(nameof(sender));
+        _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
@@ -40,9 +37,7 @@ public sealed class UsersController : ControllerBase
         Guid id, 
         CancellationToken cancellationToken)
     {
-        var query = new GetUserByIdQuery(id);
-        var result = await _sender.Send(query, cancellationToken);
-        
+        var result = await _userService.GetByIdAsync(id, cancellationToken);
         return Ok(result);
     }
 
@@ -61,9 +56,16 @@ public sealed class UsersController : ControllerBase
         [FromQuery] string sortDirection = "desc",
         CancellationToken cancellationToken = default)
     {
-        var query = new GetUsersQuery(page, pageSize, search, isActive, isEmailVerified, roleName, sortBy, sortDirection);
-        var result = await _sender.Send(query, cancellationToken);
-        
+        var result = await _userService.GetPagedAsync(
+            page, 
+            pageSize, 
+            search, 
+            isActive, 
+            isEmailVerified, 
+            roleName, 
+            sortBy, 
+            sortDirection, 
+            cancellationToken);
         return Ok(result);
     }
 
@@ -80,9 +82,7 @@ public sealed class UsersController : ControllerBase
         CancellationToken cancellationToken)
     {
         var actorUserId = _currentUserService.UserId ?? Guid.Empty;
-        var command = new AssignRoleCommand(userId, request.Role, actorUserId);
-        await _sender.Send(command, cancellationToken);
-        
+        await _userService.AssignRoleAsync(userId, request.Role, actorUserId, cancellationToken);
         return NoContent();
     }
 
@@ -99,9 +99,7 @@ public sealed class UsersController : ControllerBase
         CancellationToken cancellationToken)
     {
         var actorUserId = _currentUserService.UserId ?? Guid.Empty;
-        var command = new RevokeRoleCommand(userId, role, actorUserId);
-        await _sender.Send(command, cancellationToken);
-        
+        await _userService.RevokeRoleAsync(userId, role, actorUserId, cancellationToken);
         return NoContent();
     }
 
@@ -118,9 +116,7 @@ public sealed class UsersController : ControllerBase
         CancellationToken cancellationToken)
     {
         var actorUserId = _currentUserService.UserId ?? Guid.Empty;
-        var command = new ChangeUserStatusCommand(userId, request.IsActive, actorUserId);
-        await _sender.Send(command, cancellationToken);
-        
+        await _userService.ChangeUserStatusAsync(userId, request.IsActive, actorUserId, cancellationToken);
         return NoContent();
     }
 }

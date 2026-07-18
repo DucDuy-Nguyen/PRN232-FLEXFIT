@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Domain\\FlexFit.Identity.Domain.csproj",
+      "projectUniqueName": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Domain\\FlexFit.Identity.Domain.csproj",
       "projectName": "FlexFit.Identity.Domain",
-      "projectPath": "d:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Domain\\FlexFit.Identity.Domain.csproj",
+      "projectPath": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Domain\\FlexFit.Identity.Domain.csproj",
       "packagesPath": "C:\\Users\\NGUYENDUCDUY\\.nuget\\packages\\",
-      "outputPath": "d:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Domain\\obj\\",
+      "outputPath": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Domain\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

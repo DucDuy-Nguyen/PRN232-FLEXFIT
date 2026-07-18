@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
-using FlexFit.Identity.Infrastructure.Persistence;
+using FlexFit.Identity.API.Data;
 
 namespace FlexFit.Identity.API.Extensions;
 

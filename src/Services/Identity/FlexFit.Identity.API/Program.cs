@@ -1,7 +1,5 @@
 using FlexFit.Caching;
 using FlexFit.RedisEventBus;
-using FlexFit.Identity.Application.DependencyInjection;
-using FlexFit.Identity.Infrastructure.DependencyInjection;
 using FlexFit.Identity.API.Extensions;
 using FlexFit.Identity.API.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -11,9 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add building blocks & persistence services to the container.
 builder.Services.AddFlexFitRedisCaching(builder.Configuration);
 builder.Services.AddFlexFitRedisEventBus(builder.Configuration);
-builder.Services.AddIdentityPersistence(builder.Configuration);
-builder.Services.AddIdentitySecurityServices(builder.Configuration);
-builder.Services.AddIdentityApplicationServices();
+
+// Consolidated flat-MVC DI: registers EF, repositories, security, email, and business services
+builder.Services.AddIdentityServices(builder.Configuration);
 
 // API security, versioning, healthchecks, and swagger registration
 builder.Services.AddIdentityJwtAuthentication(builder.Configuration);

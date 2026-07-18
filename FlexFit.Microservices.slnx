@@ -11,9 +11,6 @@
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Identity/">
     <Project Path="src/Services/Identity/FlexFit.Identity.API/FlexFit.Identity.API.csproj" />
-    <Project Path="src/Services/Identity/FlexFit.Identity.Application/FlexFit.Identity.Application.csproj" />
-    <Project Path="src/Services/Identity/FlexFit.Identity.Domain/FlexFit.Identity.Domain.csproj" />
-    <Project Path="src/Services/Identity/FlexFit.Identity.Infrastructure/FlexFit.Identity.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/FlexFit.ApiGateway.Tests/FlexFit.ApiGateway.Tests.csproj" />

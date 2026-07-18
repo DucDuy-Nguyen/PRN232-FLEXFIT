@@ -340,11 +340,14 @@
             "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Application\\FlexFit.Identity.Application.csproj": {
-                "projectPath": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Application\\FlexFit.Identity.Application.csproj"
+              "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.Caching\\FlexFit.Caching.csproj": {
+                "projectPath": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.Caching\\FlexFit.Caching.csproj"
               },
-              "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Infrastructure\\FlexFit.Identity.Infrastructure.csproj": {
-                "projectPath": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\Services\\Identity\\FlexFit.Identity.Infrastructure\\FlexFit.Identity.Infrastructure.csproj"
+              "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.Contracts\\FlexFit.Contracts.csproj": {
+                "projectPath": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.Contracts\\FlexFit.Contracts.csproj"
+              },
+              "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.RedisEventBus\\FlexFit.RedisEventBus.csproj": {
+                "projectPath": "D:\\PRN232-SP26\\PRN232-FLEXFIT\\src\\BuildingBlocks\\FlexFit.RedisEventBus\\FlexFit.RedisEventBus.csproj"
               }
             }
           }
@@ -370,7 +373,23 @@
               "target": "Package",
               "version": "[8.1.0, )"
             },
+            "FluentValidation.DependencyInjectionExtensions": {
+              "target": "Package",
+              "version": "[11.9.0, )"
+            },
+            "Google.Apis.Auth": {
+              "target": "Package",
+              "version": "[1.68.0, )"
+            },
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.16.0, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.AspNetCore.Cryptography.KeyDerivation": {
               "target": "Package",
               "version": "[8.0.0, )"
             },
@@ -380,9 +399,29 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Logging.Abstractions": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.Extensions.Options.DataAnnotations": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Microsoft.IdentityModel.Tokens": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.6.2, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             }
           },
           "imports": [
@@ -489,10 +528,6 @@
           "framework": "net8.0",
           "targetAlias": "net8.0",
           "dependencies": {
-            "AutoMapper": {
-              "target": "Package",
-              "version": "[12.0.1, )"
-            },
             "AutoMapper.Extensions.Microsoft.DependencyInjection": {
               "target": "Package",
               "version": "[12.0.1, )"
@@ -700,7 +735,7 @@
             },
             "MailKit": {
               "target": "Package",
-              "version": "[4.3.0, )"
+              "version": "[4.16.0, )"
             },
             "Microsoft.AspNetCore.Cryptography.KeyDerivation": {
               "target": "Package",

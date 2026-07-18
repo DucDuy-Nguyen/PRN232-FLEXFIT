@@ -2,22 +2,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Asp.Versioning;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using FlexFit.Identity.Application.Abstractions;
-using FlexFit.Identity.Application.Authentication.ChangePassword;
-using FlexFit.Identity.Application.Authentication.ForgotPassword;
-using FlexFit.Identity.Application.Authentication.GoogleLogin;
-using FlexFit.Identity.Application.Authentication.Login;
-using FlexFit.Identity.Application.Authentication.Logout;
-using FlexFit.Identity.Application.Authentication.RefreshToken;
-using FlexFit.Identity.Application.Authentication.Register;
-using FlexFit.Identity.Application.Authentication.ResendOtp;
-using FlexFit.Identity.Application.Authentication.ResetPassword;
-using FlexFit.Identity.Application.Authentication.VerifyEmail;
 using FlexFit.Identity.API.Contracts.Authentication;
+using FlexFit.Identity.API.Services.Interfaces;
+using FlexFit.Identity.API.Services.Interfaces;
 
 namespace FlexFit.Identity.API.Controllers;
 
@@ -26,12 +16,12 @@ namespace FlexFit.Identity.API.Controllers;
 [Route("api/v{version:apiVersion}/auth")]
 public sealed class AuthController : ControllerBase
 {
-    private readonly ISender _sender;
+    private readonly IAuthService _authService;
     private readonly ICurrentUserService _currentUserService;
 
-    public AuthController(ISender sender, ICurrentUserService currentUserService)
+    public AuthController(IAuthService authService, ICurrentUserService currentUserService)
     {
-        _sender = sender ?? throw new ArgumentNullException(nameof(sender));
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
     }
 
@@ -43,8 +33,7 @@ public sealed class AuthController : ControllerBase
         [FromBody] GoogleLoginRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new GoogleLoginCommand(request.IdToken);
-        var result = await _sender.Send(command, cancellationToken);
+        var result = await _authService.GoogleLoginAsync(request.IdToken, cancellationToken);
         return Ok(result);
     }
 
@@ -56,9 +45,7 @@ public sealed class AuthController : ControllerBase
         [FromBody] RegisterRequest request, 
         CancellationToken cancellationToken)
     {
-        var command = new RegisterCommand(request.Email, request.Password, request.ConfirmPassword, request.FullName);
-        var result = await _sender.Send(command, cancellationToken);
-        
+        var result = await _authService.RegisterAsync(request.FullName, request.Email, request.Password, request.PhoneNumber, cancellationToken);
         return CreatedAtAction(null, new { userId = result.UserId, email = result.Email, requiresEmailVerification = true });
     }
 
@@ -71,9 +58,7 @@ public sealed class AuthController : ControllerBase
         [FromBody] LoginRequest request, 
         CancellationToken cancellationToken)
     {
-        var command = new LoginCommand(request.Email, request.Password);
-        var result = await _sender.Send(command, cancellationToken);
-        
+        var result = await _authService.LoginAsync(request.Email, request.Password, cancellationToken);
         return Ok(new {
             accessToken = result.AccessToken,
             refreshToken = result.RefreshToken,
@@ -89,9 +74,7 @@ public sealed class AuthController : ControllerBase
         [FromBody] RefreshTokenRequest request, 
         CancellationToken cancellationToken)
     {
-        var command = new RefreshTokenCommand(request.AccessToken, request.RefreshToken);
-        var result = await _sender.Send(command, cancellationToken);
-        
+        var result = await _authService.RefreshTokenAsync(request.AccessToken, request.RefreshToken, cancellationToken);
         return Ok(new {
             accessToken = result.AccessToken,
             refreshToken = result.RefreshToken,
@@ -107,10 +90,8 @@ public sealed class AuthController : ControllerBase
         [FromBody] VerifyEmailRequest request, 
         CancellationToken cancellationToken)
     {
-        var command = new VerifyEmailCommand(request.Email, request.Otp);
-        var result = await _sender.Send(command, cancellationToken);
-        
-        return Ok(new { message = result.Message });
+        await _authService.VerifyEmailAsync(request.Email, request.Otp, cancellationToken);
+        return Ok(new { message = "Email verified successfully." });
     }
 
     [HttpPost("resend-otp")]
@@ -121,10 +102,8 @@ public sealed class AuthController : ControllerBase
         [FromBody] ResendOtpRequest request, 
         CancellationToken cancellationToken)
     {
-        var command = new ResendOtpCommand(request.Email, request.Purpose);
-        var result = await _sender.Send(command, cancellationToken);
-        
-        return Ok(new { message = result.Message });
+        await _authService.ResendOtpAsync(request.Email, request.Purpose.ToString(), cancellationToken);
+        return Ok(new { message = "OTP has been resent successfully." });
     }
 
     [HttpPost("forgot-password")]
@@ -133,10 +112,8 @@ public sealed class AuthController : ControllerBase
         [FromBody] ForgotPasswordRequest request, 
         CancellationToken cancellationToken)
     {
-        var command = new ForgotPasswordCommand(request.Email);
-        var result = await _sender.Send(command, cancellationToken);
-        
-        return Ok(new { message = result.Message });
+        await _authService.ForgotPasswordAsync(request.Email, cancellationToken);
+        return Ok(new { message = "Password reset OTP has been sent." });
     }
 
     [HttpPost("reset-password")]
@@ -147,10 +124,8 @@ public sealed class AuthController : ControllerBase
         [FromBody] ResetPasswordRequest request, 
         CancellationToken cancellationToken)
     {
-        var command = new ResetPasswordCommand(request.Email, request.Otp, request.Password, request.ConfirmPassword);
-        var result = await _sender.Send(command, cancellationToken);
-        
-        return Ok(new { message = result.Message });
+        await _authService.ResetPasswordAsync(request.Email, request.Otp, request.Password, request.ConfirmPassword, cancellationToken);
+        return Ok(new { message = "Password reset completed successfully." });
     }
 
     [Authorize]
@@ -166,9 +141,7 @@ public sealed class AuthController : ControllerBase
             ? authHeader.Substring(7) 
             : string.Empty;
 
-        var command = new LogoutCommand(accessToken, request.RefreshToken);
-        await _sender.Send(command, cancellationToken);
-        
+        await _authService.LogoutAsync(accessToken, request.RefreshToken, cancellationToken);
         return NoContent();
     }
 
@@ -192,10 +165,8 @@ public sealed class AuthController : ControllerBase
             ? authHeader.Substring(7) 
             : string.Empty;
 
-        var command = new ChangePasswordCommand(userId.Value, request.CurrentPassword, request.NewPassword, accessToken);
-        var result = await _sender.Send(command, cancellationToken);
-        
-        return Ok(new { message = result.Message });
+        await _authService.ChangePasswordAsync(userId.Value, request.CurrentPassword, request.NewPassword, accessToken, cancellationToken);
+        return Ok(new { message = "Password has been changed successfully. Other active sessions signed out." });
     }
 }
 

@@ -1,4 +1,4 @@
-    <Project Sdk="Microsoft.NET.Sdk.Web">
+﻿    <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,19 +6,46 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- BuildingBlocks (shared across microservices) -->
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\FlexFit.Caching\FlexFit.Caching.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\FlexFit.RedisEventBus\FlexFit.RedisEventBus.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\FlexFit.Contracts\FlexFit.Contracts.csproj" />
+  </ItemGroup>
+
+  <!-- Domain (pure POCO entities, no external deps) -->
+
+  <!-- NuGet packages -->
+  <ItemGroup>
+    <!-- ASP.NET Core -->
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+
+    <!-- EF Core + SQL Server -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-  </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\FlexFit.Identity.Application\FlexFit.Identity.Application.csproj" />
-    <ProjectReference Include="..\FlexFit.Identity.Infrastructure\FlexFit.Identity.Infrastructure.csproj" />
+    <!-- Security / Auth -->
+    <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="8.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.0.0" />
+
+    <!-- Options validation -->
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+
+    <!-- Email -->
+    <PackageReference Include="MailKit" Version="4.16.0" />
+
+    <!-- Google OAuth -->
+    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
+
+    <!-- Validation -->
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
   </ItemGroup>
 
 </Project>
