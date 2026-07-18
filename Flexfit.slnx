@@ -3,11 +3,6 @@
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Payment/">
     <Project Path="src/Services/Payment/FlexFit.Payment.API/FlexFit.Payment.API.csproj" />
-    <Project Path="src/Services/Payment/FlexFit.Payment.Application/FlexFit.Payment.Application.csproj" />
-    <Project Path="src/Services/Payment/FlexFit.Payment.Contracts/FlexFit.Payment.Contracts.csproj" />
-    <Project Path="src/Services/Payment/FlexFit.Payment.Domain/FlexFit.Payment.Domain.csproj" />
-    <Project Path="src/Services/Payment/FlexFit.Payment.Infrastructure/FlexFit.Payment.Infrastructure.csproj" />
-    <Project Path="src/Services/Payment/FlexFit.Payment.Worker/FlexFit.Payment.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/FlexFit.Payment.UnitTests/FlexFit.Payment.UnitTests.csproj" />

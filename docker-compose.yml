@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: src/Services/Payment/FlexFit.Payment.API/Dockerfile
     environment:
-      - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitPayment;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitPaymentDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
       - Redis__ConnectionString=payment-redis:6379
       - Jwt__Key=VeryLongSuperSecureKey1234567890!!
       - Jwt__Issuer=FlexFitAPI
@@ -30,22 +30,14 @@ services:
       - PayOS__ClientId=${PAYOS_CLIENT_ID}
       - PayOS__ApiKey=${PAYOS_API_KEY}
       - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
+      - Payment__UseMockPayment=false
     ports:
       - "5080:8080"
     depends_on:
       - payment-db
       - payment-redis
 
-  payment-worker:
-    build:
-      context: .
-      dockerfile: src/Services/Payment/FlexFit.Payment.Worker/Dockerfile
-    environment:
-      - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitPayment;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
-      - Redis__ConnectionString=payment-redis:6379
-    depends_on:
-      - payment-db
-      - payment-redis
+
 
 volumes:
   sql_data:

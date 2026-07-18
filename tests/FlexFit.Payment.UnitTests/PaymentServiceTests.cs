@@ -8,16 +8,20 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FlexFit.Payment.API.Controllers;
-using FlexFit.Payment.Application.DTOs.AdminRevenue;
-using FlexFit.Payment.Application.DTOs.Credit;
-using FlexFit.Payment.Application.DTOs.Payment;
-using FlexFit.Payment.Application.Interfaces;
-using FlexFit.Payment.Application.Services;
-using FlexFit.Payment.Domain.Entities;
-using FlexFit.Payment.Infrastructure.Data;
-using FlexFit.Payment.Infrastructure.Repositories;
-using FlexFit.Payment.Infrastructure.Services;
-using FlexFit.Payment.Worker.Workers;
+using FlexFit.Payment.API.Configurations;
+using FlexFit.Payment.API.Contracts.Requests.CreditPackages;
+using FlexFit.Payment.API.Contracts.Responses.CreditPackages;
+using FlexFit.Payment.API.Contracts.Requests.Payment;
+using FlexFit.Payment.API.Contracts.Responses.Payment;
+using FlexFit.Payment.API.Interfaces.Services;
+using FlexFit.Payment.API.Interfaces.Repositories;
+using FlexFit.Payment.API.Interfaces.Gateways;
+using FlexFit.Payment.API.Services;
+using FlexFit.Payment.API.Domain.Entities;
+using FlexFit.Payment.API.Data;
+using FlexFit.Payment.API.Repositories;
+using FlexFit.Payment.API.Infrastructure.Redis;
+using FlexFit.Payment.API.BackgroundServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -103,7 +107,7 @@ namespace FlexFit.Payment.UnitTests
                 Price = 500000,
                 IsActive = true
             };
-            var payment = new Domain.Entities.Payment
+            var payment = new FlexFit.Payment.API.Domain.Entities.Payment
             {
                 PaymentId = Guid.NewGuid(),
                 UserId = userId,
@@ -399,7 +403,7 @@ namespace FlexFit.Payment.UnitTests
                 Price = 500000,
                 IsActive = true
             };
-            var payment = new Domain.Entities.Payment
+            var payment = new FlexFit.Payment.API.Domain.Entities.Payment
             {
                 PaymentId = Guid.NewGuid(),
                 UserId = userId,
@@ -437,7 +441,7 @@ namespace FlexFit.Payment.UnitTests
             using var context = GetInMemoryContext();
             var userId = Guid.NewGuid();
             var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Test", CreditAmount = 100, Price = 100000, IsActive = true };
-            var payment = new Domain.Entities.Payment { PaymentId = Guid.NewGuid(), UserId = userId, PackageId = package.PackageId, Amount = 100000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
+            var payment = new FlexFit.Payment.API.Domain.Entities.Payment { PaymentId = Guid.NewGuid(), UserId = userId, PackageId = package.PackageId, Amount = 100000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
             await context.CreditPackages.AddAsync(package);
             await context.Payments.AddAsync(payment);
             await context.SaveChangesAsync();
@@ -475,7 +479,7 @@ namespace FlexFit.Payment.UnitTests
             using var context = GetInMemoryContext();
             var userId = Guid.NewGuid();
             var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Bronze", CreditAmount = 100, Price = 100000, IsActive = true };
-            var payment = new Domain.Entities.Payment { PaymentId = Guid.NewGuid(), UserId = userId, PackageId = package.PackageId, Amount = 100000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
+            var payment = new FlexFit.Payment.API.Domain.Entities.Payment { PaymentId = Guid.NewGuid(), UserId = userId, PackageId = package.PackageId, Amount = 100000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
             await context.CreditPackages.AddAsync(package);
             await context.Payments.AddAsync(payment);
             await context.SaveChangesAsync();
@@ -567,13 +571,14 @@ namespace FlexFit.Payment.UnitTests
         // 17. Non-Admin access to an Admin endpoint is rejected where practical.
         // ==========================================
         [Fact]
-        public void AdminRevenueController_Requires_Admin_Role()
+        public void PaymentController_GetAllPayments_Requires_Admin_Role()
         {
             // Arrange
-            var type = typeof(AdminRevenueController);
+            var type = typeof(PaymentController);
+            var method = type.GetMethod(nameof(PaymentController.GetAllPayments));
 
             // Act
-            var authorizeAttribute = type.GetCustomAttribute<AuthorizeAttribute>();
+            var authorizeAttribute = method?.GetCustomAttribute<AuthorizeAttribute>();
 
             // Assert
             Assert.NotNull(authorizeAttribute);
@@ -581,34 +586,21 @@ namespace FlexFit.Payment.UnitTests
         }
 
         // ==========================================
-        // 18. Revenue summary counts successful payments only.
+        // 18. Verification of Admin authorization constraints.
         // ==========================================
         [Fact]
-        public async Task AdminRevenueController_Summary_CountsSuccessfulOnly()
+        public void CreditPackagesController_CreatePackage_Requires_Admin_Role()
         {
             // Arrange
-            using var context = GetInMemoryContext();
-            var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Bronze", CreditAmount = 100, Price = 100000, IsActive = true };
-            
-            var successPayment = new Domain.Entities.Payment { PaymentId = Guid.NewGuid(), PackageId = package.PackageId, Amount = 100000, Status = "Success", CreatedAt = DateTime.UtcNow, Package = package };
-            var pendingPayment = new Domain.Entities.Payment { PaymentId = Guid.NewGuid(), PackageId = package.PackageId, Amount = 200000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
-            var failedPayment = new Domain.Entities.Payment { PaymentId = Guid.NewGuid(), PackageId = package.PackageId, Amount = 300000, Status = "Failed", CreatedAt = DateTime.UtcNow, Package = package };
-
-            await context.CreditPackages.AddAsync(package);
-            await context.Payments.AddRangeAsync(successPayment, pendingPayment, failedPayment);
-            await context.SaveChangesAsync();
-
-            var repo = new PaymentRepository(context);
-            var controller = new AdminRevenueController(repo, _cacheServiceMock.Object);
+            var type = typeof(CreditPackagesController);
+            var method = type.GetMethod(nameof(CreditPackagesController.CreatePackage));
 
             // Act
-            var result = await controller.GetSummary();
+            var authorizeAttribute = method?.GetCustomAttribute<AuthorizeAttribute>();
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result.Result);
-            var summary = Assert.IsType<AdminRevenueSummaryResponse>(okResult.Value);
-            
-            Assert.Equal(100000, summary.TotalRevenueThisMonth); // Only counts success (100,000)
+            Assert.NotNull(authorizeAttribute);
+            Assert.Equal("Admin", authorizeAttribute.Roles);
         }
 
         // ==========================================
@@ -635,7 +627,7 @@ namespace FlexFit.Payment.UnitTests
         [Fact]
         public void CreditPackageResponse_DTO_HasRequiredProperties()
         {
-            var properties = typeof(FlexFit.Payment.Application.DTOs.Payment.CreditPackageResponse).GetProperties().Select(p => p.Name).ToList();
+            var properties = typeof(FlexFit.Payment.API.Contracts.Responses.Payment.CreditPackageResponse).GetProperties().Select(p => p.Name).ToList();
 
             Assert.Contains("PackageId", properties);
             Assert.Contains("PackageName", properties);
@@ -702,12 +694,12 @@ namespace FlexFit.Payment.UnitTests
         }
 
         [Fact]
-        public void MemberToken_CanAccess_CreatePayment_ButNot_RevenueSummary()
+        public void MemberToken_CanAccess_CreatePayment_ButNot_AdminEndpoints()
         {
             // Arrange & Act
             var paymentControllerType = typeof(PaymentController);
             var createPaymentMethod = paymentControllerType.GetMethod(nameof(PaymentController.CreatePayment));
-            var adminRevenueControllerType = typeof(AdminRevenueController);
+            var getAllPaymentsMethod = paymentControllerType.GetMethod(nameof(PaymentController.GetAllPayments));
 
             // Assert
             // 1. Member token can call POST /api/payment/create (requires only [Authorize])
@@ -716,22 +708,151 @@ namespace FlexFit.Payment.UnitTests
             Assert.NotNull(paymentAuthAttr);
             Assert.Null(paymentAuthAttr.Roles); // No specific roles required, meaning Member can call it.
 
-            // 2. Member token cannot call GET /api/admin/revenue/summary (requires Admin role)
-            var adminAuthAttr = adminRevenueControllerType.GetCustomAttribute<AuthorizeAttribute>();
+            // 2. Member token cannot call GET /api/payment/admin/history (requires Admin role)
+            var adminAuthAttr = getAllPaymentsMethod?.GetCustomAttribute<AuthorizeAttribute>();
             Assert.NotNull(adminAuthAttr);
             Assert.Equal("Admin", adminAuthAttr.Roles); // Requires "Admin", meaning "Member" is rejected.
         }
 
         [Fact]
-        public void AdminToken_CanAccess_RevenueSummary()
+        public void AdminToken_CanAccess_GetAllPayments()
         {
             // Arrange & Act
-            var adminRevenueControllerType = typeof(AdminRevenueController);
+            var paymentControllerType = typeof(PaymentController);
+            var getAllPaymentsMethod = paymentControllerType.GetMethod(nameof(PaymentController.GetAllPayments));
 
             // Assert
-            var adminAuthAttr = adminRevenueControllerType.GetCustomAttribute<AuthorizeAttribute>();
+            var adminAuthAttr = getAllPaymentsMethod?.GetCustomAttribute<AuthorizeAttribute>();
             Assert.NotNull(adminAuthAttr);
             Assert.Equal("Admin", adminAuthAttr.Roles); // Admin is explicitly allowed.
+        }
+
+        // ==========================================
+        // 22. UseMockPayment=false + PayOS config đầy đủ -> dùng PayOSPaymentGateway
+        // ==========================================
+        [Fact]
+        public async Task CreatePayment_UseMockPaymentFalse_WithValidConfig_UsesPayOS()
+        {
+            // Arrange
+            using var context = GetInMemoryContext();
+            var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Bronze", CreditAmount = 100, Price = 100000, IsActive = true };
+            await context.CreditPackages.AddAsync(package);
+            await context.SaveChangesAsync();
+
+            var repo = new PaymentRepository(context);
+            var payOSOptions = Microsoft.Extensions.Options.Options.Create(new PayOSOptions 
+            { 
+                ClientId = "real-client-id", 
+                ApiKey = "real-api-key", 
+                ChecksumKey = "real-checksum-key" 
+            });
+            var paymentOptions = Microsoft.Extensions.Options.Options.Create(new PaymentOptions { UseMockPayment = false });
+
+            _payOSGatewayMock.Setup(g => g.CreatePaymentLinkAsync(It.IsAny<long>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new PayOSPaymentLinkResult { CheckoutUrl = "https://pay.payos.vn/checkout/123" });
+
+            var service = new PaymentService(repo, _payOSGatewayMock.Object, _outboxRepoMock.Object, _lockServiceMock.Object, _idempotencyServiceMock.Object, _cacheServiceMock.Object, payOSOptions, paymentOptions);
+
+            // Act
+            var request = new CreatePaymentRequest { PackageId = package.PackageId, PaymentMethod = "MOCK" }; 
+            var result = await service.CreatePaymentUrlAsync(Guid.NewGuid(), request);
+
+            // Assert
+            Assert.Equal("PAYOS", result.PaymentMethod);
+            Assert.Equal("https://pay.payos.vn/checkout/123", result.PaymentUrl);
+            _payOSGatewayMock.Verify(g => g.CreatePaymentLinkAsync(It.IsAny<long>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        // ==========================================
+        // 23. UseMockPayment=false + thiếu config -> không fallback Mock
+        // ==========================================
+        [Fact]
+        public async Task CreatePayment_UseMockPaymentFalse_WithMissingConfig_ThrowsInvalidOperationException()
+        {
+            // Arrange
+            using var context = GetInMemoryContext();
+            var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Bronze", CreditAmount = 100, Price = 100000, IsActive = true };
+            await context.CreditPackages.AddAsync(package);
+            await context.SaveChangesAsync();
+
+            var repo = new PaymentRepository(context);
+            var payOSOptions = Microsoft.Extensions.Options.Options.Create(new PayOSOptions 
+            { 
+                ClientId = "", 
+                ApiKey = "", 
+                ChecksumKey = "" 
+            });
+            var paymentOptions = Microsoft.Extensions.Options.Options.Create(new PaymentOptions { UseMockPayment = false });
+
+            var service = new PaymentService(repo, _payOSGatewayMock.Object, _outboxRepoMock.Object, _lockServiceMock.Object, _idempotencyServiceMock.Object, _cacheServiceMock.Object, payOSOptions, paymentOptions);
+
+            // Act & Assert
+            var request = new CreatePaymentRequest { PackageId = package.PackageId, PaymentMethod = "PAYOS" };
+            await Assert.ThrowsAsync<InvalidOperationException>(() => service.CreatePaymentUrlAsync(Guid.NewGuid(), request));
+        }
+
+        // ==========================================
+        // 24. UseMockPayment=true trong Test -> dùng mock
+        // ==========================================
+        [Fact]
+        public async Task CreatePayment_UseMockPaymentTrue_UsesMock()
+        {
+            // Arrange
+            using var context = GetInMemoryContext();
+            var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Bronze", CreditAmount = 100, Price = 100000, IsActive = true };
+            await context.CreditPackages.AddAsync(package);
+            await context.SaveChangesAsync();
+
+            var repo = new PaymentRepository(context);
+            var payOSOptions = Microsoft.Extensions.Options.Options.Create(new PayOSOptions { ClientId = "mock", ApiKey = "mock", ChecksumKey = "mock" });
+            var paymentOptions = Microsoft.Extensions.Options.Options.Create(new PaymentOptions { UseMockPayment = true });
+
+            var service = new PaymentService(repo, _payOSGatewayMock.Object, _outboxRepoMock.Object, _lockServiceMock.Object, _idempotencyServiceMock.Object, _cacheServiceMock.Object, payOSOptions, paymentOptions);
+
+            // Act
+            var request = new CreatePaymentRequest { PackageId = package.PackageId, PaymentMethod = "MOCK" };
+            var result = await service.CreatePaymentUrlAsync(Guid.NewGuid(), request);
+
+            // Assert
+            Assert.Equal("MOCK", result.PaymentMethod);
+            Assert.Contains("/api/payment/mock-checkout", result.PaymentUrl);
+        }
+
+        // ==========================================
+        // 25. Package inactive -> reject
+        // ==========================================
+        [Fact]
+        public async Task CreatePayment_PackageInactive_ThrowsArgumentException()
+        {
+            // Arrange
+            using var context = GetInMemoryContext();
+            var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Bronze", CreditAmount = 100, Price = 100000, IsActive = false };
+            await context.CreditPackages.AddAsync(package);
+            await context.SaveChangesAsync();
+
+            var repo = new PaymentRepository(context);
+            var service = new PaymentService(repo, _payOSGatewayMock.Object, _outboxRepoMock.Object, _lockServiceMock.Object, _idempotencyServiceMock.Object, _cacheServiceMock.Object);
+
+            // Act & Assert
+            var request = new CreatePaymentRequest { PackageId = package.PackageId, PaymentMethod = "MOCK" };
+            await Assert.ThrowsAsync<ArgumentException>(() => service.CreatePaymentUrlAsync(Guid.NewGuid(), request));
+        }
+
+        // ==========================================
+        // 26. Controller không dùng DbContext trực tiếp
+        // ==========================================
+        [Fact]
+        public void Controllers_DoNotUseDbContextDirectly()
+        {
+            var controllerTypes = new[] { typeof(PaymentController), typeof(CreditPackagesController), typeof(CreditWalletController), typeof(PaymentCallbackController) };
+            foreach (var type in controllerTypes)
+            {
+                var fields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+                foreach (var field in fields)
+                {
+                    Assert.NotEqual(typeof(PaymentDbContext), field.FieldType);
+                }
+            }
         }
     }
 }

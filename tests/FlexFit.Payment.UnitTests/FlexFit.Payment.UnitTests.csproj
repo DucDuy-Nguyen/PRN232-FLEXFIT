@@ -21,11 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Services\Payment\FlexFit.Payment.Application\FlexFit.Payment.Application.csproj" />
-    <ProjectReference Include="..\..\src\Services\Payment\FlexFit.Payment.Infrastructure\FlexFit.Payment.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Services\Payment\FlexFit.Payment.API\FlexFit.Payment.API.csproj" />
-    <ProjectReference Include="..\..\src\Services\Payment\FlexFit.Payment.Contracts\FlexFit.Payment.Contracts.csproj" />
-    <ProjectReference Include="..\..\src\Services\Payment\FlexFit.Payment.Worker\FlexFit.Payment.Worker.csproj" />
   </ItemGroup>
 
 </Project>

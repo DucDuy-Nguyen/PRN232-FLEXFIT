@@ -1,15 +1,11 @@
 using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using FlexFit.Payment.Application.Interfaces;
-using FlexFit.Payment.Application.Services;
-using FlexFit.Payment.Infrastructure.Data;
-using FlexFit.Payment.Infrastructure.Repositories;
-using FlexFit.Payment.Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using FlexFit.Payment.API.Extensions;
+using FlexFit.Payment.API.Data;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PayOS;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,111 +22,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ==============================
-// 1️⃣ Add Services
-// ==============================
-
-// Add DbContext (SQL Server)
-builder.Services.AddDbContext<PaymentDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 // Add Controllers
 builder.Services.AddControllers();
 
-// Add Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Vui lòng nhập token theo định dạng: Bearer {token_của_bạn}",
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
-    });
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] { }
-        }
-    });
-});
-
-// Add Authentication (JWT)
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "VeryLongSuperSecureKey1234567890!!");
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "FlexFitAPI",
-        ValidAudience = builder.Configuration["Jwt:Audience"] ?? "FlexFitClient",
-        IssuerSigningKey = new SymmetricSecurityKey(key)
-    };
-});
-
-builder.Services.AddAuthorization();
-builder.Services.AddHttpContextAccessor();
-
-// Register Redis Connection Multiplexer
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
-{
-    var connString = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379,abortConnect=false";
-    var options = ConfigurationOptions.Parse(connString);
-    options.AbortOnConnectFail = false;
-    return ConnectionMultiplexer.Connect(options);
-});
-
-// Register PayOS Client
-builder.Services.AddSingleton(sp =>
-{
-    var payOsSettings = builder.Configuration.GetSection("PayOS");
-    return new PayOSClient(
-        payOsSettings["ClientId"] ?? "",
-        payOsSettings["ApiKey"] ?? "",
-        payOsSettings["ChecksumKey"] ?? ""
-    );
-});
-
-// Register Dependencies (DI)
-builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<ICreditRepository, CreditRepository>();
-builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
-builder.Services.AddScoped<IProcessedMessageRepository, ProcessedMessageRepository>();
-
-builder.Services.AddScoped<IDistributedLockService, RedisDistributedLockService>();
-builder.Services.AddScoped<ICacheService, RedisCacheService>();
-builder.Services.AddScoped<IIdempotencyService, RedisIdempotencyService>();
-builder.Services.AddScoped<IEventPublisher, RedisEventPublisher>();
-builder.Services.AddScoped<IPayOSPaymentGateway, PayOSPaymentGateway>();
-
-builder.Services.AddScoped<IPaymentService, PaymentService>();
-builder.Services.AddScoped<ICreditService, CreditService>();
-builder.Services.AddScoped<ICreditAdjustmentService, CreditAdjustmentService>();
+// Register Payment Modules using Extension Methods
+builder.Services.AddPaymentApplication();
+builder.Services.AddPaymentInfrastructure(builder.Configuration);
+builder.Services.AddPaymentAuthentication(builder.Configuration);
+builder.Services.AddPaymentSwagger();
 
 // Add Custom Health Checks
 builder.Services.AddHealthChecks();
 
-// ==============================
-// 2️⃣ Build app
-// ==============================
 var app = builder.Build();
+
+app.UsePaymentExceptionHandling();
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -192,7 +98,7 @@ using (var scope = app.Services.CreateScope())
         if (!context.CreditPackages.Any())
         {
             context.CreditPackages.AddRange(
-                new FlexFit.Payment.Domain.Entities.CreditPackage
+                new FlexFit.Payment.API.Domain.Entities.CreditPackage
                 {
                     PackageId = Guid.NewGuid(),
                     PackageName = "Gói Đồng (Bronze)",
@@ -204,7 +110,7 @@ using (var scope = app.Services.CreateScope())
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 },
-                new FlexFit.Payment.Domain.Entities.CreditPackage
+                new FlexFit.Payment.API.Domain.Entities.CreditPackage
                 {
                     PackageId = Guid.NewGuid(),
                     PackageName = "Gói Bạc (Silver)",
@@ -216,7 +122,7 @@ using (var scope = app.Services.CreateScope())
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 },
-                new FlexFit.Payment.Domain.Entities.CreditPackage
+                new FlexFit.Payment.API.Domain.Entities.CreditPackage
                 {
                     PackageId = Guid.NewGuid(),
                     PackageName = "Gói Vàng (Gold)",
@@ -237,6 +143,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine($"Error seeding credit packages: {ex.Message}");
     }
 }
+
 if (app.Environment.IsDevelopment())
 {
     app.MapPost("/dev/token", (DevTokenRequest request, IConfiguration configuration) =>
