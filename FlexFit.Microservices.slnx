@@ -9,8 +9,14 @@
     <Project Path="src/Gateway/FlexFit.ApiGateway/FlexFit.ApiGateway.csproj" />
   </Folder>
   <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Engagement/">
+    <Project Path="src/Services/Engagement/FlexFit.Engagement.API/FlexFit.Engagement.API.csproj" />
+  </Folder>
   <Folder Name="/src/Services/Identity/">
     <Project Path="src/Services/Identity/FlexFit.Identity.API/FlexFit.Identity.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Recommendation/">
+    <Project Path="src/Services/Recommendation/FlexFit.Recommendation.Grpc/FlexFit.Recommendation.Grpc.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/FlexFit.ApiGateway.Tests/FlexFit.ApiGateway.Tests.csproj" />
