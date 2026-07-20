@@ -7,5 +7,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/FlexFit.Payment.UnitTests/FlexFit.Payment.UnitTests.csproj" />
   </Folder>
+  <Project Path="FlexFit.CatalogService/FlexFit.CatalogService.csproj" />
   <Project Path="Flexfit.csproj" />
 </Solution>
