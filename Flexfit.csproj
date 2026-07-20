@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>cf890a13-fa78-4eb7-ad74-968912bfbc33</UserSecretsId>
+		<DefaultItemExcludes>$(DefaultItemExcludes);src\**;FlexFit.BookingService\**;tests\**</DefaultItemExcludes>
 	</PropertyGroup>
 
   <ItemGroup>
