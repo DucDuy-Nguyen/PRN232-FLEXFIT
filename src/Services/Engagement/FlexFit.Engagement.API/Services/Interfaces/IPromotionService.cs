@@ -1,4 +1,4 @@
-using FlexFit.Engagement.API.Models.DTOs.Promotions;
+using FlexFit.Engagement.API.DTOs.Promotions;
 
 namespace FlexFit.Engagement.API.Services.Interfaces;
 

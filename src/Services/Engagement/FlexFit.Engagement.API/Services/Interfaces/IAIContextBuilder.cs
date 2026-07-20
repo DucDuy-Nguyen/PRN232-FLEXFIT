@@ -1,4 +1,4 @@
-using FlexFit.Engagement.API.Models.DTOs.AI;
+using FlexFit.Engagement.API.DTOs.AI;
 
 namespace FlexFit.Engagement.API.Services.Interfaces;
 

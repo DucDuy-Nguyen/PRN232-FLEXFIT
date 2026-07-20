@@ -1,4 +1,4 @@
-using FlexFit.Engagement.API.Models.DTOs.Reviews;
+using FlexFit.Engagement.API.DTOs.Reviews;
 
 namespace FlexFit.Engagement.API.Services.Interfaces;
 

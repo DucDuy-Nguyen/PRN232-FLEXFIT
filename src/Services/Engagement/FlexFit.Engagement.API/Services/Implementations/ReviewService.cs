@@ -1,8 +1,8 @@
 using FlexFit.Engagement.API.Data;
-using FlexFit.Engagement.API.Data.Repositories.Interfaces;
+using FlexFit.Engagement.API.Repositories.Interfaces;
 using FlexFit.Engagement.API.Helpers;
-using FlexFit.Engagement.API.Models.DTOs.Reviews;
-using FlexFit.Engagement.API.Models.Entities;
+using FlexFit.Engagement.API.DTOs.Reviews;
+using FlexFit.Engagement.API.Models;
 using FlexFit.Engagement.API.Services.Interfaces;
 
 namespace FlexFit.Engagement.API.Services.Implementations;

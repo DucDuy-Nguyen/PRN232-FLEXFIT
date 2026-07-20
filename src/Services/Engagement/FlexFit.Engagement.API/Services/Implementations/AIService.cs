@@ -1,11 +1,10 @@
 using System.Text;
 using System.Text.Json;
-using FlexFit.Engagement.API.Data;
-using FlexFit.Engagement.API.Models.DTOs.AI;
+using FlexFit.Engagement.API.DTOs.AI;
+using FlexFit.Engagement.API.Repositories.Interfaces;
 using FlexFit.Engagement.API.Services.Interfaces;
 using FlexFit.Engagement.API.Services.AI;
 using FlexFit.Recommendation.Grpc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace FlexFit.Engagement.API.Services.Implementations;
@@ -13,7 +12,8 @@ namespace FlexFit.Engagement.API.Services.Implementations;
 public class AIService : IAIService
 {
     private readonly HttpClient _httpClient;
-    private readonly EngagementDbContext _context;
+    private readonly IEngagementUserRepository _userRepository;
+    private readonly IWorkoutHistoryRepository _workoutHistoryRepository;
     private readonly IAIContextBuilder _contextBuilder;
     private readonly RecommendationService.RecommendationServiceClient _recommendationClient;
     private readonly string _apiKey;
@@ -21,13 +21,15 @@ public class AIService : IAIService
 
     public AIService(
         HttpClient httpClient, 
-        EngagementDbContext context, 
+        IEngagementUserRepository userRepository,
+        IWorkoutHistoryRepository workoutHistoryRepository,
         IAIContextBuilder contextBuilder, 
         RecommendationService.RecommendationServiceClient recommendationClient,
         IConfiguration configuration)
     {
         _httpClient = httpClient;
-        _context = context;
+        _userRepository = userRepository;
+        _workoutHistoryRepository = workoutHistoryRepository;
         _contextBuilder = contextBuilder;
         _recommendationClient = recommendationClient;
         _apiKey = configuration["Gemini:ApiKey"] ?? string.Empty;
@@ -36,7 +38,7 @@ public class AIService : IAIService
 
     public async Task<AISuggestionResponse> GetWorkoutSuggestionAsync(Guid userId)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId)
+        var user = await _userRepository.GetByIdAsync(userId)
             ?? throw new KeyNotFoundException("Không tìm thấy người dùng này.");
 
         // 1. Gọi gRPC Recommendation Service để lấy danh sách gợi ý bài tập chuẩn
@@ -44,12 +46,8 @@ public class AIService : IAIService
         var grpcResponse = await _recommendationClient.GetWorkoutRecommendationsAsync(grpcRequest);
         var grpcSuggestions = grpcResponse.Recommendations.ToList();
 
-        // 2. Lấy dữ liệu lịch sử tập luyện cục bộ
-        var recentWorkouts = await _context.UserWorkoutHistories
-            .Where(h => h.UserId == userId)
-            .OrderByDescending(h => h.CreatedAt)
-            .Take(10)
-            .ToListAsync();
+        // 2. Lấy dữ liệu lịch sử tập luyện cục bộ via Repository
+        var recentWorkouts = await _workoutHistoryRepository.GetRecentByUserIdAsync(userId, 10);
 
         // 3. Nếu cấu hình Gemini ApiKey, dùng AI để làm mượt văn bản và thêm chi tiết
         if (!string.IsNullOrEmpty(_apiKey))

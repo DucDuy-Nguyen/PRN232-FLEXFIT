@@ -1,4 +1,4 @@
-using FlexFit.Engagement.API.Models.Entities;
+using FlexFit.Engagement.API.Models;
 
 namespace FlexFit.Engagement.API.Services.Interfaces;
 

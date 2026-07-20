@@ -1,4 +1,4 @@
-using FlexFit.Engagement.API.Models.DTOs.Reviews;
+using FlexFit.Engagement.API.DTOs.Reviews;
 using FlexFit.Engagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

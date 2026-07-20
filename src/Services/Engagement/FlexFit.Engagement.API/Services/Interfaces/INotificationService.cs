@@ -1,5 +1,5 @@
-using FlexFit.Engagement.API.Models.Entities;
-using FlexFit.Engagement.API.Models.DTOs.Notifications;
+using FlexFit.Engagement.API.Models;
+using FlexFit.Engagement.API.DTOs.Notifications;
 
 namespace FlexFit.Engagement.API.Services.Interfaces;
 

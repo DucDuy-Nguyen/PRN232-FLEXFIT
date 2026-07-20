@@ -1,6 +1,6 @@
 using FlexFit.Engagement.API.Data;
-using FlexFit.Engagement.API.Data.Repositories.Interfaces;
-using FlexFit.Engagement.API.Data.Repositories.Implementations;
+using FlexFit.Engagement.API.Repositories.Interfaces;
+using FlexFit.Engagement.API.Repositories.Implementations;
 using FlexFit.Engagement.API.Services.Interfaces;
 using FlexFit.Engagement.API.Services.Implementations;
 using FlexFit.Engagement.API.Services.AI;

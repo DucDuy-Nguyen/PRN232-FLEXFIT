@@ -1,5 +1,5 @@
 using FlexFit.Engagement.API.Data;
-using FlexFit.Engagement.API.Models.Entities;
+using FlexFit.Engagement.API.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlexFit.Engagement.API.Data;

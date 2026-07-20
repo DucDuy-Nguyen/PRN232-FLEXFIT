@@ -1,4 +1,4 @@
-using FlexFit.Engagement.API.Models.DTOs.WorkoutHistory;
+using FlexFit.Engagement.API.DTOs.WorkoutHistory;
 
 namespace FlexFit.Engagement.API.Services.Interfaces;
 
