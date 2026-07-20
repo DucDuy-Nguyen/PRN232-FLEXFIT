@@ -56,5 +56,44 @@ services:
     depends_on:
       - flexfit-engagement
 
+  payment-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourPassword123!
+    ports:
+      - "1434:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  payment-redis:
+    image: redis:7.0-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+
+  payment-api:
+    build:
+      context: .
+      dockerfile: src/Services/Payment/FlexFit.Payment.API/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitPaymentDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
+      - Redis__ConnectionString=payment-redis:6379
+      - Jwt__Key=VeryLongSuperSecureKey1234567890!!
+      - Jwt__Issuer=FlexFitAPI
+      - Jwt__Audience=FlexFitClient
+      - PayOS__ClientId=${PAYOS_CLIENT_ID}
+      - PayOS__ApiKey=${PAYOS_API_KEY}
+      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
+      - Payment__UseMockPayment=false
+    ports:
+      - "5080:8080"
+    depends_on:
+      - payment-db
+      - payment-redis
+
 volumes:
+  sql_data:
   redis_data:

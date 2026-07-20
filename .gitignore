@@ -1,5 +1,14 @@
+# .NET build
 [Bb]in/
 [Oo]bj/
 .vs/
-.vscode/
+TestResults/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# User-specific files
 *.user
+*.suo

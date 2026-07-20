@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Payment/">
+    <Project Path="src/Services/Payment/FlexFit.Payment.API/FlexFit.Payment.API.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FlexFit.Payment.UnitTests/FlexFit.Payment.UnitTests.csproj" />
+  </Folder>
+  <Project Path="Flexfit.csproj" />
+</Solution>
