@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   redis:
     image: redis:7-alpine
@@ -43,7 +41,7 @@ services:
     image: flexfit-gateway:latest
     build:
       context: .
-      dockerfile: src/Gateways/FlexFit.ApiGateway/Dockerfile
+      dockerfile: src/Gateway/FlexFit.ApiGateway/Dockerfile
     container_name: flexfit-gateway
     ports:
       - "7000:8080"
@@ -55,6 +53,29 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - flexfit-engagement
+
+  flexfit-booking:
+    image: flexfit-booking:latest
+    build:
+      context: .
+      dockerfile: src/Services/Booking/FlexFit.BookingService/Dockerfile
+    container_name: flexfit-booking
+    ports:
+      - "5004:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  flexfit-catalog:
+    image: flexfit-catalog:latest
+    build:
+      context: .
+      dockerfile: src/Services/Catalog/FlexFit.CatalogService/Dockerfile
+    container_name: flexfit-catalog
+    ports:
+      - "5002:5002"
+      - "5003:5003"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
   payment-db:
     image: mcr.microsoft.com/mssql/server:2022-latest

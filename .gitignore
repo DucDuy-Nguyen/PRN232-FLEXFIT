@@ -1,8 +1,13 @@
 # .NET build
 [Bb]in/
 [Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
 .vs/
 TestResults/
+coverage/
+*.dll
+*.pdb
 
 # Local secrets
 .env

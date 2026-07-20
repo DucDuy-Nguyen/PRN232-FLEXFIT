@@ -1,2 +1,0 @@
-obj\Release\net8.0\Protos/Recommendation.cs \
-obj\Release\net8.0\Protos/RecommendationGrpc.cs: Protos/recommendation.proto
