@@ -16,9 +16,6 @@
     <Project Path="src/Services/Catalog/FlexFit.CatalogService/FlexFit.CatalogService.csproj" />
   </Folder>
   <Folder Name="/src/Services/Engagement/">
-    <Project Path="src/Services/Engagement/FlexFit.Engagement.Domain/FlexFit.Engagement.Domain.csproj" />
-    <Project Path="src/Services/Engagement/FlexFit.Engagement.Application/FlexFit.Engagement.Application.csproj" />
-    <Project Path="src/Services/Engagement/FlexFit.Engagement.Infrastructure/FlexFit.Engagement.Infrastructure.csproj" />
     <Project Path="src/Services/Engagement/FlexFit.Engagement.API/FlexFit.Engagement.API.csproj" />
   </Folder>
   <Folder Name="/src/Services/Identity/">
