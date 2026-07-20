@@ -1,5 +1,5 @@
-using FlexFit.Engagement.API.Models.DTOs.AI;
-using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.Application.DTOs.AI;
+using FlexFit.Engagement.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
