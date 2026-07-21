@@ -15,7 +15,9 @@
     <Project Path="src/Services/Booking/FlexFit.Booking.Service/FlexFit.Booking.Service.csproj" />
   </Folder>
   <Folder Name="/src/Services/Catalog/">
-    <Project Path="src/Services/Catalog/FlexFit.CatalogService/FlexFit.CatalogService.csproj" />
+    <Project Path="src/Services/Catalog/FlexFit.Catalog.API/FlexFit.Catalog.API.csproj" />
+    <Project Path="src/Services/Catalog/FlexFit.Catalog.Repository/FlexFit.Catalog.Repository.csproj" />
+    <Project Path="src/Services/Catalog/FlexFit.Catalog.Service/FlexFit.Catalog.Service.csproj" />
   </Folder>
   <Folder Name="/src/Services/Engagement/">
     <Project Path="src/Services/Engagement/FlexFit.Engagement.API/FlexFit.Engagement.API.csproj" />
