@@ -1,4 +1,4 @@
-﻿namespace FlexFit.Payment.API.Configurations
+namespace FlexFit.Payment.API.Configurations
 {
     public class JwtOptions
     {
@@ -8,5 +8,3 @@
         public int ExpiresInMinutes { get; set; } = 60;
     }
 }
-
-

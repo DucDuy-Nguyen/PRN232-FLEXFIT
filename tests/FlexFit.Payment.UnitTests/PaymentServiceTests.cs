@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,17 +8,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FlexFit.Payment.API.Controllers;
-using FlexFit.Payment.API.Configurations;
-using FlexFit.Payment.API.DTOs.Requests;
-using FlexFit.Payment.API.DTOs.Responses;
-using FlexFit.Payment.API.Services.Interfaces;
-using FlexFit.Payment.API.Infrastructure.Redis.Interfaces;
-using FlexFit.Payment.API.Gateways.Interfaces;
-using FlexFit.Payment.API.Services.Implementations;
-using FlexFit.Payment.API.Repositories.Interfaces;
-using FlexFit.Payment.API.Domain.Entities;
-using FlexFit.Payment.API.Data;
-using FlexFit.Payment.API.Repositories.Implementations;
+using FlexFit.Payment.Service.Configurations;
+using FlexFit.Payment.Service.DTOs.Requests;
+using FlexFit.Payment.Service.DTOs.Responses;
+using FlexFit.Payment.Service.Interfaces;
+using FlexFit.Payment.Service.Services;
+using FlexFit.Payment.Repository.Interfaces;
+using FlexFit.Payment.Repository.Entities;
+using FlexFit.Payment.Repository.Data;
+using FlexFit.Payment.Repository.Repositories;
 using FlexFit.Payment.API.Gateways.PayOS;
 using FlexFit.Payment.API.Infrastructure.Redis;
 using FlexFit.Payment.API.BackgroundServices;
@@ -107,7 +105,7 @@ namespace FlexFit.Payment.UnitTests
                 Price = 500000,
                 IsActive = true
             };
-            var payment = new FlexFit.Payment.API.Domain.Entities.Payment
+            var payment = new FlexFit.Payment.Repository.Entities.Payment
             {
                 PaymentId = Guid.NewGuid(),
                 UserId = userId,
@@ -403,7 +401,7 @@ namespace FlexFit.Payment.UnitTests
                 Price = 500000,
                 IsActive = true
             };
-            var payment = new FlexFit.Payment.API.Domain.Entities.Payment
+            var payment = new FlexFit.Payment.Repository.Entities.Payment
             {
                 PaymentId = Guid.NewGuid(),
                 UserId = userId,
@@ -441,7 +439,7 @@ namespace FlexFit.Payment.UnitTests
             using var context = GetInMemoryContext();
             var userId = Guid.NewGuid();
             var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Test", CreditAmount = 100, Price = 100000, IsActive = true };
-            var payment = new FlexFit.Payment.API.Domain.Entities.Payment { PaymentId = Guid.NewGuid(), UserId = userId, PackageId = package.PackageId, Amount = 100000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
+            var payment = new FlexFit.Payment.Repository.Entities.Payment { PaymentId = Guid.NewGuid(), UserId = userId, PackageId = package.PackageId, Amount = 100000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
             await context.CreditPackages.AddAsync(package);
             await context.Payments.AddAsync(payment);
             await context.SaveChangesAsync();
@@ -479,7 +477,7 @@ namespace FlexFit.Payment.UnitTests
             using var context = GetInMemoryContext();
             var userId = Guid.NewGuid();
             var package = new CreditPackage { PackageId = Guid.NewGuid(), PackageName = "Bronze", CreditAmount = 100, Price = 100000, IsActive = true };
-            var payment = new FlexFit.Payment.API.Domain.Entities.Payment { PaymentId = Guid.NewGuid(), UserId = userId, PackageId = package.PackageId, Amount = 100000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
+            var payment = new FlexFit.Payment.Repository.Entities.Payment { PaymentId = Guid.NewGuid(), UserId = userId, PackageId = package.PackageId, Amount = 100000, Status = "Pending", CreatedAt = DateTime.UtcNow, Package = package };
             await context.CreditPackages.AddAsync(package);
             await context.Payments.AddAsync(payment);
             await context.SaveChangesAsync();
@@ -627,7 +625,7 @@ namespace FlexFit.Payment.UnitTests
         [Fact]
         public void CreditPackageResponse_DTO_HasRequiredProperties()
         {
-            var properties = typeof(FlexFit.Payment.API.DTOs.Responses.CreditPackageResponse).GetProperties().Select(p => p.Name).ToList();
+            var properties = typeof(FlexFit.Payment.Service.DTOs.Responses.CreditPackageResponse).GetProperties().Select(p => p.Name).ToList();
 
             Assert.Contains("PackageId", properties);
             Assert.Contains("PackageName", properties);
@@ -856,5 +854,3 @@ namespace FlexFit.Payment.UnitTests
         }
     }
 }
-
-

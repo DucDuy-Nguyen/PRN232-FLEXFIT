@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using FlexFit.Payment.API.Services.Interfaces;
-using FlexFit.Payment.API.Infrastructure.Redis.Interfaces;
-using FlexFit.Payment.API.Gateways.Interfaces;
-using FlexFit.Payment.API.Repositories.Interfaces;
-using FlexFit.Payment.API.Domain.Entities;
+using FlexFit.Payment.Service.Interfaces;
+using FlexFit.Payment.Repository.Interfaces;
+using FlexFit.Payment.Repository.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -83,5 +81,3 @@ namespace FlexFit.Payment.API.BackgroundServices
         }
     }
 }
-
-

@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
-using FlexFit.Payment.API.DTOs.Responses;
-using FlexFit.Payment.API.Services.Interfaces;
-using FlexFit.Payment.API.Infrastructure.Redis.Interfaces;
-using FlexFit.Payment.API.Gateways.Interfaces;
+using FlexFit.Payment.Service.DTOs.Responses;
+using FlexFit.Payment.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PayOS.Models.Webhooks;
@@ -89,5 +87,3 @@ namespace FlexFit.Payment.API.Controllers
         }
     }
 }
-
-
