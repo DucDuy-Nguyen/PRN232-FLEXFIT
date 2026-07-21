@@ -1,5 +1,5 @@
-using FlexFit.Engagement.API.DTOs.Promotions;
-using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.Service.DTOs.Promotions;
+using FlexFit.Engagement.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -52,3 +52,4 @@ public class PromotionController : ControllerBase
         return Ok(new { message = "Xóa chương trình khuyến mãi thành công." });
     }
 }
+

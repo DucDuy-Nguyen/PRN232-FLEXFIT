@@ -1,12 +1,14 @@
-using FlexFit.Engagement.API.Data;
-using FlexFit.Engagement.API.Repositories.Interfaces;
-using FlexFit.Engagement.API.Repositories.Implementations;
-using FlexFit.Engagement.API.Services.Interfaces;
-using FlexFit.Engagement.API.Services.Implementations;
-using FlexFit.Engagement.API.Services.AI;
+using FlexFit.Engagement.Repository.Data;
+using FlexFit.Engagement.Repository.Models;
+using FlexFit.Engagement.Repository.Repositories.Interfaces;
+using FlexFit.Engagement.Repository.Repositories.Implementations;
+using FlexFit.Engagement.Service.Interfaces;
+using FlexFit.Engagement.Service.Services;
+using FlexFit.Engagement.Service.Services.AI;
 using FlexFit.Engagement.API.Redis;
 using FlexFit.Engagement.API.Hubs;
 using FlexFit.Engagement.API.BackgroundServices;
+using FlexFit.Engagement.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -114,6 +116,7 @@ builder.Services.AddSingleton<RedisSubscriber>();
 // Notification
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IEngagementUserRepository, EngagementUserRepository>();
+builder.Services.AddScoped<INotificationRealtimePublisher, SignalRNotificationRealtimePublisher>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Review
@@ -179,3 +182,4 @@ app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
+

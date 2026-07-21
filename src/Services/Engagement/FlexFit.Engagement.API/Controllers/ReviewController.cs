@@ -1,5 +1,5 @@
-using FlexFit.Engagement.API.DTOs.Reviews;
-using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.Service.DTOs.Reviews;
+using FlexFit.Engagement.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -71,3 +71,4 @@ public class ReviewController : ControllerBase
         return Ok(new { message = "Xóa đánh giá thành công." });
     }
 }
+

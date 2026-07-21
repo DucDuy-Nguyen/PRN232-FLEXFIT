@@ -1,4 +1,5 @@
-using FlexFit.Engagement.API.Data;
+using FlexFit.Engagement.Repository.Data;
+using FlexFit.Engagement.Repository.Models;
 using StackExchange.Redis;
 
 namespace FlexFit.Engagement.API.Redis;
@@ -24,3 +25,4 @@ public class RedisSubscriber
         await subscriber.UnsubscribeAsync(RedisChannel.Literal(channel));
     }
 }
+

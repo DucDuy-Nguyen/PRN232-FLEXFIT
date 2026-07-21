@@ -1,4 +1,5 @@
-using FlexFit.Engagement.API.Data;
+using FlexFit.Engagement.Repository.Data;
+using FlexFit.Engagement.Repository.Models;
 namespace FlexFit.Engagement.API.Redis;
 
 public static class RedisChannelNames
@@ -10,3 +11,4 @@ public static class RedisChannelNames
     public const string CheckInCompleted = "flexfit.booking.checkin-completed";
 }
 // Note: Matches custom project configurations exactly
+

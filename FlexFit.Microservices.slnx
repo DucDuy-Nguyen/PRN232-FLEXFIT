@@ -19,6 +19,8 @@
   </Folder>
   <Folder Name="/src/Services/Engagement/">
     <Project Path="src/Services/Engagement/FlexFit.Engagement.API/FlexFit.Engagement.API.csproj" />
+    <Project Path="src/Services/Engagement/FlexFit.Engagement.Repository/FlexFit.Engagement.Repository.csproj" />
+    <Project Path="src/Services/Engagement/FlexFit.Engagement.Service/FlexFit.Engagement.Service.csproj" />
   </Folder>
   <Folder Name="/src/Services/Identity/">
     <Project Path="src/Services/Identity/FlexFit.Identity.API/FlexFit.Identity.API.csproj" />

@@ -1,5 +1,5 @@
-using FlexFit.Engagement.API.DTOs.WorkoutHistory;
-using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.Service.DTOs.WorkoutHistory;
+using FlexFit.Engagement.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -56,3 +56,4 @@ public class WorkoutHistoryController : ControllerBase
         catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
     }
 }
+

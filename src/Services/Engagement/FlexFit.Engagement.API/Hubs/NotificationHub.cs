@@ -1,4 +1,5 @@
-using FlexFit.Engagement.API.Data;
+using FlexFit.Engagement.Repository.Data;
+using FlexFit.Engagement.Repository.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
@@ -35,3 +36,4 @@ public class NotificationHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 }
+

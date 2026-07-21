@@ -1,9 +1,9 @@
-using FlexFit.Engagement.API.Data;
+using FlexFit.Engagement.Repository.Data;
 using FlexFit.Contracts.Events;
-using FlexFit.Engagement.API.Repositories.Interfaces;
-using FlexFit.Engagement.API.Models;
+using FlexFit.Engagement.Repository.Repositories.Interfaces;
+using FlexFit.Engagement.Repository.Models;
 using FlexFit.Engagement.API.Redis;
-using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.Service.Interfaces;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

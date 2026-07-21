@@ -1,4 +1,5 @@
-using FlexFit.Engagement.API.Data;
+using FlexFit.Engagement.Repository.Data;
+using FlexFit.Engagement.Repository.Models;
 using StackExchange.Redis;
 using System.Text.Json;
 
@@ -20,3 +21,4 @@ public class RedisPublisher
         await subscriber.PublishAsync(RedisChannel.Literal(channel), json);
     }
 }
+

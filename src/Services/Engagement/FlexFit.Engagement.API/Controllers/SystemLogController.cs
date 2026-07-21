@@ -1,4 +1,4 @@
-using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,3 +49,4 @@ public class SystemLogController : ControllerBase
         });
     }
 }
+

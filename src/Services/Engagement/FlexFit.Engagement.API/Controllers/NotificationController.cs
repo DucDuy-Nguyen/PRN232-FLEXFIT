@@ -1,5 +1,5 @@
-using FlexFit.Engagement.API.DTOs.Notifications;
-using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.Service.DTOs.Notifications;
+using FlexFit.Engagement.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -97,3 +97,4 @@ public class NotificationController : ControllerBase
         }
     }
 }
+

@@ -1,5 +1,5 @@
-using FlexFit.Engagement.API.DTOs.AI;
-using FlexFit.Engagement.API.Services.Interfaces;
+using FlexFit.Engagement.Service.DTOs.AI;
+using FlexFit.Engagement.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -77,3 +77,4 @@ public class AIController : ControllerBase
         catch (Exception ex) { return StatusCode(500, new { message = "Lỗi khi chat với AI.", detail = ex.Message }); }
     }
 }
+
