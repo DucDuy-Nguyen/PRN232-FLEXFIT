@@ -3,16 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using FlexFit.Identity.API.Data;
-using FlexFit.Identity.API.Data.Repositories.Implementations;
-using FlexFit.Identity.API.Services.Interfaces;
-using FlexFit.Identity.API.Services.Implementations;
-using FlexFit.Identity.API.Services.Interfaces;
-using FlexFit.Identity.API.Data;
-using FlexFit.Identity.API.Services.Implementations;
-using FlexFit.Identity.API.Services.Implementations;
-using FlexFit.Identity.API.Services.Implementations;
-using FlexFit.Identity.API.Data.Repositories.Interfaces;
+using FlexFit.Identity.Repository.Data;
+using FlexFit.Identity.Repository.Repositories.Interfaces;
+using FlexFit.Identity.Repository.Repositories.Implementations;
+using FlexFit.Identity.Service.Interfaces;
+using FlexFit.Identity.Service.Services;
+using FlexFit.Identity.Service.Configurations;
+using FlexFit.Identity.API.Infrastructure.Redis;
+using FlexFit.Identity.API.Infrastructure.Email;
+using FlexFit.Identity.API.Infrastructure.Google;
 
 namespace FlexFit.Identity.API.Extensions;
 

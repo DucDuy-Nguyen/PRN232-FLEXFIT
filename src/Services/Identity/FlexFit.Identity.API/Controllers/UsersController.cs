@@ -6,10 +6,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using FlexFit.Identity.API.Authorization;
-using FlexFit.Identity.API.Contracts.Users;
-using FlexFit.Identity.API.Services.Interfaces;
-using FlexFit.Identity.API.Services.Interfaces;
-using FlexFit.Identity.API.Models.DTOs;
+using FlexFit.Identity.Service.DTOs.Contracts.Users;
+using FlexFit.Identity.Service.Interfaces;
+using FlexFit.Identity.Service.DTOs;
 
 namespace FlexFit.Identity.API.Controllers;
 

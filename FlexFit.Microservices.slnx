@@ -22,6 +22,8 @@
   </Folder>
   <Folder Name="/src/Services/Identity/">
     <Project Path="src/Services/Identity/FlexFit.Identity.API/FlexFit.Identity.API.csproj" />
+    <Project Path="src/Services/Identity/FlexFit.Identity.Repository/FlexFit.Identity.Repository.csproj" />
+    <Project Path="src/Services/Identity/FlexFit.Identity.Service/FlexFit.Identity.Service.csproj" />
   </Folder>
   <Folder Name="/src/Services/Payment/">
     <Project Path="src/Services/Payment/FlexFit.Payment.API/FlexFit.Payment.API.csproj" />

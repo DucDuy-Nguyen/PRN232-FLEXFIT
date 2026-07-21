@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using FlexFit.Identity.API.Services.Interfaces;
-using FlexFit.Identity.API.Services.Implementations;
+using FlexFit.Identity.Service.Interfaces;
+using FlexFit.Identity.Service.Services;
 
 namespace FlexFit.Identity.API.Extensions;
 

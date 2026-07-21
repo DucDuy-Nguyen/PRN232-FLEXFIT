@@ -5,9 +5,8 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using FlexFit.Identity.API.Contracts.Authentication;
-using FlexFit.Identity.API.Services.Interfaces;
-using FlexFit.Identity.API.Services.Interfaces;
+using FlexFit.Identity.Service.DTOs.Contracts.Authentication;
+using FlexFit.Identity.Service.Interfaces;
 
 namespace FlexFit.Identity.API.Controllers;
 
