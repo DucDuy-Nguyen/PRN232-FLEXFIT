@@ -19,4 +19,9 @@
     <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FlexFit.Payment.Repository\FlexFit.Payment.Repository.csproj" />
+    <ProjectReference Include="..\FlexFit.Payment.Service\FlexFit.Payment.Service.csproj" />
+  </ItemGroup>
+
 </Project>

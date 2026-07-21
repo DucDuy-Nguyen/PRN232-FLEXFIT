@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
-using FlexFit.Payment.API.Interfaces.Services;
+using FlexFit.Payment.Service.Interfaces;
 using StackExchange.Redis;
 
 namespace FlexFit.Payment.API.Infrastructure.Redis

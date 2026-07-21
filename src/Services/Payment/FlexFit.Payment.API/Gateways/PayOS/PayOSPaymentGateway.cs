@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
-using FlexFit.Payment.API.Interfaces.Gateways;
+using FlexFit.Payment.Service.Interfaces;
 using PayOS;
 using PayOS.Models.V2.PaymentRequests;
 using PayOS.Models.Webhooks;

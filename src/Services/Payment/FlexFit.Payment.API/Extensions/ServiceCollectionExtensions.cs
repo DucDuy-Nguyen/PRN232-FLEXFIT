@@ -1,12 +1,11 @@
 using System;
 using System.Text;
-using FlexFit.Payment.API.Configurations;
-using FlexFit.Payment.API.Interfaces.Services;
-using FlexFit.Payment.API.Interfaces.Repositories;
-using FlexFit.Payment.API.Interfaces.Gateways;
-using FlexFit.Payment.API.Services;
-using FlexFit.Payment.API.Data;
-using FlexFit.Payment.API.Repositories;
+using FlexFit.Payment.Service.Configurations;
+using FlexFit.Payment.Service.Interfaces;
+using FlexFit.Payment.Service.Services;
+using FlexFit.Payment.Repository.Interfaces;
+using FlexFit.Payment.Repository.Repositories;
+using FlexFit.Payment.Repository.Data;
 using FlexFit.Payment.API.Gateways.PayOS;
 using FlexFit.Payment.API.Infrastructure.Redis;
 using FlexFit.Payment.API.BackgroundServices;
@@ -41,7 +40,7 @@ namespace FlexFit.Payment.API.Extensions
         public static IServiceCollection AddPaymentInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             // Bind Options
-            services.AddOptions<FlexFit.Payment.API.Configurations.PayOSOptions>()
+            services.AddOptions<FlexFit.Payment.Service.Configurations.PayOSOptions>()
                 .Bind(configuration.GetSection("PayOS"));
 
             services.AddOptions<PaymentOptions>()
@@ -82,7 +81,7 @@ namespace FlexFit.Payment.API.Extensions
             // PayOS Client
             services.AddSingleton(sp =>
             {
-                var options = sp.GetRequiredService<IOptions<FlexFit.Payment.API.Configurations.PayOSOptions>>().Value;
+                var options = sp.GetRequiredService<IOptions<FlexFit.Payment.Service.Configurations.PayOSOptions>>().Value;
                 return new PayOSClient(options.ClientId, options.ApiKey, options.ChecksumKey);
             });
 

@@ -2,7 +2,8 @@ using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using FlexFit.Payment.API.Extensions;
-using FlexFit.Payment.API.Data;
+using FlexFit.Payment.Repository.Data;
+using FlexFit.Payment.Repository.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -98,7 +99,7 @@ using (var scope = app.Services.CreateScope())
         if (!context.CreditPackages.Any())
         {
             context.CreditPackages.AddRange(
-                new FlexFit.Payment.API.Domain.Entities.CreditPackage
+                new CreditPackage
                 {
                     PackageId = Guid.NewGuid(),
                     PackageName = "Gói Đồng (Bronze)",
@@ -110,7 +111,7 @@ using (var scope = app.Services.CreateScope())
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 },
-                new FlexFit.Payment.API.Domain.Entities.CreditPackage
+                new CreditPackage
                 {
                     PackageId = Guid.NewGuid(),
                     PackageName = "Gói Bạc (Silver)",
@@ -122,7 +123,7 @@ using (var scope = app.Services.CreateScope())
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 },
-                new FlexFit.Payment.API.Domain.Entities.CreditPackage
+                new CreditPackage
                 {
                     PackageId = Guid.NewGuid(),
                     PackageName = "Gói Vàng (Gold)",
