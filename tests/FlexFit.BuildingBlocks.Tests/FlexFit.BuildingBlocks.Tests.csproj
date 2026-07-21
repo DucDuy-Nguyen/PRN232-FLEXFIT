@@ -29,7 +29,8 @@
     <ProjectReference Include="..\..\src\BuildingBlocks\FlexFit.Caching\FlexFit.Caching.csproj" />
     <ProjectReference Include="..\..\src\BuildingBlocks\FlexFit.RedisEventBus\FlexFit.RedisEventBus.csproj" />
     <ProjectReference Include="..\..\src\Services\Identity\FlexFit.Identity.API\FlexFit.Identity.API.csproj" />
-    <ProjectReference Include="..\..\src\Services\Booking\FlexFit.BookingService\FlexFit.BookingService.csproj" />
+    <ProjectReference Include="..\..\src\Services\Booking\FlexFit.Booking.API\FlexFit.Booking.API.csproj" />
+    <ProjectReference Include="..\..\src\Services\Booking\FlexFit.Booking.Service\FlexFit.Booking.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>

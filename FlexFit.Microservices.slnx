@@ -10,7 +10,9 @@
   </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Booking/">
-    <Project Path="src/Services/Booking/FlexFit.BookingService/FlexFit.BookingService.csproj" />
+    <Project Path="src/Services/Booking/FlexFit.Booking.API/FlexFit.Booking.API.csproj" />
+    <Project Path="src/Services/Booking/FlexFit.Booking.Repository/FlexFit.Booking.Repository.csproj" />
+    <Project Path="src/Services/Booking/FlexFit.Booking.Service/FlexFit.Booking.Service.csproj" />
   </Folder>
   <Folder Name="/src/Services/Catalog/">
     <Project Path="src/Services/Catalog/FlexFit.CatalogService/FlexFit.CatalogService.csproj" />
@@ -23,6 +25,8 @@
   </Folder>
   <Folder Name="/src/Services/Payment/">
     <Project Path="src/Services/Payment/FlexFit.Payment.API/FlexFit.Payment.API.csproj" />
+    <Project Path="src/Services/Payment/FlexFit.Payment.Repository/FlexFit.Payment.Repository.csproj" />
+    <Project Path="src/Services/Payment/FlexFit.Payment.Service/FlexFit.Payment.Service.csproj" />
   </Folder>
   <Folder Name="/src/Services/Recommendation/">
     <Project Path="src/Services/Recommendation/FlexFit.Recommendation.Grpc/FlexFit.Recommendation.Grpc.csproj" />

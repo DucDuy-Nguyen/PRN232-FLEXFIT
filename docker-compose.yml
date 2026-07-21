@@ -58,7 +58,7 @@ services:
     image: flexfit-booking:latest
     build:
       context: .
-      dockerfile: src/Services/Booking/FlexFit.BookingService/Dockerfile
+      dockerfile: src/Services/Booking/FlexFit.Booking.API/Dockerfile
     container_name: flexfit-booking
     ports:
       - "5004:8080"

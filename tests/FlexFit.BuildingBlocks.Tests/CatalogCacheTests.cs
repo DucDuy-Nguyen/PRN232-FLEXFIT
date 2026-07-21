@@ -8,7 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using FlexFit.Caching;
-using FlexFit.BookingService.ExternalServices.Catalog;
+using FlexFit.Booking.Service.ExternalServices.Catalog;
+using FlexFit.Booking.API.ExternalServices.Catalog;
 using Xunit;
 
 namespace FlexFit.BuildingBlocks.Tests
