@@ -1,9 +1,9 @@
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using FlexFit.Payment.API.Contracts.Requests.Payment;
-using FlexFit.Payment.API.Contracts.Responses.Payment;
-using FlexFit.Payment.API.Interfaces.Services;
+using FlexFit.Payment.Service.DTOs.Requests;
+using FlexFit.Payment.Service.DTOs.Responses;
+using FlexFit.Payment.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

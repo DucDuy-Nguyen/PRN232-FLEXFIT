@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using FlexFit.Payment.API.Interfaces.Services;
+using FlexFit.Payment.Service.Interfaces;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
