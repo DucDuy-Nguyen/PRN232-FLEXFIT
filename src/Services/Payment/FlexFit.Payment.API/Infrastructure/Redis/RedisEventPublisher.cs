@@ -1,8 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
-using FlexFit.Payment.Service.Interfaces;
+using FlexFit.Payment.API.Services.Interfaces;
+using FlexFit.Payment.API.Infrastructure.Redis.Interfaces;
+using FlexFit.Payment.API.Gateways.Interfaces;
 using StackExchange.Redis;
 
 namespace FlexFit.Payment.API.Infrastructure.Redis
@@ -36,3 +38,5 @@ namespace FlexFit.Payment.API.Infrastructure.Redis
         }
     }
 }
+
+

@@ -1,9 +1,9 @@
-using System.Text;
+﻿using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using FlexFit.Payment.API.Extensions;
-using FlexFit.Payment.Repository.Data;
-using FlexFit.Payment.Repository.Entities;
+using FlexFit.Payment.API.Data;
+using FlexFit.Payment.API.Domain.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -199,3 +199,5 @@ public class DevTokenRequest
     public string Email { get; set; } = null!;
     public string Role { get; set; } = null!;
 }
+
+

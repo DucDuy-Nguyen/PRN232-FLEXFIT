@@ -1,6 +1,8 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using FlexFit.Payment.Service.Interfaces;
+using FlexFit.Payment.API.Services.Interfaces;
+using FlexFit.Payment.API.Infrastructure.Redis.Interfaces;
+using FlexFit.Payment.API.Gateways.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,3 +46,5 @@ namespace FlexFit.Payment.API.Controllers
         }
     }
 }
+
+

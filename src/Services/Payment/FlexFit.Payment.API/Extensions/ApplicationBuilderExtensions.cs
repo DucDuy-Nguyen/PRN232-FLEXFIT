@@ -1,4 +1,4 @@
-using FlexFit.Payment.API.Middleware;
+﻿using FlexFit.Payment.API.Middleware;
 using Microsoft.AspNetCore.Builder;
 
 namespace FlexFit.Payment.API.Extensions
@@ -11,3 +11,5 @@ namespace FlexFit.Payment.API.Extensions
         }
     }
 }
+
+

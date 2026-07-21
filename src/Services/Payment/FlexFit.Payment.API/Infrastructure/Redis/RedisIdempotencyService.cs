@@ -1,6 +1,8 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using FlexFit.Payment.Service.Interfaces;
+using FlexFit.Payment.API.Services.Interfaces;
+using FlexFit.Payment.API.Infrastructure.Redis.Interfaces;
+using FlexFit.Payment.API.Gateways.Interfaces;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
@@ -33,3 +35,5 @@ namespace FlexFit.Payment.API.Infrastructure.Redis
         }
     }
 }
+
+

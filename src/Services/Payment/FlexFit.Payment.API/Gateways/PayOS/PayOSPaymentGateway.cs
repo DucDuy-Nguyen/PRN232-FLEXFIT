@@ -1,7 +1,9 @@
-using System;
+﻿using System;
 using System.Text.Json;
 using System.Threading.Tasks;
-using FlexFit.Payment.Service.Interfaces;
+using FlexFit.Payment.API.Services.Interfaces;
+using FlexFit.Payment.API.Infrastructure.Redis.Interfaces;
+using FlexFit.Payment.API.Gateways.Interfaces;
 using PayOS;
 using PayOS.Models.V2.PaymentRequests;
 using PayOS.Models.Webhooks;
@@ -71,3 +73,5 @@ namespace FlexFit.Payment.API.Gateways.PayOS
         }
     }
 }
+
+
