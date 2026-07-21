@@ -1,0 +1,35 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/FlexFit.Caching/FlexFit.Caching.csproj" />
+    <Project Path="src/BuildingBlocks/FlexFit.Contracts/FlexFit.Contracts.csproj" />
+    <Project Path="src/BuildingBlocks/FlexFit.RedisEventBus/FlexFit.RedisEventBus.csproj" />
+  </Folder>
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/FlexFit.ApiGateway/FlexFit.ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/Booking/">
+    <Project Path="src/Services/Booking/FlexFit.BookingService/FlexFit.BookingService.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Catalog/">
+    <Project Path="src/Services/Catalog/FlexFit.CatalogService/FlexFit.CatalogService.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Engagement/">
+    <Project Path="src/Services/Engagement/FlexFit.Engagement.API/FlexFit.Engagement.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Identity/">
+    <Project Path="src/Services/Identity/FlexFit.Identity.API/FlexFit.Identity.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Payment/">
+    <Project Path="src/Services/Payment/FlexFit.Payment.API/FlexFit.Payment.API.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/Recommendation/">
+    <Project Path="src/Services/Recommendation/FlexFit.Recommendation.Grpc/FlexFit.Recommendation.Grpc.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FlexFit.ApiGateway.Tests/FlexFit.ApiGateway.Tests.csproj" />
+    <Project Path="tests/FlexFit.BuildingBlocks.Tests/FlexFit.BuildingBlocks.Tests.csproj" />
+    <Project Path="tests/FlexFit.Payment.UnitTests/FlexFit.Payment.UnitTests.csproj" />
+  </Folder>
+</Solution>

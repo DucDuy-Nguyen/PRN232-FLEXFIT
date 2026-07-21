@@ -1,0 +1,6 @@
+@FlexFit.BookingService_HostAddress = http://localhost:5216
+
+GET {{FlexFit.BookingService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

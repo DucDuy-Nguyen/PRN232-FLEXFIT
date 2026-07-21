@@ -9,5 +9,4 @@
   <Folder Name="/tests/">
     <Project Path="tests/FlexFit.Payment.UnitTests/FlexFit.Payment.UnitTests.csproj" />
   </Folder>
-  <Project Path="Flexfit.csproj" />
 </Solution>

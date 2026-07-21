@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option csharp_namespace = "FlexFit.CatalogService.Protos";
+
+package catalog;
+
+service CatalogGrpc {
+  rpc GetClassBookingSnapshot (GetClassBookingSnapshotRequest) returns (BookingSnapshotResponse);
+  rpc GetGymSessionBookingSnapshot (GetGymSessionBookingSnapshotRequest) returns (BookingSnapshotResponse);
+}
+
+message GetClassBookingSnapshotRequest {
+  string class_id = 1;
+}
+
+message GetGymSessionBookingSnapshotRequest {
+  string session_id = 1;
+}
+
+message BookingSnapshotResponse {
+  string resource_id = 1;
+  string resource_type = 2; // "Class" or "GymSession"
+  string gym_id = 3;
+  string gym_name = 4;
+  string branch_id = 5;
+  string branch_name = 6;
+  string title = 7; // ClassName or SessionName
+  string start_time = 8; // ISO-8601 string
+  string end_time = 9;   // ISO-8601 string
+  int32 credit_cost = 10;
+  int32 capacity = 11;
+  string status = 12;
+  bool is_active = 13;
+}
