@@ -3,6 +3,7 @@ using FlexFit.Catalog.Repository.Models;
 using FlexFit.Catalog.Repository.Repositories;
 using FlexFit.Catalog.Service.Interfaces;
 using FlexFit.Catalog.Service.Services;
+using FlexFit.Catalog.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -96,6 +97,8 @@ builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IFavoriteGymRepository, FavoriteGymRepository>();
 builder.Services.AddScoped<IFavoriteClassRepository, FavoriteClassRepository>();
+builder.Services.AddScoped<IBookingSnapshotRepository, BookingSnapshotRepository>();
+builder.Services.AddScoped<IBookingSnapshotService, BookingSnapshotService>();
 
 builder.Services.AddScoped<IGymService, GymService>();
 builder.Services.AddScoped<IBranchService, BranchService>();

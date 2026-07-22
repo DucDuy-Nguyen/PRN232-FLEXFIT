@@ -9,6 +9,7 @@ using FlexFit.Engagement.API.Redis;
 using FlexFit.Engagement.API.Hubs;
 using FlexFit.Engagement.API.BackgroundServices;
 using FlexFit.Engagement.API.Services;
+using FlexFit.Engagement.API.Infrastructure.AI;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -137,7 +138,9 @@ builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 
 // AI
 builder.Services.AddScoped<IAIContextBuilder, AIContextBuilder>();
-builder.Services.AddHttpClient<IAIService, AIService>();
+builder.Services.AddHttpClient<IAIClient, GeminiAIClient>();
+builder.Services.AddScoped<IRecommendationClient, RecommendationGrpcClient>();
+builder.Services.AddScoped<IAIService, AIService>();
 
 // gRPC Clients
 builder.Services.AddGrpcClient<FlexFit.Recommendation.Grpc.RecommendationService.RecommendationServiceClient>(o =>

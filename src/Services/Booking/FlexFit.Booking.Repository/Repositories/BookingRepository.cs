@@ -229,6 +229,27 @@ namespace FlexFit.Booking.Repository.Repositories
                 .AnyAsync(m => m.EventId == eventId && m.ConsumerName == consumerName);
         }
 
+        public async Task<List<GymBooking>> GetGymBookingsForAutoCancellationAsync(DateTime threshold)
+        {
+            return await _context.GymBookings
+                .Where(b => b.Status == "PendingPayment" && b.BookedAt <= threshold)
+                .ToListAsync();
+        }
+
+        public async Task<List<ClassBooking>> GetClassBookingsForAutoCancellationAsync(DateTime threshold)
+        {
+            return await _context.ClassBookings
+                .Where(b => b.Status == "PendingPayment" && b.BookedAt <= threshold)
+                .ToListAsync();
+        }
+
+        public async Task<List<ClassBooking>> GetActiveClassBookingsByClassIdAsync(Guid classId)
+        {
+            return await _context.ClassBookings
+                .Where(b => b.ClassId == classId && b.Status == "Confirmed")
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

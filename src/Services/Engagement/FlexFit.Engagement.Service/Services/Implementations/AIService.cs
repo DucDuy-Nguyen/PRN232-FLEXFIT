@@ -1,57 +1,50 @@
+using System;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
 using FlexFit.Engagement.Service.DTOs.AI;
 using FlexFit.Engagement.Repository.Repositories.Interfaces;
 using FlexFit.Engagement.Service.Interfaces;
 using FlexFit.Engagement.Service.Services.AI;
-using FlexFit.Recommendation.Grpc;
-using Microsoft.Extensions.Configuration;
 
-namespace FlexFit.Engagement.Service.Services;
-
-public class AIService : IAIService
+namespace FlexFit.Engagement.Service.Services
 {
-    private readonly HttpClient _httpClient;
-    private readonly IEngagementUserRepository _userRepository;
-    private readonly IWorkoutHistoryRepository _workoutHistoryRepository;
-    private readonly IAIContextBuilder _contextBuilder;
-    private readonly RecommendationService.RecommendationServiceClient _recommendationClient;
-    private readonly string _apiKey;
-    private readonly string _model;
-
-    public AIService(
-        HttpClient httpClient, 
-        IEngagementUserRepository userRepository,
-        IWorkoutHistoryRepository workoutHistoryRepository,
-        IAIContextBuilder contextBuilder, 
-        RecommendationService.RecommendationServiceClient recommendationClient,
-        IConfiguration configuration)
+    public class AIService : IAIService
     {
-        _httpClient = httpClient;
-        _userRepository = userRepository;
-        _workoutHistoryRepository = workoutHistoryRepository;
-        _contextBuilder = contextBuilder;
-        _recommendationClient = recommendationClient;
-        _apiKey = configuration["Gemini:ApiKey"] ?? string.Empty;
-        _model = configuration["Gemini:Model"] ?? "gemini-1.5-flash";
-    }
+        private readonly IEngagementUserRepository _userRepository;
+        private readonly IWorkoutHistoryRepository _workoutHistoryRepository;
+        private readonly IAIContextBuilder _contextBuilder;
+        private readonly IAIClient _aiClient;
+        private readonly IRecommendationClient _recommendationClient;
 
-    public async Task<AISuggestionResponse> GetWorkoutSuggestionAsync(Guid userId)
-    {
-        var user = await _userRepository.GetByIdAsync(userId)
-            ?? throw new KeyNotFoundException("Không tìm thấy người dùng này.");
-
-        // 1. Gọi gRPC Recommendation Service để lấy danh sách gợi ý bài tập chuẩn
-        var grpcRequest = new RecommendationRequest { UserId = userId.ToString() };
-        var grpcResponse = await _recommendationClient.GetWorkoutRecommendationsAsync(grpcRequest);
-        var grpcSuggestions = grpcResponse.Recommendations.ToList();
-
-        // 2. Lấy dữ liệu lịch sử tập luyện cục bộ via Repository
-        var recentWorkouts = await _workoutHistoryRepository.GetRecentByUserIdAsync(userId, 10);
-
-        // 3. Nếu cấu hình Gemini ApiKey, dùng AI để làm mượt văn bản và thêm chi tiết
-        if (!string.IsNullOrEmpty(_apiKey))
+        public AIService(
+            IEngagementUserRepository userRepository,
+            IWorkoutHistoryRepository workoutHistoryRepository,
+            IAIContextBuilder contextBuilder, 
+            IAIClient aiClient,
+            IRecommendationClient recommendationClient)
         {
+            _userRepository = userRepository;
+            _workoutHistoryRepository = workoutHistoryRepository;
+            _contextBuilder = contextBuilder;
+            _aiClient = aiClient;
+            _recommendationClient = recommendationClient;
+        }
+
+        public async Task<AISuggestionResponse> GetWorkoutSuggestionAsync(Guid userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId)
+                ?? throw new KeyNotFoundException("Không tìm thấy người dùng này.");
+
+            // 1. Gọi gRPC Recommendation Service để lấy danh sách gợi ý bài tập chuẩn
+            var grpcSuggestions = await _recommendationClient.GetWorkoutRecommendationsAsync(userId);
+
+            // 2. Lấy dữ liệu lịch sử tập luyện cục bộ via Repository
+            var recentWorkouts = await _workoutHistoryRepository.GetRecentByUserIdAsync(userId, 10);
+
+            // 3. Xây dựng prompt
             var promptBuilder = new StringBuilder();
             promptBuilder.AppendLine("Bạn là một huấn luyện viên cá nhân (PT) và chuyên gia dinh dưỡng chuyên nghiệp.");
             promptBuilder.AppendLine("Dựa trên thông tin thể trạng, lịch sử tập luyện và danh sách bài tập đề xuất từ hệ thống gRPC dưới đây, hãy đưa ra một gợi ý lịch tập, bài tập chi tiết và chế độ dinh dưỡng phù hợp trong tuần tới.");
@@ -89,7 +82,29 @@ public class AIService : IAIService
             promptBuilder.AppendLine("3. **Lời khuyên về Dinh dưỡng & Nghỉ ngơi**");
             promptBuilder.AppendLine("4. **Lời khuyên đặc biệt phòng tránh chấn thương và giữ động lực**");
 
-            var responseText = await CallGeminiApiAsync(promptBuilder.ToString());
+            var responseText = await _aiClient.GenerateContentAsync(promptBuilder.ToString());
+
+            // Check if API key was missing or failed - trigger fallback
+            if (responseText.StartsWith("### ⚠️ Cấu hình API Chưa Sẵn Sàng"))
+            {
+                var fallbackBuilder = new StringBuilder();
+                fallbackBuilder.AppendLine("### 🤖 Gợi ý tập luyện từ gRPC Recommendation Service (Fallback)");
+                fallbackBuilder.AppendLine("*(Hệ thống hiện đang chạy ở chế độ offline không dùng Gemini)*");
+                fallbackBuilder.AppendLine();
+                fallbackBuilder.AppendLine($"**Hội viên:** {user.FullName}");
+                fallbackBuilder.AppendLine();
+                fallbackBuilder.AppendLine("Dưới đây là lịch trình tập luyện được đề xuất cho bạn:");
+                foreach (var sg in grpcSuggestions)
+                {
+                    fallbackBuilder.AppendLine($"- {sg}");
+                }
+
+                return new AISuggestionResponse
+                {
+                    Suggestion = fallbackBuilder.ToString(),
+                    SuggestedAt = DateTime.UtcNow
+                };
+            }
 
             return new AISuggestionResponse
             {
@@ -98,36 +113,12 @@ public class AIService : IAIService
             };
         }
 
-        // 4. Fallback nếu không có Gemini ApiKey: trả về trực tiếp kết quả từ gRPC
-        var fallbackBuilder = new StringBuilder();
-        fallbackBuilder.AppendLine("### 🤖 Gợi ý tập luyện từ gRPC Recommendation Service (Fallback)");
-        fallbackBuilder.AppendLine("*(Hệ thống hiện đang chạy ở chế độ offline không dùng Gemini)*");
-        fallbackBuilder.AppendLine();
-        fallbackBuilder.AppendLine($"**Hội viên:** {user.FullName}");
-        fallbackBuilder.AppendLine();
-        fallbackBuilder.AppendLine("Dưới đây là lịch trình tập luyện được đề xuất cho bạn:");
-        foreach (var sg in grpcSuggestions)
+        public async Task<AISuggestionResponse> GetClassSuggestionAsync(Guid userId)
         {
-            fallbackBuilder.AppendLine($"- {sg}");
-        }
+            // 1. Gọi gRPC Recommendation Service để lấy danh sách gợi ý lớp học
+            var grpcSuggestions = await _recommendationClient.GetClassRecommendationsAsync(userId);
 
-        return new AISuggestionResponse
-        {
-            Suggestion = fallbackBuilder.ToString(),
-            SuggestedAt = DateTime.UtcNow
-        };
-    }
-
-    public async Task<AISuggestionResponse> GetClassSuggestionAsync(Guid userId)
-    {
-        // 1. Gọi gRPC Recommendation Service để lấy danh sách gợi ý lớp học
-        var grpcRequest = new RecommendationRequest { UserId = userId.ToString() };
-        var grpcResponse = await _recommendationClient.GetClassRecommendationsAsync(grpcRequest);
-        var grpcSuggestions = grpcResponse.Recommendations.ToList();
-
-        // 2. Nếu cấu hình Gemini ApiKey, dùng AI để phân tích sâu hơn
-        if (!string.IsNullOrEmpty(_apiKey))
-        {
+            // 2. Dùng AI để phân tích sâu hơn
             var promptBuilder = new StringBuilder();
             promptBuilder.AppendLine("Bạn là một chuyên viên tư vấn lớp học thể thao của hệ thống phòng tập FlexFit.");
             promptBuilder.AppendLine("Dựa trên đề xuất lớp học từ gRPC dưới đây, hãy viết một bài tư vấn chi tiết, thuyết phục và sắp xếp thời gian hợp lý cho hội viên.");
@@ -141,7 +132,26 @@ public class AIService : IAIService
             }
             promptBuilder.AppendLine();
 
-            var responseText = await CallGeminiApiAsync(promptBuilder.ToString());
+            var responseText = await _aiClient.GenerateContentAsync(promptBuilder.ToString());
+
+            if (responseText.StartsWith("### ⚠️ Cấu hình API Chưa Sẵn Sàng"))
+            {
+                var fallbackBuilder = new StringBuilder();
+                fallbackBuilder.AppendLine("### 🤖 Gợi ý lớp học từ gRPC Recommendation Service (Fallback)");
+                fallbackBuilder.AppendLine("*(Hệ thống hiện đang chạy ở chế độ offline không dùng Gemini)*");
+                fallbackBuilder.AppendLine();
+                fallbackBuilder.AppendLine("Dưới đây là các lớp học được đề xuất cho bạn:");
+                foreach (var sg in grpcSuggestions)
+                {
+                    fallbackBuilder.AppendLine($"- {sg}");
+                }
+
+                return new AISuggestionResponse
+                {
+                    Suggestion = fallbackBuilder.ToString(),
+                    SuggestedAt = DateTime.UtcNow
+                };
+            }
 
             return new AISuggestionResponse
             {
@@ -150,96 +160,15 @@ public class AIService : IAIService
             };
         }
 
-        // 3. Fallback
-        var fallbackBuilder = new StringBuilder();
-        fallbackBuilder.AppendLine("### 🤖 Gợi ý lớp học từ gRPC Recommendation Service (Fallback)");
-        fallbackBuilder.AppendLine("*(Hệ thống hiện đang chạy ở chế độ offline không dùng Gemini)*");
-        fallbackBuilder.AppendLine();
-        fallbackBuilder.AppendLine("Dưới đây là các lớp học được đề xuất cho bạn:");
-        foreach (var sg in grpcSuggestions)
+        public async Task<string> ChatWithAIAsync(Guid userId, AIChatRequest request)
         {
-            fallbackBuilder.AppendLine($"- {sg}");
-        }
+            var userContext = await _contextBuilder.GetUserContextAsync(userId);
+            var promptBuilder = new StringBuilder();
+            promptBuilder.AppendLine(PromptBuilder.BuildSystemInstructions());
+            promptBuilder.AppendLine(PromptBuilder.BuildUserContextPrompt(userContext));
+            promptBuilder.AppendLine($"[Yêu cầu từ người dùng]\n{request.Message}");
 
-        return new AISuggestionResponse
-        {
-            Suggestion = fallbackBuilder.ToString(),
-            SuggestedAt = DateTime.UtcNow
-        };
-    }
-
-    public async Task<string> ChatWithAIAsync(Guid userId, AIChatRequest request)
-    {
-        var userContext = await _contextBuilder.GetUserContextAsync(userId);
-        var promptBuilder = new StringBuilder();
-        promptBuilder.AppendLine(PromptBuilder.BuildSystemInstructions());
-        promptBuilder.AppendLine(PromptBuilder.BuildUserContextPrompt(userContext));
-        promptBuilder.AppendLine($"[Yêu cầu từ người dùng]\n{request.Message}");
-
-        return await CallGeminiApiAsync(promptBuilder.ToString(), request.History);
-    }
-
-    private async Task<string> CallGeminiApiAsync(string prompt, List<AIChatMessage>? history = null)
-    {
-        if (string.IsNullOrEmpty(_apiKey))
-        {
-            return "### ⚠️ Cấu hình API Chưa Sẵn Sàng\n\nQuản trị viên chưa cấu hình `Gemini:ApiKey` trong `appsettings.json`. Vui lòng thêm Gemini API Key để trải nghiệm tính năng AI.";
-        }
-
-        try
-        {
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
-
-            var contents = new List<object>();
-
-            if (history != null && history.Any())
-            {
-                foreach (var msg in history)
-                {
-                    contents.Add(new
-                    {
-                        role = msg.Role == "user" ? "user" : "model",
-                        parts = new[] { new { text = msg.Content } }
-                    });
-                }
-            }
-
-            contents.Add(new
-            {
-                role = "user",
-                parts = new[] { new { text = prompt } }
-            });
-
-            var payload = new { contents };
-            var jsonPayload = JsonSerializer.Serialize(payload);
-            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(url, content);
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorText = await response.Content.ReadAsStringAsync();
-                return $"### ❌ Lỗi kết nối Gemini API\n\nHTTP {response.StatusCode} - {errorText}";
-            }
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(responseBody);
-
-            if (doc.RootElement.TryGetProperty("candidates", out var candidates) &&
-                candidates.GetArrayLength() > 0 &&
-                candidates[0].TryGetProperty("content", out var contentObj) &&
-                contentObj.TryGetProperty("parts", out var parts) &&
-                parts.GetArrayLength() > 0 &&
-                parts[0].TryGetProperty("text", out var textProp))
-            {
-                return textProp.GetString() ?? "Không nhận được phản hồi hợp lệ từ AI.";
-            }
-
-            return "Không thể phân tích dữ liệu trả về từ Gemini AI.";
-        }
-        catch (Exception ex)
-        {
-            return $"### 💥 Lỗi không xác định\n\nĐã xảy ra lỗi: {ex.Message}";
+            return await _aiClient.GenerateContentAsync(promptBuilder.ToString(), request.History);
         }
     }
 }
-

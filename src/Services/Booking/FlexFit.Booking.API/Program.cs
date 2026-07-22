@@ -54,6 +54,10 @@ builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ICheckInService, CheckInService>();
+builder.Services.AddScoped<IOutboxRepository, OutboxRepository>();
+builder.Services.AddScoped<IBookingMaintenanceService, BookingMaintenanceService>();
+builder.Services.AddScoped<IBookingPaymentHandler, BookingPaymentHandler>();
+builder.Services.AddScoped<IClassScheduleHandler, ClassScheduleHandler>();
 
 // 4. Register REST typed HttpClient for Catalog Service
 var catalogBaseUrl = builder.Configuration["CatalogConfig:BaseUrl"] ?? "http://localhost:7001";

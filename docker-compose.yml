@@ -69,7 +69,7 @@ services:
     image: flexfit-catalog:latest
     build:
       context: .
-      dockerfile: src/Services/Catalog/FlexFit.CatalogService/Dockerfile
+      dockerfile: src/Services/Catalog/FlexFit.Catalog.API/Dockerfile
     container_name: flexfit-catalog
     ports:
       - "5002:5002"

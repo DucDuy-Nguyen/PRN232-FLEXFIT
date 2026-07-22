@@ -30,6 +30,9 @@ namespace FlexFit.Booking.Repository.Repositories.Interfaces
         Task AddOutboxMessageAsync(OutboxMessage message);
         Task AddInboxMessageAsync(InboxMessage message);
         Task<bool> InboxMessageExistsAsync(Guid eventId, string consumerName);
+        Task<List<GymBooking>> GetGymBookingsForAutoCancellationAsync(DateTime threshold);
+        Task<List<ClassBooking>> GetClassBookingsForAutoCancellationAsync(DateTime threshold);
+        Task<List<ClassBooking>> GetActiveClassBookingsByClassIdAsync(Guid classId);
         
         Task SaveChangesAsync();
     }

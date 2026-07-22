@@ -1,8 +1,7 @@
-using FlexFit.Booking.Repository.Data;
 using FlexFit.Booking.Repository.Models;
+using FlexFit.Booking.Repository.Repositories.Interfaces;
 using FlexFit.Booking.Service.Messaging.Events;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -49,15 +48,11 @@ namespace FlexFit.Booking.API.BackgroundJobs
         private async Task ProcessOutboxMessagesAsync(CancellationToken stoppingToken)
         {
             using var scope = _scopeFactory.CreateScope();
-            var dbContext = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+            var outboxRepo = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
             var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
 
             // Query up to 20 unprocessed messages
-            var messages = await dbContext.OutboxMessages
-                .Where(m => m.ProcessedAt == null && m.RetryCount < 5)
-                .OrderBy(m => m.OccurredAt)
-                .Take(20)
-                .ToListAsync(stoppingToken);
+            var messages = await outboxRepo.GetUnprocessedMessagesAsync(20, stoppingToken);
 
             if (!messages.Any()) return;
 
@@ -94,9 +89,11 @@ namespace FlexFit.Booking.API.BackgroundJobs
                     msg.ErrorMessage = ex.Message;
                     _logger.LogError(ex, "Failed to publish Outbox message {MessageId} (Attempt {Count}/5)", msg.OutboxMessageId, msg.RetryCount);
                 }
+
+                await outboxRepo.UpdateOutboxMessageAsync(msg);
             }
 
-            await dbContext.SaveChangesAsync(stoppingToken);
+            await outboxRepo.SaveChangesAsync(stoppingToken);
         }
     }
 }
