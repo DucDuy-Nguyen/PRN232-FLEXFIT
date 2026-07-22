@@ -6,6 +6,8 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["src/Services/Payment/FlexFit.Payment.API/FlexFit.Payment.API.csproj", "src/Services/Payment/FlexFit.Payment.API/"]
+COPY ["src/Services/Payment/FlexFit.Payment.Service/FlexFit.Payment.Service.csproj", "src/Services/Payment/FlexFit.Payment.Service/"]
+COPY ["src/Services/Payment/FlexFit.Payment.Repository/FlexFit.Payment.Repository.csproj", "src/Services/Payment/FlexFit.Payment.Repository/"]
 
 RUN dotnet restore "src/Services/Payment/FlexFit.Payment.API/FlexFit.Payment.API.csproj"
 COPY . .

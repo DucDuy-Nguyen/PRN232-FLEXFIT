@@ -7,6 +7,8 @@ WORKDIR /src
 
 # Copy csproj files for restore
 COPY ["src/Services/Engagement/FlexFit.Engagement.API/FlexFit.Engagement.API.csproj", "Services/Engagement/FlexFit.Engagement.API/"]
+COPY ["src/Services/Engagement/FlexFit.Engagement.Service/FlexFit.Engagement.Service.csproj", "Services/Engagement/FlexFit.Engagement.Service/"]
+COPY ["src/Services/Engagement/FlexFit.Engagement.Repository/FlexFit.Engagement.Repository.csproj", "Services/Engagement/FlexFit.Engagement.Repository/"]
 COPY ["src/BuildingBlocks/FlexFit.Contracts/FlexFit.Contracts.csproj", "BuildingBlocks/FlexFit.Contracts/"]
 COPY ["src/Services/Recommendation/FlexFit.Recommendation.Grpc/FlexFit.Recommendation.Grpc.csproj", "Services/Recommendation/FlexFit.Recommendation.Grpc/"]
 
