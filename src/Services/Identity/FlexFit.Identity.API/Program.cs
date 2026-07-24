@@ -2,6 +2,10 @@ using FlexFit.Caching;
 using FlexFit.RedisEventBus;
 using FlexFit.Identity.API.Extensions;
 using FlexFit.Identity.API.Middleware;
+using FlexFit.Identity.Repository.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +26,35 @@ builder.Services.AddIdentityHealthChecks();
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+// Ensure database and tables are created on startup
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var dbCreator = dbContext.Database.GetService<IRelationalDatabaseCreator>();
+        if (!dbCreator.Exists())
+        {
+            dbCreator.Create();
+        }
+        
+        try
+        {
+            _ = dbContext.Users.FirstOrDefault();
+        }
+        catch
+        {
+            dbCreator.CreateTables();
+            logger.LogInformation("Successfully created Identity tables and seed data.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to ensure Identity database creation.");
+    }
+}
 
 // Exception Handling boundary at the start of pipeline
 app.UseMiddleware<ExceptionHandlingMiddleware>();
