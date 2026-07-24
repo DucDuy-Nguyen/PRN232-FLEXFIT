@@ -6,6 +6,8 @@ using FlexFit.Payment.Repository.Data;
 using FlexFit.Payment.Repository.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 
@@ -96,6 +98,15 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
     try
     {
+        var dbCreator = context.Database.GetService<IRelationalDatabaseCreator>();
+        if (!dbCreator.Exists())
+        {
+            dbCreator.Create();
+        }
+        if (!dbCreator.HasTables())
+        {
+            dbCreator.CreateTables();
+        }
         if (!context.CreditPackages.Any())
         {
             context.CreditPackages.AddRange(

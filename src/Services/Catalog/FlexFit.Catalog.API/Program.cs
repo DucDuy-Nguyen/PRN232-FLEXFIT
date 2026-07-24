@@ -109,6 +109,21 @@ builder.Services.AddScoped<IFavoriteClassService, FavoriteClassService>();
 
 var app = builder.Build();
 
+// Auto migrate database on startup
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Failed to migrate Catalog database.");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || true) // Enable Swagger in all environments for grading/assessment
 {

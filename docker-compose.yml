@@ -33,9 +33,31 @@ services:
       - Redis__ConnectionString=redis:6379
       - GrpcSettings__RecommendationUrl=http://flexfit-recommendation:8080
       - Gemini__ApiKey=
+      - Jwt__Key=VeryLongSuperSecureKey1234567890!!
+      - Jwt__Issuer=FlexFitIdentity
+      - Jwt__Audience=FlexFitClient
     depends_on:
       - redis
       - flexfit-recommendation
+
+  flexfit-identity:
+    image: flexfit-identity:latest
+    build:
+      context: .
+      dockerfile: src/Services/Identity/FlexFit.Identity.API/Dockerfile
+    container_name: flexfit-identity
+    ports:
+      - "5094:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__IdentityDatabase=Server=payment-db;Database=FlexFitIdentityDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
+      - Redis__ConnectionString=redis:6379
+      - Jwt__Key=VeryLongSuperSecureKey1234567890!!
+      - Jwt__Issuer=FlexFitIdentity
+      - Jwt__Audience=FlexFitClient
+    depends_on:
+      - payment-db
+      - redis
 
   flexfit-gateway:
     image: flexfit-gateway:latest
@@ -48,12 +70,21 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - Jwt__Key=VeryLongSuperSecureKey1234567890!!
-      - ReverseProxy__Clusters__engagement__Destinations__destination1__Address=http://flexfit-engagement:8080/
-      - ReverseProxy__Clusters__monolith__Destinations__destination1__Address=http://host.docker.internal:5100/
+      - Jwt__Issuer=FlexFitIdentity
+      - Jwt__Audience=FlexFitClient
+      - ReverseProxy__Clusters__identity-cluster__Destinations__identity-api__Address=http://flexfit-identity:8080/
+      - ReverseProxy__Clusters__booking-cluster__Destinations__booking-api__Address=http://flexfit-booking:8080/
+      - ReverseProxy__Clusters__catalog-cluster__Destinations__catalog-api__Address=http://flexfit-catalog:5002/
+      - ReverseProxy__Clusters__payment-cluster__Destinations__payment-api__Address=http://payment-api:8080/
+      - ReverseProxy__Clusters__engagement-cluster__Destinations__engagement-api__Address=http://flexfit-engagement:8080/
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
+      - flexfit-identity
+      - flexfit-booking
+      - flexfit-catalog
       - flexfit-engagement
+      - payment-api
 
   flexfit-booking:
     image: flexfit-booking:latest
@@ -65,6 +96,17 @@ services:
       - "5004:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitBookingDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
+      - CatalogConfig__BaseUrl=http://flexfit-catalog:5002
+      - CatalogConfig__UseMock=false
+      - Redis__ConnectionString=redis:6379
+      - Jwt__Key=VeryLongSuperSecureKey1234567890!!
+      - Jwt__Issuer=FlexFitIdentity
+      - Jwt__Audience=FlexFitClient
+    depends_on:
+      - flexfit-catalog
+      - redis
+      - payment-db
 
   flexfit-catalog:
     image: flexfit-catalog:latest
@@ -80,6 +122,12 @@ services:
       - Kestrel__Endpoints__Http__Url=http://+:5002
       - Kestrel__Endpoints__gRPC__Url=http://+:5003
       - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitCatalogDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
+      - JWT_KEY=VeryLongSuperSecureKey1234567890!!
+      - JWT_ISSUER=FlexFitIdentity
+      - JWT_AUDIENCE=FlexFitClient
+      - Jwt__Key=VeryLongSuperSecureKey1234567890!!
+      - Jwt__Issuer=FlexFitIdentity
+      - Jwt__Audience=FlexFitClient
     depends_on:
       - payment-db
 
@@ -109,12 +157,12 @@ services:
       - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitPaymentDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
       - Redis__ConnectionString=payment-redis:6379
       - Jwt__Key=VeryLongSuperSecureKey1234567890!!
-      - Jwt__Issuer=FlexFitAPI
+      - Jwt__Issuer=FlexFitIdentity
       - Jwt__Audience=FlexFitClient
-      - PayOS__ClientId=${PAYOS_CLIENT_ID}
-      - PayOS__ApiKey=${PAYOS_API_KEY}
-      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
-      - Payment__UseMockPayment=false
+      - PayOS__ClientId=${PAYOS_CLIENT_ID:-mock-client-id}
+      - PayOS__ApiKey=${PAYOS_API_KEY:-mock-api-key}
+      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY:-mock-checksum-key}
+      - Payment__UseMockPayment=true
     ports:
       - "5080:8080"
     depends_on:

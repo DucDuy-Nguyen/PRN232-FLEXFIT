@@ -139,6 +139,21 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Auto migrate database on startup
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<BookingDbContext>();
+        dbContext.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Failed to migrate Booking database.");
+    }
+}
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
