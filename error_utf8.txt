@@ -1,0 +1,21 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Program Files\dotnet\sdk\10.0.400-preview.0.26322.102\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(383,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\FlexFit.BuildingBlocks.Tests.csproj]
+C:\Program Files\dotnet\sdk\10.0.400-preview.0.26322.102\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(383,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\FlexFit.Contracts.csproj]
+C:\Program Files\dotnet\sdk\10.0.400-preview.0.26322.102\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(383,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Caching\FlexFit.Caching.csproj]
+C:\Program Files\dotnet\sdk\10.0.400-preview.0.26322.102\Sdks\Microsoft.NET.Sdk\targets\Microsoft.NET.RuntimeIdentifierInference.targets(383,5): message NETSDK1057: You are using a preview version of .NET. See: https://aka.ms/dotnet-support-policy [C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\src\Services\Identity\FlexFit.Identity.API\FlexFit.Identity.API.csproj]
+  FlexFit.Contracts -> C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Contracts\bin\Debug\net8.0\FlexFit.Contracts.dll
+  FlexFit.Caching -> C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.Caching\bin\Debug\net8.0\FlexFit.Caching.dll
+  FlexFit.RedisEventBus -> C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\src\BuildingBlocks\FlexFit.RedisEventBus\bin\Debug\net8.0\FlexFit.RedisEventBus.dll
+  FlexFit.Identity.API -> C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\src\Services\Identity\FlexFit.Identity.API\bin\Debug\net8.0\FlexFit.Identity.API.dll
+C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\CatalogCacheTests.cs(11,15): error CS0234: The type or namespace name 'BookingService' does not exist in the namespace 'FlexFit' (are you missing an assembly reference?) [C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\FlexFit.BuildingBlocks.Tests.csproj]
+C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\CatalogCacheTests.cs(19,34): error CS0246: The type or namespace name 'CatalogServiceClient' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\FlexFit.BuildingBlocks.Tests.csproj]
+
+Build FAILED.
+
+C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\CatalogCacheTests.cs(11,15): error CS0234: The type or namespace name 'BookingService' does not exist in the namespace 'FlexFit' (are you missing an assembly reference?) [C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\FlexFit.BuildingBlocks.Tests.csproj]
+C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\CatalogCacheTests.cs(19,34): error CS0246: The type or namespace name 'CatalogServiceClient' could not be found (are you missing a using directive or an assembly reference?) [C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\FlexFit.BuildingBlocks.Tests.csproj]
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.66

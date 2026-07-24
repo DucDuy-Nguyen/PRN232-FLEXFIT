@@ -1,0 +1,126 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: flexfit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  flexfit-recommendation:
+    image: flexfit-recommendation:latest
+    build:
+      context: .
+      dockerfile: src/Services/Recommendation/FlexFit.Recommendation.Grpc/Dockerfile
+    container_name: flexfit-recommendation
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  flexfit-engagement:
+    image: flexfit-engagement:latest
+    build:
+      context: .
+      dockerfile: src/Services/Engagement/Dockerfile
+    container_name: flexfit-engagement
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=FlexFitDB;User ID=sa;Password=12345;TrustServerCertificate=True;MultipleActiveResultSets=True;
+      - Redis__ConnectionString=redis:6379
+      - GrpcSettings__RecommendationUrl=http://flexfit-recommendation:8080
+      - Gemini__ApiKey=
+    depends_on:
+      - redis
+      - flexfit-recommendation
+
+  flexfit-gateway:
+    image: flexfit-gateway:latest
+    build:
+      context: .
+      dockerfile: src/Gateway/FlexFit.ApiGateway/Dockerfile
+    container_name: flexfit-gateway
+    ports:
+      - "7000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Jwt__Key=VeryLongSuperSecureKey1234567890!!
+      - ReverseProxy__Clusters__engagement__Destinations__destination1__Address=http://flexfit-engagement:8080/
+      - ReverseProxy__Clusters__monolith__Destinations__destination1__Address=http://host.docker.internal:5100/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - flexfit-engagement
+
+  flexfit-booking:
+    image: flexfit-booking:latest
+    build:
+      context: .
+      dockerfile: src/Services/Booking/FlexFit.Booking.API/Dockerfile
+    container_name: flexfit-booking
+    ports:
+      - "5004:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  flexfit-catalog:
+    image: flexfit-catalog:latest
+    build:
+      context: .
+      dockerfile: src/Services/Catalog/FlexFit.Catalog.API/Dockerfile
+    container_name: flexfit-catalog
+    ports:
+      - "5002:5002"
+      - "5003:5003"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Kestrel__Endpoints__Http__Url=http://+:5002
+      - Kestrel__Endpoints__gRPC__Url=http://+:5003
+      - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitCatalogDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
+    depends_on:
+      - payment-db
+
+  payment-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourPassword123!
+    ports:
+      - "1434:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  payment-redis:
+    image: redis:7.0-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+
+  payment-api:
+    build:
+      context: .
+      dockerfile: src/Services/Payment/FlexFit.Payment.API/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitPaymentDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
+      - Redis__ConnectionString=payment-redis:6379
+      - Jwt__Key=VeryLongSuperSecureKey1234567890!!
+      - Jwt__Issuer=FlexFitAPI
+      - Jwt__Audience=FlexFitClient
+      - PayOS__ClientId=${PAYOS_CLIENT_ID}
+      - PayOS__ApiKey=${PAYOS_API_KEY}
+      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
+      - Payment__UseMockPayment=false
+    ports:
+      - "5080:8080"
+    depends_on:
+      - payment-db
+      - payment-redis
+
+volumes:
+  sql_data:
+  redis_data:

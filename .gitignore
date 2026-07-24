@@ -1,5 +1,19 @@
+# .NET build
 [Bb]in/
-[Ob]j/
+[Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
 .vs/
-.vscode/
+TestResults/
+coverage/
+*.dll
+*.pdb
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# User-specific files
 *.user
+*.suo

@@ -1,0 +1,182 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="1b674f22-44f3-4da2-bfbf-66148bcae89b" name="Huynh Thien Phat@LAPTOP-BMJ0SFGI 2026-07-18 15:40:53" runUser="LAPTOP-BMJ0SFGI\Huynh Thien Phat" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-07-18T15:40:53.4948126+07:00" queuing="2026-07-18T15:40:53.4948128+07:00" start="2026-07-18T15:40:52.9499863+07:00" finish="2026-07-18T15:40:53.5570607+07:00" />
+  <TestSettings name="default" id="6c7d0abb-ffad-4a69-ba7a-89d522531ba8">
+    <Deployment runDeploymentRoot="Huynh_Thien_Phat_LAPTOP-BMJ0SFGI_2026-07-18_15_40_53" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="231cea62-d1f9-4383-a123-42c315b7bad2" testId="62e89c71-e9c5-3813-f0c6-88ebd95a7a30" testName="FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetGymSessionDetails_Should_ReturnCachedValue_OnCacheHit" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0619388" startTime="2026-07-18T15:40:53.4880761+07:00" endTime="2026-07-18T15:40:53.4880771+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="231cea62-d1f9-4383-a123-42c315b7bad2">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Failed to convert configuration value at '' to type 'System.Boolean'.&#xD;
+---- System.FormatException :  is not a valid value for Boolean.&#xD;
+-------- System.FormatException : String '' was not recognized as a valid Boolean.</Message>
+          <StackTrace>   at Microsoft.Extensions.Configuration.ConfigurationBinder.ConvertValue(Type type, String value, String path)&#xD;
+   at Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue[T](IConfiguration configuration, String key, T defaultValue)&#xD;
+   at FlexFit.BookingService.ExternalServices.Catalog.CatalogServiceClient..ctor(HttpClient httpClient, IConfiguration configuration, ILogger`1 logger, ICacheService cacheService) in C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\FlexFit.BookingService\ExternalServices\Catalog\CatalogServiceClient.cs:line 24&#xD;
+   at FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetGymSessionDetails_Should_ReturnCachedValue_OnCacheHit() in C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\CatalogCacheTests.cs:line 52&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at System.ComponentModel.BooleanConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)&#xD;
+   at Microsoft.Extensions.Configuration.ConfigurationBinder.TryConvertValue(Type type, String value, String path, Object&amp; result, Exception&amp; error)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at System.Boolean.Parse(String value)&#xD;
+   at System.ComponentModel.BooleanConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="58f61965-af59-4a1f-9047-f8b0b5c9c9b4" testId="602c111d-6619-fc16-667e-637a1f165e0b" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.DistributedLock_ShouldAssignUniqueLockToken" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0018225" startTime="2026-07-18T15:40:53.4555642+07:00" endTime="2026-07-18T15:40:53.4555644+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="58f61965-af59-4a1f-9047-f8b0b5c9c9b4" />
+    <UnitTestResult executionId="ffdcd8cf-1f95-4beb-afab-3fce91105c79" testId="c5da8f80-7e8c-28b2-5e18-96420d16e162" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(invalidEmail: &quot;   &quot;)" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0000156" startTime="2026-07-18T15:40:53.4562085+07:00" endTime="2026-07-18T15:40:53.4562085+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ffdcd8cf-1f95-4beb-afab-3fce91105c79" />
+    <UnitTestResult executionId="73bd0cd7-f121-4df3-956b-b4aa14009640" testId="74f96034-d25b-9d4c-e80b-16307590c6d5" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisKeys_ShouldGenerateCorrectKeyFormatAndNormalizeEmail" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0003829" startTime="2026-07-18T15:40:53.4566379+07:00" endTime="2026-07-18T15:40:53.4566380+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="73bd0cd7-f121-4df3-956b-b4aa14009640" />
+    <UnitTestResult executionId="f0be585d-be05-48dd-84d2-4047738d88f1" testId="bdd9471d-8da7-baf7-5d28-f9b6a33b65b7" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisOptions_ShouldStoreValidSettings" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0022546" startTime="2026-07-18T15:40:53.4219729+07:00" endTime="2026-07-18T15:40:53.4219922+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f0be585d-be05-48dd-84d2-4047738d88f1" />
+    <UnitTestResult executionId="caa11e7a-ad24-46e5-82f1-d9527b4d32c3" testId="5a980460-bbef-82d7-ff5e-047b786a714b" testName="FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetGymSessionDetails_Should_FetchFromMock_WhenCacheMiss_And_UseMockIsTrue" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0096497" startTime="2026-07-18T15:40:53.4971489+07:00" endTime="2026-07-18T15:40:53.4971491+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="caa11e7a-ad24-46e5-82f1-d9527b4d32c3" />
+    <UnitTestResult executionId="ea34f36e-f369-4eff-82e8-23f92b7eef8d" testId="1c4bf5e8-1212-a067-44d0-fc20548b06f0" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(invalidEmail: null)" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0004255" startTime="2026-07-18T15:40:53.4560178+07:00" endTime="2026-07-18T15:40:53.4560179+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ea34f36e-f369-4eff-82e8-23f92b7eef8d" />
+    <UnitTestResult executionId="af324938-d30b-46a9-869f-ad47182a6521" testId="fa043803-985f-b7e5-b379-47a958baabaa" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisDeadLetterMessage_ShouldMapCorrectly" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0009204" startTime="2026-07-18T15:40:53.4536689+07:00" endTime="2026-07-18T15:40:53.4536692+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="af324938-d30b-46a9-869f-ad47182a6521" />
+    <UnitTestResult executionId="f230f7a8-1dd6-46b8-ba53-a5f28eeb1856" testId="cc476bf9-ee3b-cf8d-72d8-66f9b68f8491" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(invalidEmail: &quot;&quot;)" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0001424" startTime="2026-07-18T15:40:53.4561699+07:00" endTime="2026-07-18T15:40:53.4561700+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f230f7a8-1dd6-46b8-ba53-a5f28eeb1856" />
+    <UnitTestResult executionId="4343f7fe-ec0c-41a6-b6b1-192f5908b8b5" testId="f71374c9-f77d-a185-0d6f-973fc97647a8" testName="FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetClassDetails_Should_FetchFromMock_WhenCacheMiss_And_UseMockIsTrue" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0029158" startTime="2026-07-18T15:40:53.5000755+07:00" endTime="2026-07-18T15:40:53.5000756+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4343f7fe-ec0c-41a6-b6b1-192f5908b8b5" />
+    <UnitTestResult executionId="d2cc8ec7-d925-41af-9034-e69fb3322e91" testId="6f28477b-ec38-b03a-9f24-7c49dbd62cd5" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.IntegrationEvent_ShouldInitializeWithDefaultMetadataAndSerializeCorrectly" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0312010" startTime="2026-07-18T15:40:53.4527059+07:00" endTime="2026-07-18T15:40:53.4527062+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d2cc8ec7-d925-41af-9034-e69fb3322e91" />
+    <UnitTestResult executionId="90eba925-85f9-46e8-8020-bd8a888087b9" testId="31b54a9f-2238-980a-3c88-3fe544d1553d" testName="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisCache_ShouldCorrectlySerializeAndDeserializeComplexTypes" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0063947" startTime="2026-07-18T15:40:53.4729536+07:00" endTime="2026-07-18T15:40:53.4729537+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="90eba925-85f9-46e8-8020-bd8a888087b9" />
+    <UnitTestResult executionId="5d5bbf39-317e-4089-b692-1e5835c80453" testId="325483c9-0e5b-15c4-b64a-dc2a2acb77b7" testName="FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetClassDetails_Should_ReturnCachedValue_OnCacheHit" computerName="LAPTOP-BMJ0SFGI" duration="00:00:00.0028959" startTime="2026-07-18T15:40:53.4888776+07:00" endTime="2026-07-18T15:40:53.4888777+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5d5bbf39-317e-4089-b692-1e5835c80453">
+      <Output>
+        <ErrorInfo>
+          <Message>System.InvalidOperationException : Failed to convert configuration value at '' to type 'System.Boolean'.&#xD;
+---- System.FormatException :  is not a valid value for Boolean.&#xD;
+-------- System.FormatException : String '' was not recognized as a valid Boolean.</Message>
+          <StackTrace>   at Microsoft.Extensions.Configuration.ConfigurationBinder.ConvertValue(Type type, String value, String path)&#xD;
+   at Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue[T](IConfiguration configuration, String key, T defaultValue)&#xD;
+   at FlexFit.BookingService.ExternalServices.Catalog.CatalogServiceClient..ctor(HttpClient httpClient, IConfiguration configuration, ILogger`1 logger, ICacheService cacheService) in C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\FlexFit.BookingService\ExternalServices\Catalog\CatalogServiceClient.cs:line 24&#xD;
+   at FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetClassDetails_Should_ReturnCachedValue_OnCacheHit() in C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\CatalogCacheTests.cs:line 126&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at System.ComponentModel.BooleanConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)&#xD;
+   at Microsoft.Extensions.Configuration.ConfigurationBinder.TryConvertValue(Type type, String value, String path, Object&amp; result, Exception&amp; error)&#xD;
+----- Inner Stack Trace -----&#xD;
+   at System.Boolean.Parse(String value)&#xD;
+   at System.ComponentModel.BooleanConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetGymSessionDetails_Should_ReturnCachedValue_OnCacheHit" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="62e89c71-e9c5-3813-f0c6-88ebd95a7a30">
+      <Execution id="231cea62-d1f9-4383-a123-42c315b7bad2" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.CatalogCacheTests" name="GetGymSessionDetails_Should_ReturnCachedValue_OnCacheHit" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisDeadLetterMessage_ShouldMapCorrectly" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="fa043803-985f-b7e5-b379-47a958baabaa">
+      <Execution id="af324938-d30b-46a9-869f-ad47182a6521" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="RedisDeadLetterMessage_ShouldMapCorrectly" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetClassDetails_Should_FetchFromMock_WhenCacheMiss_And_UseMockIsTrue" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="f71374c9-f77d-a185-0d6f-973fc97647a8">
+      <Execution id="4343f7fe-ec0c-41a6-b6b1-192f5908b8b5" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.CatalogCacheTests" name="GetClassDetails_Should_FetchFromMock_WhenCacheMiss_And_UseMockIsTrue" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisCache_ShouldCorrectlySerializeAndDeserializeComplexTypes" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="31b54a9f-2238-980a-3c88-3fe544d1553d">
+      <Execution id="90eba925-85f9-46e8-8020-bd8a888087b9" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="RedisCache_ShouldCorrectlySerializeAndDeserializeComplexTypes" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetGymSessionDetails_Should_FetchFromMock_WhenCacheMiss_And_UseMockIsTrue" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="5a980460-bbef-82d7-ff5e-047b786a714b">
+      <Execution id="caa11e7a-ad24-46e5-82f1-d9527b4d32c3" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.CatalogCacheTests" name="GetGymSessionDetails_Should_FetchFromMock_WhenCacheMiss_And_UseMockIsTrue" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(invalidEmail: null)" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="1c4bf5e8-1212-a067-44d0-fc20548b06f0">
+      <Execution id="ea34f36e-f369-4eff-82e8-23f92b7eef8d" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisOptions_ShouldStoreValidSettings" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="bdd9471d-8da7-baf7-5d28-f9b6a33b65b7">
+      <Execution id="f0be585d-be05-48dd-84d2-4047738d88f1" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="RedisOptions_ShouldStoreValidSettings" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetClassDetails_Should_ReturnCachedValue_OnCacheHit" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="325483c9-0e5b-15c4-b64a-dc2a2acb77b7">
+      <Execution id="5d5bbf39-317e-4089-b692-1e5835c80453" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.CatalogCacheTests" name="GetClassDetails_Should_ReturnCachedValue_OnCacheHit" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(invalidEmail: &quot;&quot;)" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="cc476bf9-ee3b-cf8d-72d8-66f9b68f8491">
+      <Execution id="f230f7a8-1dd6-46b8-ba53-a5f28eeb1856" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisKeys_ShouldGenerateCorrectKeyFormatAndNormalizeEmail" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="74f96034-d25b-9d4c-e80b-16307590c6d5">
+      <Execution id="73bd0cd7-f121-4df3-956b-b4aa14009640" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="RedisKeys_ShouldGenerateCorrectKeyFormatAndNormalizeEmail" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.DistributedLock_ShouldAssignUniqueLockToken" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="602c111d-6619-fc16-667e-637a1f165e0b">
+      <Execution id="58f61965-af59-4a1f-9047-f8b0b5c9c9b4" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="DistributedLock_ShouldAssignUniqueLockToken" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.IntegrationEvent_ShouldInitializeWithDefaultMetadataAndSerializeCorrectly" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="6f28477b-ec38-b03a-9f24-7c49dbd62cd5">
+      <Execution id="d2cc8ec7-d925-41af-9034-e69fb3322e91" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="IntegrationEvent_ShouldInitializeWithDefaultMetadataAndSerializeCorrectly" />
+    </UnitTest>
+    <UnitTest name="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests.RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid(invalidEmail: &quot;   &quot;)" storage="c:\users\huynh thien phat\source\repos\prn232-flexfit\tests\flexfit.buildingblocks.tests\bin\debug\net8.0\flexfit.buildingblocks.tests.dll" id="c5da8f80-7e8c-28b2-5e18-96420d16e162">
+      <Execution id="ffdcd8cf-1f95-4beb-afab-3fce91105c79" />
+      <TestMethod codeBase="C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\bin\Debug\net8.0\FlexFit.BuildingBlocks.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="FlexFit.BuildingBlocks.Tests.BuildingBlocksTests" name="RedisKeys_NormalizeEmail_ShouldThrowArgumentException_WhenEmailIsInvalid" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="62e89c71-e9c5-3813-f0c6-88ebd95a7a30" executionId="231cea62-d1f9-4383-a123-42c315b7bad2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="602c111d-6619-fc16-667e-637a1f165e0b" executionId="58f61965-af59-4a1f-9047-f8b0b5c9c9b4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c5da8f80-7e8c-28b2-5e18-96420d16e162" executionId="ffdcd8cf-1f95-4beb-afab-3fce91105c79" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="74f96034-d25b-9d4c-e80b-16307590c6d5" executionId="73bd0cd7-f121-4df3-956b-b4aa14009640" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bdd9471d-8da7-baf7-5d28-f9b6a33b65b7" executionId="f0be585d-be05-48dd-84d2-4047738d88f1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5a980460-bbef-82d7-ff5e-047b786a714b" executionId="caa11e7a-ad24-46e5-82f1-d9527b4d32c3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1c4bf5e8-1212-a067-44d0-fc20548b06f0" executionId="ea34f36e-f369-4eff-82e8-23f92b7eef8d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fa043803-985f-b7e5-b379-47a958baabaa" executionId="af324938-d30b-46a9-869f-ad47182a6521" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cc476bf9-ee3b-cf8d-72d8-66f9b68f8491" executionId="f230f7a8-1dd6-46b8-ba53-a5f28eeb1856" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f71374c9-f77d-a185-0d6f-973fc97647a8" executionId="4343f7fe-ec0c-41a6-b6b1-192f5908b8b5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6f28477b-ec38-b03a-9f24-7c49dbd62cd5" executionId="d2cc8ec7-d925-41af-9034-e69fb3322e91" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="31b54a9f-2238-980a-3c88-3fe544d1553d" executionId="90eba925-85f9-46e8-8020-bd8a888087b9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="325483c9-0e5b-15c4-b64a-dc2a2acb77b7" executionId="5d5bbf39-317e-4089-b692-1e5835c80453" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="13" executed="13" passed="11" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.28)&#xD;
+[xUnit.net 00:00:00.07]   Discovering: FlexFit.BuildingBlocks.Tests&#xD;
+[xUnit.net 00:00:00.10]   Discovered:  FlexFit.BuildingBlocks.Tests&#xD;
+[xUnit.net 00:00:00.11]   Starting:    FlexFit.BuildingBlocks.Tests&#xD;
+[xUnit.net 00:00:00.21]       System.InvalidOperationException : Failed to convert configuration value at '' to type 'System.Boolean'.&#xD;
+[xUnit.net 00:00:00.21]       ---- System.FormatException :  is not a valid value for Boolean.&#xD;
+[xUnit.net 00:00:00.21]       -------- System.FormatException : String '' was not recognized as a valid Boolean.&#xD;
+[xUnit.net 00:00:00.21]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.21]            at Microsoft.Extensions.Configuration.ConfigurationBinder.ConvertValue(Type type, String value, String path)&#xD;
+[xUnit.net 00:00:00.21]            at Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue[T](IConfiguration configuration, String key, T defaultValue)&#xD;
+[xUnit.net 00:00:00.21]         C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\FlexFit.BookingService\ExternalServices\Catalog\CatalogServiceClient.cs(24,0): at FlexFit.BookingService.ExternalServices.Catalog.CatalogServiceClient..ctor(HttpClient httpClient, IConfiguration configuration, ILogger`1 logger, ICacheService cacheService)&#xD;
+[xUnit.net 00:00:00.21]         C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\CatalogCacheTests.cs(52,0): at FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetGymSessionDetails_Should_ReturnCachedValue_OnCacheHit()&#xD;
+[xUnit.net 00:00:00.21]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.21]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.21]            at System.ComponentModel.BooleanConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)&#xD;
+[xUnit.net 00:00:00.21]            at Microsoft.Extensions.Configuration.ConfigurationBinder.TryConvertValue(Type type, String value, String path, Object&amp; result, Exception&amp; error)&#xD;
+[xUnit.net 00:00:00.21]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.21]            at System.Boolean.Parse(String value)&#xD;
+[xUnit.net 00:00:00.21]            at System.ComponentModel.BooleanConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)&#xD;
+[xUnit.net 00:00:00.21]       System.InvalidOperationException : Failed to convert configuration value at '' to type 'System.Boolean'.&#xD;
+[xUnit.net 00:00:00.21]       ---- System.FormatException :  is not a valid value for Boolean.&#xD;
+[xUnit.net 00:00:00.21]       -------- System.FormatException : String '' was not recognized as a valid Boolean.&#xD;
+[xUnit.net 00:00:00.21]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.21]            at Microsoft.Extensions.Configuration.ConfigurationBinder.ConvertValue(Type type, String value, String path)&#xD;
+[xUnit.net 00:00:00.21]            at Microsoft.Extensions.Configuration.ConfigurationBinder.GetValue[T](IConfiguration configuration, String key, T defaultValue)&#xD;
+[xUnit.net 00:00:00.21]         C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\FlexFit.BookingService\ExternalServices\Catalog\CatalogServiceClient.cs(24,0): at FlexFit.BookingService.ExternalServices.Catalog.CatalogServiceClient..ctor(HttpClient httpClient, IConfiguration configuration, ILogger`1 logger, ICacheService cacheService)&#xD;
+[xUnit.net 00:00:00.21]         C:\Users\Huynh Thien Phat\source\repos\PRN232-FLEXFIT\tests\FlexFit.BuildingBlocks.Tests\CatalogCacheTests.cs(126,0): at FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetClassDetails_Should_ReturnCachedValue_OnCacheHit()&#xD;
+[xUnit.net 00:00:00.21]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.21]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.21]            at System.ComponentModel.BooleanConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)&#xD;
+[xUnit.net 00:00:00.21]            at Microsoft.Extensions.Configuration.ConfigurationBinder.TryConvertValue(Type type, String value, String path, Object&amp; result, Exception&amp; error)&#xD;
+[xUnit.net 00:00:00.21]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.21]            at System.Boolean.Parse(String value)&#xD;
+[xUnit.net 00:00:00.21]            at System.ComponentModel.BooleanConverter.ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, Object value)&#xD;
+[xUnit.net 00:00:00.22]   Finished:    FlexFit.BuildingBlocks.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LAPTOP-BMJ0SFGI" outcome="Error" timestamp="2026-07-18T15:40:53.5014366+07:00">
+        <Text>[xUnit.net 00:00:00.21]     FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetGymSessionDetails_Should_ReturnCachedValue_OnCacheHit [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LAPTOP-BMJ0SFGI" outcome="Error" timestamp="2026-07-18T15:40:53.5018252+07:00">
+        <Text>[xUnit.net 00:00:00.21]     FlexFit.BuildingBlocks.Tests.CatalogCacheTests.GetClassDetails_Should_ReturnCachedValue_OnCacheHit [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

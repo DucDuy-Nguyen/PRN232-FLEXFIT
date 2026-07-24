@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "FlexFit.Recommendation.Grpc";
+
+package recommendation;
+
+service RecommendationService {
+  rpc GetWorkoutRecommendations (RecommendationRequest) returns (RecommendationResponse);
+  rpc GetClassRecommendations (RecommendationRequest) returns (RecommendationResponse);
+}
+
+message RecommendationRequest {
+  string user_id = 1;
+}
+
+message RecommendationResponse {
+  repeated string recommendations = 1;
+}
