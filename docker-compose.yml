@@ -159,10 +159,10 @@ services:
       - Jwt__Key=VeryLongSuperSecureKey1234567890!!
       - Jwt__Issuer=FlexFitIdentity
       - Jwt__Audience=FlexFitClient
-      - PayOS__ClientId=${PAYOS_CLIENT_ID:-mock-client-id}
-      - PayOS__ApiKey=${PAYOS_API_KEY:-mock-api-key}
-      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY:-mock-checksum-key}
-      - Payment__UseMockPayment=true
+      - PayOS__ClientId=${PAYOS_CLIENT_ID:-cd7acad2-b510-4c35-80d0-8dd39cfcb555}
+      - PayOS__ApiKey=${PAYOS_API_KEY:-afe2b44b-f417-4206-adf0-e6fa55e8019a}
+      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY:-7f6d4da3a618f7f71553a4342567b3557295525fdc24b0f96b2f254d734fe6b5}
+      - Payment__UseMockPayment=false
     ports:
       - "5080:8080"
     depends_on:
