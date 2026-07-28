@@ -43,6 +43,12 @@ public static class RedisKeys
     public static string CatalogClass(Guid classId)
         => $"flexfit:catalog:classes:{classId}";
 
+    public static string UserGymBookings(Guid userId)
+        => $"flexfit:booking:user:{userId}:gym";
+
+    public static string UserClassBookings(Guid userId)
+        => $"flexfit:booking:user:{userId}:class";
+
     public static string NormalizeEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))

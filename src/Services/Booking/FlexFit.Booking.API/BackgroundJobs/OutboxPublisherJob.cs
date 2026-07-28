@@ -50,6 +50,7 @@ namespace FlexFit.Booking.API.BackgroundJobs
             using var scope = _scopeFactory.CreateScope();
             var outboxRepo = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
             var publishEndpoint = scope.ServiceProvider.GetRequiredService<IPublishEndpoint>();
+            var redisConnection = scope.ServiceProvider.GetService<StackExchange.Redis.IConnectionMultiplexer>();
 
             // Query up to 20 unprocessed messages
             var messages = await outboxRepo.GetUnprocessedMessagesAsync(20, stoppingToken);
@@ -62,23 +63,33 @@ namespace FlexFit.Booking.API.BackgroundJobs
             {
                 try
                 {
-                    // Dynamically resolve event type under Events namespace
-                    var typeName = $"FlexFit.Booking.Service.Messaging.Events.{msg.EventType}";
-                    var eventType = Type.GetType(typeName);
-
-                    if (eventType == null)
+                    if (redisConnection != null && (msg.EventType == "CreditDeductionRequested" || msg.EventType == "CreditRefundRequested"))
                     {
-                        throw new InvalidOperationException($"Could not resolve type matching event type: {typeName}");
-                    }
+                        // Publish to Redis Stream for Payment Service
+                        var db = redisConnection.GetDatabase();
+                        await db.StreamAddAsync("flexfit:booking:events", new StackExchange.Redis.NameValueEntry[]
+                        {
+                            new StackExchange.Redis.NameValueEntry("EventType", msg.EventType),
+                            new StackExchange.Redis.NameValueEntry("Payload", msg.Payload)
+                        });
 
-                    var eventObj = JsonSerializer.Deserialize(msg.Payload, eventType);
-                    if (eventObj == null)
+                        _logger.LogInformation("Successfully published {EventType} for booking {AggregateId} to Redis Stream flexfit:booking:events", msg.EventType, msg.AggregateId);
+                    }
+                    else
                     {
-                        throw new InvalidOperationException($"Failed to deserialize payload for message {msg.OutboxMessageId}");
-                    }
+                        // Dynamically resolve event type under Events namespace for MassTransit
+                        var typeName = $"FlexFit.Booking.Service.Messaging.Events.{msg.EventType}";
+                        var eventType = Type.GetType(typeName);
 
-                    // Publish via MassTransit publish endpoint
-                    await publishEndpoint.Publish(eventObj, eventType, stoppingToken);
+                        if (eventType != null)
+                        {
+                            var eventObj = JsonSerializer.Deserialize(msg.Payload, eventType);
+                            if (eventObj != null)
+                            {
+                                await publishEndpoint.Publish(eventObj, eventType, stoppingToken);
+                            }
+                        }
+                    }
 
                     msg.ProcessedAt = DateTime.UtcNow;
                     msg.ErrorMessage = null;

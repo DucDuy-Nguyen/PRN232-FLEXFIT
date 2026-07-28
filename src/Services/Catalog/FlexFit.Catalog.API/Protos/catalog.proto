@@ -7,6 +7,7 @@ package catalog;
 service CatalogGrpc {
   rpc GetClassBookingSnapshot (GetClassBookingSnapshotRequest) returns (BookingSnapshotResponse);
   rpc GetGymSessionBookingSnapshot (GetGymSessionBookingSnapshotRequest) returns (BookingSnapshotResponse);
+  rpc GetBranchBookingSnapshot (GetBranchBookingSnapshotRequest) returns (BookingSnapshotResponse);
 }
 
 message GetClassBookingSnapshotRequest {
@@ -15,6 +16,10 @@ message GetClassBookingSnapshotRequest {
 
 message GetGymSessionBookingSnapshotRequest {
   string session_id = 1;
+}
+
+message GetBranchBookingSnapshotRequest {
+  string branch_id = 1;
 }
 
 message BookingSnapshotResponse {

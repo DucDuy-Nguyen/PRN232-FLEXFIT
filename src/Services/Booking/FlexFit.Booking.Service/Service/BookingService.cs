@@ -1,3 +1,4 @@
+using FlexFit.Caching;
 using FlexFit.Booking.Service.DTOs.Requests;
 using FlexFit.Booking.Service.DTOs.Responses;
 using FlexFit.Booking.Service.ExternalServices.Catalog;
@@ -18,13 +19,19 @@ namespace FlexFit.Booking.Service.Service
     {
         private readonly IBookingRepository _bookingRepo;
         private readonly ICatalogServiceClient _catalogClient;
+        private readonly ICacheService _cacheService;
+        private readonly IDistributedLockService _lockService;
 
         public BookingService(
             IBookingRepository bookingRepo,
-            ICatalogServiceClient catalogClient)
+            ICatalogServiceClient catalogClient,
+            ICacheService cacheService,
+            IDistributedLockService lockService)
         {
             _bookingRepo = bookingRepo;
             _catalogClient = catalogClient;
+            _cacheService = cacheService;
+            _lockService = lockService;
         }
 
         private string GenerateBookingCode()
@@ -57,115 +64,142 @@ namespace FlexFit.Booking.Service.Service
             if (request.StartTime <= now) throw new Exception("Không thể đặt lịch cho thời gian trong quá khứ.");
             if (request.EndTime <= request.StartTime) throw new Exception("Thời gian kết thúc phải sau thời gian bắt đầu.");
 
-            // Fetch session details from Catalog Service
-            var catalogSession = await _catalogClient.GetGymSessionDetailsAsync(request.BranchId); // SessionId maps to BranchId in old API schema
-            if (catalogSession == null)
+            // Distributed lock on Session concurrency to prevent overbooking
+            var lockKey = $"booking:gymsession:{request.BranchId}:{request.StartTime:yyyyMMddHHmm}";
+            await using (await _lockService.TryAcquireAsync(lockKey, TimeSpan.FromSeconds(10)))
             {
-                // Fallback details if not found (matching monolith behavior)
-                catalogSession = new CatalogSessionDetails
+                // Fetch session details from Catalog Service
+                var catalogSession = await _catalogClient.GetGymSessionDetailsAsync(request.BranchId); // SessionId maps to BranchId in old API schema
+                if (catalogSession == null)
                 {
-                    SessionId = Guid.NewGuid(),
-                    GymId = Guid.NewGuid(),
-                    GymName = "Flexfit Club",
-                    BranchId = request.BranchId,
-                    BranchName = "Chi nhánh Flexfit",
-                    BranchAddress = "Địa chỉ hệ thống",
-                    SessionName = request.SessionName,
-                    StartTime = request.StartTime,
-                    EndTime = request.EndTime,
-                    Capacity = 100,
-                    CreditCost = 5,
-                    Status = "Open"
+                    // Fallback details if not found (matching monolith behavior)
+                    catalogSession = new CatalogSessionDetails
+                    {
+                        SessionId = Guid.NewGuid(),
+                        GymId = Guid.NewGuid(),
+                        GymName = "Flexfit Club",
+                        BranchId = request.BranchId,
+                        BranchName = "Chi nhánh Flexfit",
+                        BranchAddress = "Địa chỉ hệ thống",
+                        SessionName = request.SessionName,
+                        StartTime = request.StartTime,
+                        EndTime = request.EndTime,
+                        Capacity = 100,
+                        CreditCost = 5,
+                        Status = "Open"
+                    };
+                }
+
+                // Use the requested StartTime and EndTime for this gym session
+                catalogSession.StartTime = request.StartTime;
+                catalogSession.EndTime = request.EndTime;
+
+                // ExistsDuplicate check
+                if (await _bookingRepo.ExistsDuplicateGymBookingAsync(userId, catalogSession.SessionId, catalogSession.StartTime))
+                    throw new Exception("Hội viên đã đặt lịch tập gym cho khung giờ này trong ngày.");
+
+                // Overlap check
+                if (await _bookingRepo.HasOverlappingBookingAsync(userId, catalogSession.StartTime, catalogSession.EndTime))
+                    throw new Exception("Lịch tập trùng khớp với một lịch đặt gym hoặc lớp học khác đã tồn tại.");
+
+                // Capacity check
+                int currentCapacity = await _bookingRepo.CountActiveClassBookingsAsync(catalogSession.SessionId); // capacity check
+                if (currentCapacity >= catalogSession.Capacity)
+                    throw new Exception("Session này đã hết chỗ.");
+
+                // Daily limits check (cancellation count must be less than 2)
+                if (await _bookingRepo.GetCancellationCountTodayAsync(userId) >= 2)
+                    throw new Exception("Mỗi ngày hủy tối đa 2 lịch đặt.");
+
+                var booking = new GymBooking
+                {
+                    BookingId = Guid.NewGuid(),
+                    UserId = userId,
+                    SessionId = catalogSession.SessionId,
+                    BranchId = catalogSession.BranchId,
+                    GymId = catalogSession.GymId,
+                    BookingCode = GenerateBookingCode(),
+                    CreditUsed = catalogSession.CreditCost,
+                    CheckInStatus = "NotCheckedIn",
+                    Status = "PendingPayment", // Saga will update status to Confirmed
+                    BookedAt = now,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+
+                    // Snapshots denormalization
+                    GymNameSnapshot = catalogSession.GymName,
+                    SessionNameSnapshot = catalogSession.SessionName,
+                    BranchNameSnapshot = catalogSession.BranchName,
+                    BranchAddressSnapshot = catalogSession.BranchAddress,
+                    StartTimeSnapshot = catalogSession.StartTime,
+                    EndTimeSnapshot = catalogSession.EndTime
+                };
+
+                await _bookingRepo.AddGymBookingAsync(booking);
+
+                // Construct and enqueue Outbox Message for Credit Deduction Request
+                var eventPayload = new
+                {
+                    BookingId = booking.BookingId,
+                    UserId = userId,
+                    CreditCost = booking.CreditUsed,
+                    ReferenceType = "GymBooking",
+                    Description = $"Credit deduction for Gym Booking ({booking.SessionNameSnapshot})"
+                };
+
+                var outbox = new OutboxMessage
+                {
+                    OutboxMessageId = Guid.NewGuid(),
+                    EventType = "CreditDeductionRequested",
+                    AggregateType = "GymBooking",
+                    AggregateId = booking.BookingId,
+                    Payload = JsonSerializer.Serialize(eventPayload),
+                    CorrelationId = booking.BookingId.ToString(),
+                    OccurredAt = DateTime.UtcNow
+                };
+
+                await _bookingRepo.AddOutboxMessageAsync(outbox);
+                await _bookingRepo.SaveChangesAsync();
+
+                // Invalidate user gym bookings cache
+                await _cacheService.RemoveAsync(RedisKeys.UserGymBookings(userId));
+
+                return new GymBookingResponse
+                {
+                    BookingId = booking.BookingId,
+                    SessionId = booking.SessionId,
+                    SessionName = booking.SessionNameSnapshot,
+                    BranchName = booking.BranchNameSnapshot,
+                    GymName = booking.GymNameSnapshot,
+                    StartTime = booking.StartTimeSnapshot,
+                    EndTime = booking.EndTimeSnapshot,
+                    BookingCode = booking.BookingCode,
+                    CheckInStatus = booking.CheckInStatus,
+                    Status = booking.Status,
+                    CreditUsed = booking.CreditUsed,
+                    BookedAt = booking.BookedAt
                 };
             }
-
-            // ExistsDuplicate check
-            if (await _bookingRepo.ExistsDuplicateGymBookingAsync(userId, catalogSession.SessionId, catalogSession.StartTime))
-                throw new Exception("Hội viên đã đặt lịch tập gym cho khung giờ này trong ngày.");
-
-            // Overlap check
-            if (await _bookingRepo.HasOverlappingBookingAsync(userId, catalogSession.StartTime, catalogSession.EndTime))
-                throw new Exception("Lịch tập trùng khớp với một lịch đặt gym hoặc lớp học khác đã tồn tại.");
-
-            // Capacity check
-            int currentCapacity = await _bookingRepo.CountActiveClassBookingsAsync(catalogSession.SessionId); // capacity check
-            if (currentCapacity >= catalogSession.Capacity)
-                throw new Exception("Session này đã hết chỗ.");
-
-            // Daily limits check (cancellation count must be less than 2)
-            if (await _bookingRepo.GetCancellationCountTodayAsync(userId) >= 2)
-                throw new Exception("Mỗi ngày hủy tối đa 2 lịch đặt.");
-
-            var booking = new GymBooking
-            {
-                BookingId = Guid.NewGuid(),
-                UserId = userId,
-                SessionId = catalogSession.SessionId,
-                BranchId = catalogSession.BranchId,
-                GymId = catalogSession.GymId,
-                BookingCode = GenerateBookingCode(),
-                CreditUsed = catalogSession.CreditCost,
-                CheckInStatus = "NotCheckedIn",
-                Status = "PendingPayment", // Saga will update status to Confirmed
-                BookedAt = now,
-                CreatedAt = now,
-                UpdatedAt = now,
-
-                // Snapshots denormalization
-                GymNameSnapshot = catalogSession.GymName,
-                SessionNameSnapshot = catalogSession.SessionName,
-                BranchNameSnapshot = catalogSession.BranchName,
-                BranchAddressSnapshot = catalogSession.BranchAddress,
-                StartTimeSnapshot = catalogSession.StartTime,
-                EndTimeSnapshot = catalogSession.EndTime
-            };
-
-            await _bookingRepo.AddGymBookingAsync(booking);
-
-            // Construct and enqueue Outbox Message
-            var eventPayload = new GymBookingCreatedEvent
-            {
-                BookingId = booking.BookingId,
-                UserId = userId,
-                CreditAmount = booking.CreditUsed,
-                CorrelationId = booking.BookingId
-            };
-
-            var outbox = new OutboxMessage
-            {
-                OutboxMessageId = Guid.NewGuid(),
-                EventType = typeof(GymBookingCreatedEvent).Name,
-                AggregateType = "GymBooking",
-                AggregateId = booking.BookingId,
-                Payload = JsonSerializer.Serialize(eventPayload),
-                CorrelationId = booking.BookingId.ToString(),
-                OccurredAt = DateTime.UtcNow
-            };
-
-            await _bookingRepo.AddOutboxMessageAsync(outbox);
-            await _bookingRepo.SaveChangesAsync();
-
-            return new GymBookingResponse
-            {
-                BookingId = booking.BookingId,
-                SessionId = booking.SessionId,
-                SessionName = booking.SessionNameSnapshot,
-                BranchName = booking.BranchNameSnapshot,
-                GymName = booking.GymNameSnapshot,
-                StartTime = booking.StartTimeSnapshot,
-                EndTime = booking.EndTimeSnapshot,
-                BookingCode = booking.BookingCode,
-                CheckInStatus = booking.CheckInStatus,
-                Status = booking.Status,
-                CreditUsed = booking.CreditUsed,
-                BookedAt = booking.BookedAt
-            };
         }
 
         public async Task<IEnumerable<GymBookingResponse>> GetMyGymBookingsAsync(Guid userId)
         {
+            var cacheKey = RedisKeys.UserGymBookings(userId);
+            try
+            {
+                var cached = await _cacheService.GetAsync<List<GymBookingResponse>>(cacheKey);
+                if (cached != null)
+                {
+                    return cached;
+                }
+            }
+            catch
+            {
+                // Fallback to database on cache error
+            }
+
             var bookings = await _bookingRepo.GetUserGymBookingsAsync(userId);
-            return bookings.Select(b => new GymBookingResponse
+            var result = bookings.Select(b => new GymBookingResponse
             {
                 BookingId = b.BookingId,
                 SessionId = b.SessionId,
@@ -179,7 +213,18 @@ namespace FlexFit.Booking.Service.Service
                 Status = b.Status,
                 CreditUsed = b.CreditUsed,
                 BookedAt = b.BookedAt
-            });
+            }).ToList();
+
+            try
+            {
+                await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(2));
+            }
+            catch
+            {
+                // Non-critical cache write failure
+            }
+
+            return result;
         }
 
         public async Task<GymBookingResponse> CancelGymBookingAsync(Guid userId, Guid bookingId)
@@ -231,6 +276,9 @@ namespace FlexFit.Booking.Service.Service
             await _bookingRepo.AddOutboxMessageAsync(outbox);
             await _bookingRepo.SaveChangesAsync();
 
+            // Invalidate user gym bookings cache
+            await _cacheService.RemoveAsync(RedisKeys.UserGymBookings(userId));
+
             return new GymBookingResponse
             {
                 BookingId = booking.BookingId,
@@ -254,100 +302,124 @@ namespace FlexFit.Booking.Service.Service
         public async Task<ClassBookingResponse> BookClassAsync(Guid userId, CreateClassBookingRequest request)
         {
             var now = DateTimeHelper.GetVietnamTime();
-            var classObj = await _catalogClient.GetClassDetailsAsync(request.ClassId);
-            if (classObj == null) throw new Exception("Class không tồn tại.");
-            if (classObj.StartTime <= now) throw new Exception("Không thể đặt lịch cho lớp đã bắt đầu hoặc kết thúc.");
 
-            // ExistsDuplicate check
-            if (await _bookingRepo.ExistsDuplicateClassBookingAsync(userId, classObj.ClassId, classObj.StartTime))
-                throw new Exception("Hội viên đã đặt lịch lớp học này trong ngày.");
-
-            // Overlap check
-            if (await _bookingRepo.HasOverlappingBookingAsync(userId, classObj.StartTime, classObj.EndTime))
-                throw new Exception("Lịch tập trùng khớp với một lịch đặt gym hoặc lớp học khác đã tồn tại.");
-
-            // Capacity check
-            int currentCapacity = await _bookingRepo.CountActiveClassBookingsAsync(classObj.ClassId);
-            if (currentCapacity >= classObj.Capacity)
-                throw new Exception("Lớp học này đã hết chỗ.");
-
-            // Cancellation limit check
-            if (await _bookingRepo.GetCancellationCountTodayAsync(userId) >= 2)
-                throw new Exception("Mỗi ngày hủy tối đa 2 lịch đặt.");
-
-            var booking = new ClassBooking
+            // Distributed lock on Class ID concurrency to prevent overbooking
+            var lockKey = $"booking:class:{request.ClassId}";
+            await using (await _lockService.TryAcquireAsync(lockKey, TimeSpan.FromSeconds(10)))
             {
-                BookingId = Guid.NewGuid(),
-                UserId = userId,
-                ClassId = classObj.ClassId,
-                ScheduleId = classObj.ScheduleId,
-                BranchId = classObj.BranchId,
-                GymId = classObj.GymId,
-                BookingCode = GenerateBookingCode(),
-                CreditUsed = classObj.CreditCost,
-                CheckInStatus = "NotCheckedIn",
-                Status = "PendingPayment", // Saga will update status to Confirmed
-                BookedAt = now,
-                CreatedAt = now,
-                UpdatedAt = now,
+                var classObj = await _catalogClient.GetClassDetailsAsync(request.ClassId);
+                if (classObj == null) throw new Exception("Class không tồn tại.");
+                if (classObj.StartTime <= now) throw new Exception("Không thể đặt lịch cho lớp đã bắt đầu hoặc kết thúc.");
 
-                // Snapshots denormalization
-                GymNameSnapshot = classObj.GymName,
-                ClassNameSnapshot = classObj.ClassName,
-                BranchNameSnapshot = classObj.BranchName,
-                BranchAddressSnapshot = classObj.BranchAddress,
-                CoachNameSnapshot = classObj.CoachName,
-                StartTimeSnapshot = classObj.StartTime,
-                EndTimeSnapshot = classObj.EndTime
-            };
+                // ExistsDuplicate check
+                if (await _bookingRepo.ExistsDuplicateClassBookingAsync(userId, classObj.ClassId, classObj.StartTime))
+                    throw new Exception("Hội viên đã đặt lịch lớp học này trong ngày.");
 
-            await _bookingRepo.AddClassBookingAsync(booking);
+                // Overlap check
+                if (await _bookingRepo.HasOverlappingBookingAsync(userId, classObj.StartTime, classObj.EndTime))
+                    throw new Exception("Lịch tập trùng khớp với một lịch đặt gym hoặc lớp học khác đã tồn tại.");
 
-            // Construct and enqueue Outbox Message
-            var eventPayload = new ClassBookingCreatedEvent
-            {
-                BookingId = booking.BookingId,
-                UserId = userId,
-                CreditAmount = booking.CreditUsed,
-                CorrelationId = booking.BookingId
-            };
+                // Capacity check
+                int currentCapacity = await _bookingRepo.CountActiveClassBookingsAsync(classObj.ClassId);
+                if (currentCapacity >= classObj.Capacity)
+                    throw new Exception("Lớp học này đã hết chỗ.");
 
-            var outbox = new OutboxMessage
-            {
-                OutboxMessageId = Guid.NewGuid(),
-                EventType = typeof(ClassBookingCreatedEvent).Name,
-                AggregateType = "ClassBooking",
-                AggregateId = booking.BookingId,
-                Payload = JsonSerializer.Serialize(eventPayload),
-                CorrelationId = booking.BookingId.ToString(),
-                OccurredAt = DateTime.UtcNow
-            };
+                // Cancellation limit check
+                if (await _bookingRepo.GetCancellationCountTodayAsync(userId) >= 2)
+                    throw new Exception("Mỗi ngày hủy tối đa 2 lịch đặt.");
 
-            await _bookingRepo.AddOutboxMessageAsync(outbox);
-            await _bookingRepo.SaveChangesAsync();
+                var booking = new ClassBooking
+                {
+                    BookingId = Guid.NewGuid(),
+                    UserId = userId,
+                    ClassId = classObj.ClassId,
+                    ScheduleId = classObj.ScheduleId,
+                    BranchId = classObj.BranchId,
+                    GymId = classObj.GymId,
+                    BookingCode = GenerateBookingCode(),
+                    CreditUsed = classObj.CreditCost,
+                    CheckInStatus = "NotCheckedIn",
+                    Status = "PendingPayment", // Saga will update status to Confirmed
+                    BookedAt = now,
+                    CreatedAt = now,
+                    UpdatedAt = now,
 
-            return new ClassBookingResponse
-            {
-                BookingId = booking.BookingId,
-                ClassId = booking.ClassId,
-                ClassName = booking.ClassNameSnapshot,
-                CoachName = booking.CoachNameSnapshot,
-                BranchName = booking.BranchNameSnapshot,
-                GymName = booking.GymNameSnapshot,
-                StartTime = booking.StartTimeSnapshot,
-                EndTime = booking.EndTimeSnapshot,
-                BookingCode = booking.BookingCode,
-                CheckInStatus = booking.CheckInStatus,
-                Status = booking.Status,
-                CreditUsed = booking.CreditUsed,
-                BookedAt = booking.BookedAt
-            };
+                    // Snapshots denormalization
+                    GymNameSnapshot = classObj.GymName,
+                    ClassNameSnapshot = classObj.ClassName,
+                    BranchNameSnapshot = classObj.BranchName,
+                    BranchAddressSnapshot = classObj.BranchAddress,
+                    CoachNameSnapshot = classObj.CoachName,
+                    StartTimeSnapshot = classObj.StartTime,
+                    EndTimeSnapshot = classObj.EndTime
+                };
+
+                await _bookingRepo.AddClassBookingAsync(booking);
+
+                // Construct and enqueue Outbox Message for Credit Deduction Request
+                var eventPayload = new
+                {
+                    BookingId = booking.BookingId,
+                    UserId = userId,
+                    CreditCost = booking.CreditUsed,
+                    ReferenceType = "ClassBooking",
+                    Description = $"Credit deduction for Class Booking ({booking.ClassNameSnapshot})"
+                };
+
+                var outbox = new OutboxMessage
+                {
+                    OutboxMessageId = Guid.NewGuid(),
+                    EventType = "CreditDeductionRequested",
+                    AggregateType = "ClassBooking",
+                    AggregateId = booking.BookingId,
+                    Payload = JsonSerializer.Serialize(eventPayload),
+                    CorrelationId = booking.BookingId.ToString(),
+                    OccurredAt = DateTime.UtcNow
+                };
+
+                await _bookingRepo.AddOutboxMessageAsync(outbox);
+                await _bookingRepo.SaveChangesAsync();
+
+                // Invalidate user class bookings cache
+                await _cacheService.RemoveAsync(RedisKeys.UserClassBookings(userId));
+
+                return new ClassBookingResponse
+                {
+                    BookingId = booking.BookingId,
+                    ClassId = booking.ClassId,
+                    ClassName = booking.ClassNameSnapshot,
+                    CoachName = booking.CoachNameSnapshot,
+                    BranchName = booking.BranchNameSnapshot,
+                    GymName = booking.GymNameSnapshot,
+                    StartTime = booking.StartTimeSnapshot,
+                    EndTime = booking.EndTimeSnapshot,
+                    BookingCode = booking.BookingCode,
+                    CheckInStatus = booking.CheckInStatus,
+                    Status = booking.Status,
+                    CreditUsed = booking.CreditUsed,
+                    BookedAt = booking.BookedAt
+                };
+            }
         }
 
         public async Task<IEnumerable<ClassBookingResponse>> GetMyClassBookingsAsync(Guid userId)
         {
+            var cacheKey = RedisKeys.UserClassBookings(userId);
+            try
+            {
+                var cached = await _cacheService.GetAsync<List<ClassBookingResponse>>(cacheKey);
+                if (cached != null)
+                {
+                    return cached;
+                }
+            }
+            catch
+            {
+                // Fallback to database on cache error
+            }
+
             var bookings = await _bookingRepo.GetUserClassBookingsAsync(userId);
-            return bookings.Select(b => new ClassBookingResponse
+            var result = bookings.Select(b => new ClassBookingResponse
             {
                 BookingId = b.BookingId,
                 ClassId = b.ClassId,
@@ -362,7 +434,18 @@ namespace FlexFit.Booking.Service.Service
                 Status = b.Status,
                 CreditUsed = b.CreditUsed,
                 BookedAt = b.BookedAt
-            });
+            }).ToList();
+
+            try
+            {
+                await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(2));
+            }
+            catch
+            {
+                // Non-critical cache write failure
+            }
+
+            return result;
         }
 
         public async Task<ClassBookingResponse> CancelClassBookingAsync(Guid userId, Guid bookingId)
@@ -413,6 +496,9 @@ namespace FlexFit.Booking.Service.Service
 
             await _bookingRepo.AddOutboxMessageAsync(outbox);
             await _bookingRepo.SaveChangesAsync();
+
+            // Invalidate user class bookings cache
+            await _cacheService.RemoveAsync(RedisKeys.UserClassBookings(userId));
 
             return new ClassBookingResponse
             {
