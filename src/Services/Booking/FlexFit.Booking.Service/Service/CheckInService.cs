@@ -1,3 +1,4 @@
+using FlexFit.Caching;
 using FlexFit.Booking.Service.DTOs.Requests;
 using FlexFit.Booking.Service.DTOs.Responses;
 using FlexFit.Booking.Service.ExternalServices.Catalog;
@@ -18,13 +19,16 @@ namespace FlexFit.Booking.Service.Service
     {
         private readonly ICheckInRepository _checkInRepo;
         private readonly ICatalogServiceClient _catalogClient;
+        private readonly ICacheService _cacheService;
 
         public CheckInService(
             ICheckInRepository checkInRepo,
-            ICatalogServiceClient catalogClient)
+            ICatalogServiceClient catalogClient,
+            ICacheService cacheService)
         {
             _checkInRepo = checkInRepo;
             _catalogClient = catalogClient;
+            _cacheService = cacheService;
         }
 
         private CheckInLogResponse MapToResponse(CheckInLog log)
@@ -143,6 +147,9 @@ namespace FlexFit.Booking.Service.Service
             await _checkInRepo.AddOutboxMessageAsync(outbox);
             await _checkInRepo.SaveChangesAsync();
 
+            // Invalidate user gym bookings cache on check-in
+            await _cacheService.RemoveAsync(RedisKeys.UserGymBookings(booking.UserId));
+
             return MapToResponse(log);
         }
 
@@ -223,6 +230,9 @@ namespace FlexFit.Booking.Service.Service
 
             await _checkInRepo.AddOutboxMessageAsync(outbox);
             await _checkInRepo.SaveChangesAsync();
+
+            // Invalidate user class bookings cache on check-in
+            await _cacheService.RemoveAsync(RedisKeys.UserClassBookings(booking.UserId));
 
             return MapToResponse(log);
         }

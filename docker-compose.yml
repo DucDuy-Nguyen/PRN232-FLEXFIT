@@ -32,7 +32,8 @@ services:
       - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=FlexFitDB;User ID=sa;Password=12345;TrustServerCertificate=True;MultipleActiveResultSets=True;
       - Redis__ConnectionString=redis:6379
       - GrpcSettings__RecommendationUrl=http://flexfit-recommendation:8080
-      - Gemini__ApiKey=
+      - Gemini__ApiKey=${GEMINI_API_KEY:-AQ.Ab8RN6LBqr19YxKpL0-pKuurWLkQ2DYGhxEySyLpfEilTkBOrQ}
+      - Gemini__Model=gemini-3.1-flash-lite
       - Jwt__Key=VeryLongSuperSecureKey1234567890!!
       - Jwt__Issuer=FlexFitIdentity
       - Jwt__Audience=FlexFitClient
@@ -98,6 +99,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitBookingDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
       - CatalogConfig__BaseUrl=http://flexfit-catalog:5002
+      - CatalogConfig__GrpcUrl=http://flexfit-catalog:5003
       - CatalogConfig__UseMock=false
       - Redis__ConnectionString=redis:6379
       - Jwt__Key=VeryLongSuperSecureKey1234567890!!
@@ -155,7 +157,7 @@ services:
       dockerfile: src/Services/Payment/FlexFit.Payment.API/Dockerfile
     environment:
       - ConnectionStrings__DefaultConnection=Server=payment-db;Database=FlexFitPaymentDb;User Id=sa;Password=YourPassword123!;Encrypt=True;TrustServerCertificate=True;
-      - Redis__ConnectionString=payment-redis:6379
+      - Redis__ConnectionString=redis:6379
       - Jwt__Key=VeryLongSuperSecureKey1234567890!!
       - Jwt__Issuer=FlexFitIdentity
       - Jwt__Audience=FlexFitClient

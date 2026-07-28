@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\FlexFit.Caching\FlexFit.Caching.csproj" />
     <ProjectReference Include="..\FlexFit.Booking.Repository\FlexFit.Booking.Repository.csproj" />
   </ItemGroup>
 

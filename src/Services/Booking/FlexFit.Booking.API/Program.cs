@@ -59,11 +59,17 @@ builder.Services.AddScoped<IBookingMaintenanceService, BookingMaintenanceService
 builder.Services.AddScoped<IBookingPaymentHandler, BookingPaymentHandler>();
 builder.Services.AddScoped<IClassScheduleHandler, ClassScheduleHandler>();
 
-// 4. Register REST typed HttpClient for Catalog Service
+// 4. Register REST typed HttpClient & gRPC Client for Catalog Service
 var catalogBaseUrl = builder.Configuration["CatalogConfig:BaseUrl"] ?? "http://localhost:7001";
 builder.Services.AddHttpClient<ICatalogServiceClient, CatalogServiceClient>(client =>
 {
     client.BaseAddress = new Uri(catalogBaseUrl);
+});
+
+var catalogGrpcUrl = builder.Configuration["CatalogConfig:GrpcUrl"] ?? "http://localhost:5003";
+builder.Services.AddGrpcClient<FlexFit.Catalog.Service.Protos.CatalogGrpc.CatalogGrpcClient>(options =>
+{
+    options.Address = new Uri(catalogGrpcUrl);
 });
 
 // 4.5 Register Redis Caching Shared Library Services
@@ -107,6 +113,7 @@ builder.Services.AddMassTransit(x =>
 builder.Services.AddHostedService<BookingReminderJob>();
 builder.Services.AddHostedService<AutoCancelExpiredBookingJob>();
 builder.Services.AddHostedService<OutboxPublisherJob>();
+builder.Services.AddHostedService<PaymentResponseConsumerWorker>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
